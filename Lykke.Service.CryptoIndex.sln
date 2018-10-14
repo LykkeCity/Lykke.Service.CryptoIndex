@@ -13,9 +13,9 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution items", "Solution 
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Lykke.Service.CryptoIndex.Domain", "src\Lykke.Service.CryptoIndex.Domain\Lykke.Service.CryptoIndex.Domain.csproj", "{F5B2F6B8-A8CC-4612-8F1D-C063EB8C8955}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Lykke.Service.CryptoIndex.Domain.Services", "src\Lykke.Service.CryptoIndex.DomainServices\Lykke.Service.CryptoIndex.Domain.Services.csproj", "{2D5F52EC-2A27-4045-81ED-72355E2A6325}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Lykke.Service.CryptoIndex.DomainServices", "src\Lykke.Service.CryptoIndex.DomainServices\Lykke.Service.CryptoIndex.DomainServices.csproj", "{2D5F52EC-2A27-4045-81ED-72355E2A6325}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Lykke.Service.CryptoIndex.Domain.Repositories", "src\Lykke.Service.CryptoIndex.AzureRepositories\Lykke.Service.CryptoIndex.Domain.Repositories.csproj", "{4BE49E02-AAAD-460B-8D00-57F412A3D181}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Lykke.Service.CryptoIndex.Domain.AzureRepositories", "src\Lykke.Service.CryptoIndex.AzureRepositories\Lykke.Service.CryptoIndex.Domain.AzureRepositories.csproj", "{4BE49E02-AAAD-460B-8D00-57F412A3D181}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Lykke.Service.CryptoIndex.Contract", "contract\Lykke.Service.CryptoIndex.Contract\Lykke.Service.CryptoIndex.Contract.csproj", "{931B95E3-AF9F-4A4C-9C6A-5959C2FBCAC9}"
 EndProject
@@ -24,6 +24,10 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Lykke.Service.CryptoIndex.Tests", "tests\Lykke.Service.CryptoIndex.Tests\Lykke.Service.CryptoIndex.Tests.csproj", "{A61FFDEE-5725-4650-A788-6E55EE5EFD5B}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Lykke.Service.CryptoIndex", "src\Lykke.Service.CryptoIndex\Lykke.Service.CryptoIndex.csproj", "{E414FDB9-FEEA-4CD0-9BBA-D1541601DF29}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Lykke.CoinMarketCap.Client", "Lykke.CoinMarketCapClient\Lykke.CoinMarketCap.Client.csproj", "{09B85851-7923-4D7F-B1CA-482DDE98CB7E}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Lykke.CoinMarketCap.Client.Tests", "Lykke.CoinMarketCap.Client.Tests\Lykke.CoinMarketCap.Client.Tests.csproj", "{7FC7BBC5-6577-4DBD-8FC7-F865B54A21E4}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -59,6 +63,14 @@ Global
 		{E414FDB9-FEEA-4CD0-9BBA-D1541601DF29}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{E414FDB9-FEEA-4CD0-9BBA-D1541601DF29}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{E414FDB9-FEEA-4CD0-9BBA-D1541601DF29}.Release|Any CPU.Build.0 = Release|Any CPU
+		{09B85851-7923-4D7F-B1CA-482DDE98CB7E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{09B85851-7923-4D7F-B1CA-482DDE98CB7E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{09B85851-7923-4D7F-B1CA-482DDE98CB7E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{09B85851-7923-4D7F-B1CA-482DDE98CB7E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7FC7BBC5-6577-4DBD-8FC7-F865B54A21E4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7FC7BBC5-6577-4DBD-8FC7-F865B54A21E4}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7FC7BBC5-6577-4DBD-8FC7-F865B54A21E4}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7FC7BBC5-6577-4DBD-8FC7-F865B54A21E4}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
