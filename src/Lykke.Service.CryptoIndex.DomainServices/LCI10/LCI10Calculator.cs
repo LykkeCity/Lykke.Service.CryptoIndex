@@ -10,28 +10,33 @@ using Common.Log;
 using Lykke.Common.Log;
 using Lykke.Service.CryptoIndex.Domain;
 using Lykke.Service.CryptoIndex.Domain.LCI10;
+using Lykke.Service.CryptoIndex.Domain.LCI10.IndexSnapshot;
+using Lykke.Service.CryptoIndex.Domain.LCI10.Settings;
 using Lykke.Service.CryptoIndex.Domain.MarketCapitalization;
+using Lykke.Service.CryptoIndex.Domain.TickPrice;
 
 namespace Lykke.Service.CryptoIndex.DomainServices.LCI10
 {
     /// <summary>
     /// See the specification - https://lykkex.atlassian.net/secure/attachment/46308/LCI_specs.pdf
     /// </summary>
-    public class LCI10Calculator : IStartable, IStopable
+    public class LCI10Calculator : ILCI10Calculator, ITickPriceHandler, IStartable, IStopable
     {
+        private const string Usd = "USD";
         private readonly object _sync = new object();
         private readonly List<AssetMarketCap> _marketCaps;
         private readonly IDictionary<string, decimal> _assetsWeights;
         private readonly IDictionary<string, IDictionary<string, decimal>> _assetsPricesCache;
-        private IIndexSnapshotRepository _indexSnapshotRepository;
+        private readonly IIndexSnapshotRepository _indexSnapshotRepository;
         private readonly ISettingsService _settingsService;
         private readonly IMarketCapitalizationService _marketCapitalizationService;
         private readonly TimerTrigger _weightsCalculationTrigger;
         private readonly TimerTrigger _indexCalculationTrigger;
         private readonly ILog _log;
 
-        public LCI10Calculator(Settings settings, IIndexSnapshotRepository indexSnapshotRepository, ISettingsService settingsService,
-            IMarketCapitalizationService marketCapitalizationService, ILogFactory logFactory)
+        public LCI10Calculator(IIndexSnapshotRepository indexSnapshotRepository, ISettingsService settingsService,
+            IMarketCapitalizationService marketCapitalizationService,
+            TimeSpan weightsCalculationInterval, TimeSpan indexCalculationInterval, ILogFactory logFactory)
         {
             _marketCaps = new List<AssetMarketCap>();
             _assetsWeights = new ConcurrentDictionary<string, decimal>();
@@ -41,8 +46,8 @@ namespace Lykke.Service.CryptoIndex.DomainServices.LCI10
             _settingsService = settingsService ?? throw new ArgumentNullException(nameof(settingsService));
             _marketCapitalizationService = marketCapitalizationService ?? throw new ArgumentNullException(nameof(marketCapitalizationService));
 
-            _weightsCalculationTrigger = new TimerTrigger(nameof(LCI10Calculator), settings.WeightsCalculationInterval, logFactory, CalculateWeights);
-            _indexCalculationTrigger = new TimerTrigger(nameof(LCI10Calculator), settings.WeightsCalculationInterval, logFactory, CalculateIndex);
+            _weightsCalculationTrigger = new TimerTrigger(nameof(LCI10Calculator), weightsCalculationInterval, logFactory, CalculateWeights);
+            _indexCalculationTrigger = new TimerTrigger(nameof(LCI10Calculator), indexCalculationInterval, logFactory, CalculateIndex);
 
             _log = logFactory.CreateLog(this);
         }
@@ -63,6 +68,42 @@ namespace Lykke.Service.CryptoIndex.DomainServices.LCI10
         {
             _marketCapitalizationService?.Dispose();
             _weightsCalculationTrigger?.Dispose();
+        }
+
+        public Task HandleAsync(TickPrice tickPrice)
+        {
+            if (!tickPrice.AssetPair.ToUpper().EndsWith(Usd) || !tickPrice.Ask.HasValue)
+                return Task.CompletedTask;
+
+            var asset = tickPrice.AssetPair.ToUpper().Replace(Usd, "");
+            if (!_assetsPricesCache.ContainsKey(asset))
+            {
+                var newDictionary = new ConcurrentDictionary<string, decimal>
+                {
+                    [tickPrice.Source] = tickPrice.Ask.Value
+                };
+                _assetsPricesCache[asset] = newDictionary;
+            }
+            else
+            {
+                var exchangesPrices = _assetsPricesCache[asset];
+                exchangesPrices[tickPrice.Source] = tickPrice.Ask.Value;
+            }
+
+            return Task.CompletedTask;
+        }
+
+        public async Task<IDictionary<string, decimal>> GetAssetPricesAsync(string asset)
+        {
+            if (!_assetsPricesCache.ContainsKey(asset))
+                return new Dictionary<string, decimal>();
+
+            return _assetsPricesCache[asset];
+        }
+
+        public async Task<decimal?> GetAssetMarketCapAsync(string asset)
+        {
+            return _marketCaps.FirstOrDefault(x => x.Asset == asset)?.MarketCap.Value;
         }
 
         private async Task CalculateWeights(ITimerTrigger timer, TimerTriggeredHandlerArgs args, CancellationToken ct)

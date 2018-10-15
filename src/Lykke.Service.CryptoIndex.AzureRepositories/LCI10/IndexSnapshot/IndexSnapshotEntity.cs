@@ -1,8 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using Lykke.AzureStorage.Tables;
+using Lykke.Service.CryptoIndex.Domain.AzureRepositories.MarketCap;
 
-namespace Lykke.Service.CryptoIndex.Domain.AzureRepositories.LCI10
+namespace Lykke.Service.CryptoIndex.Domain.AzureRepositories.LCI10.IndexSnapshot
 {
     public class IndexSnapshotEntity : AzureTableEntity
     {
@@ -16,14 +17,14 @@ namespace Lykke.Service.CryptoIndex.Domain.AzureRepositories.LCI10
 
         public DateTimeOffset Time { get; set; }
 
-        public IndexSnapshotEntity()
+        public static string GeneratePartitionKey(DateTimeOffset dateTimeOffset)
         {
+            return $"{dateTimeOffset:yyyy-MM-dd}";
         }
 
-        public IndexSnapshotEntity(string partitionKey, string rowKey)
+        public static string GenerateRowKey(DateTimeOffset dateTimeOffset)
         {
-            PartitionKey = partitionKey;
-            RowKey = rowKey;
+            return $"{dateTimeOffset.ToString()}";
         }
     }
 }

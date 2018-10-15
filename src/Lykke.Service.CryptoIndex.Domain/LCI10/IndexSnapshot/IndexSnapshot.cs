@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Lykke.Service.CryptoIndex.Domain.MarketCapitalization;
 
-namespace Lykke.Service.CryptoIndex.Domain.LCI10
+namespace Lykke.Service.CryptoIndex.Domain.LCI10.IndexSnapshot
 {
     public class IndexSnapshot
     {
