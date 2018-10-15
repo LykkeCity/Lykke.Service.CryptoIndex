@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using Lykke.Service.CryptoIndex.Domain.MarketCapitalization;
 
 namespace Lykke.Service.CryptoIndex.Domain.LCI10.IndexSnapshot
@@ -21,7 +20,7 @@ namespace Lykke.Service.CryptoIndex.Domain.LCI10.IndexSnapshot
             IDictionary<string, IDictionary<string, decimal>> prices, DateTimeOffset time)
         {
             Value = value == default(decimal) ? throw new ArgumentOutOfRangeException(nameof(value)) : value;
-            MarketCaps = marketCaps == null || !marketCaps.Any() ? throw new ArgumentOutOfRangeException($"{nameof(marketCaps)} is empty.") : marketCaps;
+            MarketCaps = marketCaps ?? throw new ArgumentNullException(nameof(marketCaps));
             Weights = weights ?? throw new ArgumentNullException(nameof(weights));
             Prices = prices ?? throw new ArgumentNullException(nameof(prices));
             Time = time == default(DateTimeOffset) ? throw new ArgumentOutOfRangeException(nameof(time)) : time;

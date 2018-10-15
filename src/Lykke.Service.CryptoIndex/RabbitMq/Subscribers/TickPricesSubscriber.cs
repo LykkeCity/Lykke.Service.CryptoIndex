@@ -13,7 +13,7 @@ namespace Lykke.Service.CryptoIndex.RabbitMq.Subscribers
 {
     internal sealed class TickPricesSubscriber : IStartable, IStopable
     {
-        private const string QueuePostfix = ".ArbitrageDetector";
+        private const string QueuePostfix = ".CryptoIndex";
         private readonly string _connectionString;
         private readonly string _exchangeName;
         private RabbitMqSubscriber<Models.TickPrice> _subscriber;

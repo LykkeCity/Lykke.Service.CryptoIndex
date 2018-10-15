@@ -20,18 +20,17 @@
     </None>
   </ItemGroup>
   <ItemGroup>
+    <PackageReference Include="AutoMapper" Version="7.0.1" />
     <PackageReference Include="Lykke.RabbitMqBroker" Version="7.5.0" />
     <PackageReference Include="Lykke.Sdk" Version="5.3.1" />
     <PackageReference Include="Microsoft.AspNetCore" Version="2.1.4" />
     <PackageReference Include="Microsoft.AspNetCore.StaticFiles" Version="2.1.1" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\..\client\Lykke.Service.CryptoIndex.Client\Lykke.Service.CryptoIndex.Client.csproj" />
     <ProjectReference Include="..\Lykke.Service.CryptoIndex.AzureRepositories\Lykke.Service.CryptoIndex.Domain.AzureRepositories.csproj" />
     <ProjectReference Include="..\Lykke.Service.CryptoIndex.DomainServices\Lykke.Service.CryptoIndex.DomainServices.csproj" />
     <ProjectReference Include="..\Lykke.Service.CryptoIndex.Domain\Lykke.Service.CryptoIndex.Domain.csproj" />
-  </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Controllers\" />
   </ItemGroup>
   <Target Name="PrepublishScript" BeforeTargets="PrepareForPublish">
     <ItemGroup>

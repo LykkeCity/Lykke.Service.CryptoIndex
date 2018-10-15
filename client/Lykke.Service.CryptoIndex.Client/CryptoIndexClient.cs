@@ -1,4 +1,5 @@
 ﻿using Lykke.HttpClientGenerator;
+using Lykke.Service.CryptoIndex.Client.Api.LCI10;
 
 namespace Lykke.Service.CryptoIndex.Client
 {
@@ -7,15 +8,17 @@ namespace Lykke.Service.CryptoIndex.Client
     /// </summary>
     public class CryptoIndexClient : ICryptoIndexClient
     {
-        // Note: Add similar Api properties for each new service controller
+        /// <inheritdoc/>
+        public IAssetInfoApi AssetInfo { get; }
 
-        /// <summary>Inerface to CryptoIndex Api.</summary>
-        public ICryptoIndexApi Api { get; private set; }
+        /// <inheritdoc/>
+        public ISettingsApi Settings { get; }
 
         /// <summary>C-tor</summary>
         public CryptoIndexClient(IHttpClientGenerator httpClientGenerator)
         {
-            Api = httpClientGenerator.Generate<ICryptoIndexApi>();
+            AssetInfo = httpClientGenerator.Generate<IAssetInfoApi>();
+            Settings = httpClientGenerator.Generate<ISettingsApi>();
         }
     }
 }

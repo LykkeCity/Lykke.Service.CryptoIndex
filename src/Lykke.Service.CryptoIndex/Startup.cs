@@ -6,7 +6,6 @@ using Microsoft.Extensions.DependencyInjection;
 using System;
 using AutoMapper;
 using Lykke.Common.Api.Contract.Responses;
-using Lykke.Service.CryptoIndex.Domain.AzureRepositories;
 
 namespace Lykke.Service.CryptoIndex
 {
@@ -34,6 +33,7 @@ namespace Lykke.Service.CryptoIndex
 
                 Mapper.Initialize(cfg =>
                 {
+                    cfg.AddProfiles(typeof(Domain.AzureRepositories.AutoMapperProfile));
                     cfg.AddProfiles(typeof(AutoMapperProfile));
                 });
                 Mapper.AssertConfigurationIsValid();

@@ -9,6 +9,7 @@ using Lykke.Service.CryptoIndex.Domain.LCI10;
 using Lykke.Service.CryptoIndex.Domain.LCI10.IndexSnapshot;
 using Lykke.Service.CryptoIndex.Domain.LCI10.Settings;
 using Lykke.Service.CryptoIndex.Domain.MarketCapitalization;
+using Lykke.Service.CryptoIndex.Domain.TickPrice;
 using Lykke.Service.CryptoIndex.DomainServices.LCI10;
 using Lykke.Service.CryptoIndex.DomainServices.MarketCapitalization;
 using Lykke.Service.CryptoIndex.RabbitMq.Subscribers;
@@ -55,7 +56,7 @@ namespace Lykke.Service.CryptoIndex.Modules
 
             builder.Register(container => new IndexSnapshotRepository(
                     AzureTableStorage<IndexSnapshotEntity>.Create(_connectionString,
-                        nameof(Settings), container.Resolve<ILogFactory>())))
+                        nameof(IndexSnapshot), container.Resolve<ILogFactory>())))
                 .As<IIndexSnapshotRepository>()
                 .SingleInstance();
 
@@ -76,6 +77,7 @@ namespace Lykke.Service.CryptoIndex.Modules
 
             builder.RegisterType<LCI10Calculator>()
                 .As<ILCI10Calculator>()
+                .As<ITickPriceHandler>()
                 .As<IStartable>()
                 .As<IStopable>()
                 .WithParameter("weightsCalculationInterval", _settings.WeightsCalculationInterval)

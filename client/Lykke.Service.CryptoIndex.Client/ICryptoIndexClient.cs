@@ -1,4 +1,5 @@
 ﻿using JetBrains.Annotations;
+using Lykke.Service.CryptoIndex.Client.Api.LCI10;
 
 namespace Lykke.Service.CryptoIndex.Client
 {
@@ -8,11 +9,14 @@ namespace Lykke.Service.CryptoIndex.Client
     [PublicAPI]
     public interface ICryptoIndexClient
     {
-        // Make your app's controller interfaces visible by adding corresponding properties here.
-        // NO actual methods should be placed here (these go to controller interfaces, for example - ICryptoIndexApi).
-        // ONLY properties for accessing controller interfaces are allowed.
+        /// <summary>
+        /// Asset info API
+        /// </summary>
+        IAssetInfoApi AssetInfo { get; }
 
-        /// <summary>Application Api interface</summary>
-        ICryptoIndexApi Api { get; }
+        /// <summary>
+        /// Settings API
+        /// </summary>
+        ISettingsApi Settings { get; }
     }
 }

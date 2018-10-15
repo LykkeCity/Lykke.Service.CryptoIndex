@@ -14,6 +14,7 @@ using Lykke.Service.CryptoIndex.Domain.LCI10.IndexSnapshot;
 using Lykke.Service.CryptoIndex.Domain.LCI10.Settings;
 using Lykke.Service.CryptoIndex.Domain.MarketCapitalization;
 using Lykke.Service.CryptoIndex.Domain.TickPrice;
+using MoreLinq;
 
 namespace Lykke.Service.CryptoIndex.DomainServices.LCI10
 {
@@ -70,12 +71,21 @@ namespace Lykke.Service.CryptoIndex.DomainServices.LCI10
             _weightsCalculationTrigger?.Dispose();
         }
 
-        public Task HandleAsync(TickPrice tickPrice)
+        public async Task HandleAsync(TickPrice tickPrice)
         {
             if (!tickPrice.AssetPair.ToUpper().EndsWith(Usd) || !tickPrice.Ask.HasValue)
-                return Task.CompletedTask;
+                return;
 
             var asset = tickPrice.AssetPair.ToUpper().Replace(Usd, "");
+
+            var settings = await _settingsService.GetAsync();
+
+            if (!settings.Assets.Contains(asset))
+                return;
+
+            if (!settings.Sources.Contains(tickPrice.Source))
+                return;
+
             if (!_assetsPricesCache.ContainsKey(asset))
             {
                 var newDictionary = new ConcurrentDictionary<string, decimal>
@@ -89,8 +99,6 @@ namespace Lykke.Service.CryptoIndex.DomainServices.LCI10
                 var exchangesPrices = _assetsPricesCache[asset];
                 exchangesPrices[tickPrice.Source] = tickPrice.Ask.Value;
             }
-
-            return Task.CompletedTask;
         }
 
         public async Task<IDictionary<string, decimal>> GetAssetPricesAsync(string asset)
@@ -124,11 +132,12 @@ namespace Lykke.Service.CryptoIndex.DomainServices.LCI10
 
             var settings = await _settingsService.GetAsync();
 
+            var assets = settings.Assets.ToList();
             var allMarketCaps = await _marketCapitalizationService.GetAllAsync();
-            var wantedMarketCaps = allMarketCaps.Where(x => settings.Assets.Contains(x.Asset)).ToArray();
+            var wantedMarketCaps = allMarketCaps.Where(x => assets.Contains(x.Asset)).ToArray();
 
-            var notFoundAssets = settings.Assets.Select(x => wantedMarketCaps.Any(mc => mc.Asset != x)).ToArray();
-            if (wantedMarketCaps.Count() != settings.Assets.Count)
+            var notFoundAssets = assets.Where(x => !wantedMarketCaps.Select(mc => mc.Asset).Contains(x)).ToArray();
+            if (wantedMarketCaps.Count() != assets.Count)
                 throw new InvalidOperationException($"Can't find assets from settings in CoinMarketCap data: {notFoundAssets.ToJson()}.");
 
             var totalMarketCap = wantedMarketCaps.Select(x => x.MarketCap.Value).Sum();
@@ -138,7 +147,7 @@ namespace Lykke.Service.CryptoIndex.DomainServices.LCI10
                 _marketCaps.Clear();
                 _marketCaps.AddRange(wantedMarketCaps);
                 _assetsWeights.Clear();
-                foreach (var asset in settings.Assets)
+                foreach (var asset in assets)
                 {
                     var assetMarketCap = wantedMarketCaps.Single(x => x.Asset == asset).MarketCap.Value;
                     var assetWeight = assetMarketCap / totalMarketCap;
@@ -146,7 +155,7 @@ namespace Lykke.Service.CryptoIndex.DomainServices.LCI10
                 }
             }
 
-            _log.Info($"Finished calculating weights for {settings.Assets.Count} assets.");
+            _log.Info($"Finished calculating weights for {assets.Count} assets.");
         }
 
         private async Task CalculateIndex(ITimerTrigger timer, TimerTriggeredHandlerArgs args, CancellationToken ct)
@@ -171,6 +180,12 @@ namespace Lykke.Service.CryptoIndex.DomainServices.LCI10
             IDictionary<string, decimal> assetsWeights;
             IDictionary<string, IDictionary<string, decimal>> assetsPrices;
             var previousIndex = await _indexSnapshotRepository.GetLatestAsync();
+
+            if (!IsAllDataArePresented())
+            {
+                _log.Info("Skipped LCI10 calculation.");
+                return;
+            }
 
             RecalculateTheWeightsIfSomeWeightIsNotFound(settings);
 
@@ -244,6 +259,29 @@ namespace Lykke.Service.CryptoIndex.DomainServices.LCI10
 
             if (settings.Assets.Any(x => !currentWeights.Keys.Contains(x)))
                 CalculateWeights().GetAwaiter().GetResult();
+        }
+
+        private bool IsAllDataArePresented()
+        {
+            if (!_marketCaps.Any())
+            {
+                _log.Info("Market Cap data is not filled yet.");
+                return false;
+            }
+
+            if (!_assetsWeights.Any())
+            {
+                _log.Info("Assets Weights is not calculated yet.");
+                return false;
+            }
+
+            if (!_assetsPricesCache.Any())
+            {
+                _log.Info("Assets Prices cache is not filled yet.");
+                return false;
+            }
+
+            return true;
         }
     }
 }

@@ -26,12 +26,18 @@ namespace Lykke.Service.CryptoIndex.DomainServices.MarketCapitalization
             if (result.Status.ErrorCode != 0 || result.Status.ErrorMessage != null)
                 _log.Warning($"Get an error while receiving to CoinMarketCap: {result.Status.ErrorCode} - {result.Status.ErrorMessage}.");
 
-            return result.Data.Select(x => new AssetMarketCap(x.Symbol, new MarketCap(x.Quotes.First().Value.MarketCap, "USD"))).ToList();
+            return result.Data.Select(x => new AssetMarketCap(MapSymbol(x.Symbol), new MarketCap(x.Quotes.First().Value.MarketCap, "USD"))).ToList();
         }
 
         public void Dispose()
         {
             _coinMarketCapClient?.Dispose();
+        }
+
+        private string MapSymbol(string symbol)
+        {
+            // TODO: Replace with a mapping configuration
+            return symbol == "MIOTA" ? "IOTA" : symbol;
         }
     }
 }

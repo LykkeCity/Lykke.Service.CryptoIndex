@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using Lykke.AzureStorage.Tables;
+using Lykke.AzureStorage.Tables.Entity.Annotation;
 using Lykke.Service.CryptoIndex.Domain.AzureRepositories.MarketCap;
 
 namespace Lykke.Service.CryptoIndex.Domain.AzureRepositories.LCI10.IndexSnapshot
@@ -9,10 +10,13 @@ namespace Lykke.Service.CryptoIndex.Domain.AzureRepositories.LCI10.IndexSnapshot
     {
         public decimal Value { get; set; }
 
-        private IReadOnlyList<AssetMarketCapEntity> MarketCaps { get; set; }
+        [JsonValueSerializer]
+        public IList<AssetMarketCapEntity> MarketCaps { get; set; }
 
+        [JsonValueSerializer]
         public IDictionary<string, decimal> Weights { get; set; }
 
+        [JsonValueSerializer]
         public IDictionary<string, IDictionary<string, decimal>> Prices { get; set; }
 
         public DateTimeOffset Time { get; set; }
