@@ -5,6 +5,7 @@ using Lykke.AzureStorage.Tables.Entity.Annotation;
 
 namespace Lykke.Service.CryptoIndex.Domain.AzureRepositories.LCI10.IndexState
 {
+    // TODO: remove and use history
     [UsedImplicitly(ImplicitUseTargetFlags.WithMembers)]
     public class IndexStateEntity : AzureTableEntity
     {
