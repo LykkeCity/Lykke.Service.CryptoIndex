@@ -14,11 +14,15 @@ namespace Lykke.Service.CryptoIndex.Client
         /// <inheritdoc/>
         public ISettingsApi Settings { get; }
 
+        /// <inheritdoc/>
+        public IIndexHistoryApi IndexHistory { get; }
+
         /// <summary>C-tor</summary>
         public CryptoIndexClient(IHttpClientGenerator httpClientGenerator)
         {
             AssetInfo = httpClientGenerator.Generate<IAssetInfoApi>();
             Settings = httpClientGenerator.Generate<ISettingsApi>();
+            IndexHistory = httpClientGenerator.Generate<IIndexHistoryApi>();
         }
     }
 }

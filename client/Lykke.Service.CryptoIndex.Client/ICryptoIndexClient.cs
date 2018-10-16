@@ -18,5 +18,10 @@ namespace Lykke.Service.CryptoIndex.Client
         /// Settings API
         /// </summary>
         ISettingsApi Settings { get; }
+
+        /// <summary>
+        /// Index history API
+        /// </summary>
+        IIndexHistoryApi IndexHistory { get; }
     }
 }
