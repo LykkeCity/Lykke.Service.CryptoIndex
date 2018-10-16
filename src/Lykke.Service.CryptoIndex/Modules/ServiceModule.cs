@@ -1,12 +1,15 @@
 ﻿using Autofac;
 using AzureStorage.Tables;
 using Common;
+using JetBrains.Annotations;
 using Lykke.CoinMarketCap.Client;
 using Lykke.Common.Log;
-using Lykke.Service.CryptoIndex.Domain.AzureRepositories.LCI10.IndexSnapshot;
+using Lykke.Service.CryptoIndex.Domain.AzureRepositories.LCI10.IndexHistory;
+using Lykke.Service.CryptoIndex.Domain.AzureRepositories.LCI10.IndexState;
 using Lykke.Service.CryptoIndex.Domain.AzureRepositories.LCI10.Settings;
 using Lykke.Service.CryptoIndex.Domain.LCI10;
-using Lykke.Service.CryptoIndex.Domain.LCI10.IndexSnapshot;
+using Lykke.Service.CryptoIndex.Domain.LCI10.IndexHistory;
+using Lykke.Service.CryptoIndex.Domain.LCI10.IndexState;
 using Lykke.Service.CryptoIndex.Domain.LCI10.Settings;
 using Lykke.Service.CryptoIndex.Domain.MarketCapitalization;
 using Lykke.Service.CryptoIndex.Domain.TickPrice;
@@ -18,6 +21,7 @@ using Lykke.SettingsReader;
 
 namespace Lykke.Service.CryptoIndex.Modules
 {
+    [UsedImplicitly]
     public class ServiceModule : Module
     {
         private readonly IReloadingManager<AppSettings> _appSettings;
@@ -54,10 +58,16 @@ namespace Lykke.Service.CryptoIndex.Modules
                 .As<ISettingsRepository>()
                 .SingleInstance();
 
-            builder.Register(container => new IndexSnapshotRepository(
-                    AzureTableStorage<IndexSnapshotEntity>.Create(_connectionString,
-                        nameof(IndexSnapshot), container.Resolve<ILogFactory>())))
-                .As<IIndexSnapshotRepository>()
+            builder.Register(container => new IndexHistoryRepository(
+                    AzureTableStorage<IndexHistoryEntity>.Create(_connectionString,
+                        nameof(IndexHistory), container.Resolve<ILogFactory>())))
+                .As<IIndexHistoryRepository>()
+                .SingleInstance();
+
+            builder.Register(container => new IndexStateRepository(
+                    AzureTableStorage<IndexStateEntity>.Create(_connectionString,
+                        nameof(IndexState), container.Resolve<ILogFactory>())))
+                .As<IIndexStateRepository>()
                 .SingleInstance();
 
             // Services

@@ -1,8 +1,10 @@
 ﻿using AutoMapper;
-using Lykke.Service.CryptoIndex.Domain.AzureRepositories.LCI10.IndexSnapshot;
+using Lykke.Service.CryptoIndex.Domain.AzureRepositories.LCI10.IndexHistory;
+using Lykke.Service.CryptoIndex.Domain.AzureRepositories.LCI10.IndexState;
 using Lykke.Service.CryptoIndex.Domain.AzureRepositories.LCI10.Settings;
 using Lykke.Service.CryptoIndex.Domain.AzureRepositories.MarketCap;
-using Lykke.Service.CryptoIndex.Domain.LCI10.IndexSnapshot;
+using Lykke.Service.CryptoIndex.Domain.LCI10.IndexHistory;
+using Lykke.Service.CryptoIndex.Domain.LCI10.IndexState;
 using Lykke.Service.CryptoIndex.Domain.LCI10.Settings;
 using Lykke.Service.CryptoIndex.Domain.MarketCapitalization;
 
@@ -18,8 +20,11 @@ namespace Lykke.Service.CryptoIndex.Domain.AzureRepositories
             CreateMap<AssetMarketCap, AssetMarketCapEntity>();
             CreateMap<AssetMarketCapEntity, AssetMarketCap>();
 
-            CreateMap<IndexSnapshot, IndexSnapshotEntity>(MemberList.Source);
-            CreateMap<IndexSnapshotEntity, IndexSnapshot>();
+            CreateMap<IndexHistory, IndexHistoryEntity>(MemberList.Source);
+            CreateMap<IndexHistoryEntity, IndexHistory>();
+
+            CreateMap<IndexState, IndexStateEntity>(MemberList.Source);
+            CreateMap<IndexStateEntity, IndexState>();
 
             CreateMap<Settings, SettingsEntity>(MemberList.Source);
             CreateMap<SettingsEntity, Settings>();
