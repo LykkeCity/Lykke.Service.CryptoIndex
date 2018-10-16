@@ -7,7 +7,9 @@ namespace Lykke.Service.CryptoIndex
         public AutoMapperProfile()
         {
             CreateMap<Client.Models.LCI10.Settings, Domain.LCI10.Settings.Settings>();
-            CreateMap<Domain.LCI10.Settings.Settings, Client.Models.LCI10.Settings>(MemberList.Source);
+            CreateMap<Domain.LCI10.Settings.Settings, Client.Models.LCI10.Settings>();
+
+            CreateMap<Domain.LCI10.IndexHistory.IndexHistory, Client.Models.LCI10.IndexHistory>();
         }
     }
 }

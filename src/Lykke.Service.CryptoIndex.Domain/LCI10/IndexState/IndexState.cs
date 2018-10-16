@@ -13,5 +13,10 @@ namespace Lykke.Service.CryptoIndex.Domain.LCI10.IndexState
             Value = value;
             MiddlePrices = middlePrices;
         }
+
+        public override string ToString()
+        {
+            return $"{Value}";
+        }
     }
 }
