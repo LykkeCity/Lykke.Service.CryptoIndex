@@ -15,6 +15,7 @@ using Lykke.Service.CryptoIndex.Domain.MarketCapitalization;
 using Lykke.Service.CryptoIndex.Domain.TickPrice;
 using Lykke.Service.CryptoIndex.DomainServices.LCI10;
 using Lykke.Service.CryptoIndex.DomainServices.MarketCapitalization;
+using Lykke.Service.CryptoIndex.RabbitMq.Publishers;
 using Lykke.Service.CryptoIndex.RabbitMq.Subscribers;
 using Lykke.Service.CryptoIndex.Settings;
 using Lykke.SettingsReader;
@@ -37,9 +38,9 @@ namespace Lykke.Service.CryptoIndex.Modules
 
         protected override void Load(ContainerBuilder builder)
         {
-            // Subscribers
+            // RabbitMq
 
-            foreach (var exchange in _settings.RabbitMq.Exchanges)
+            foreach (var exchange in _settings.RabbitMq.SubscribingExchanges)
             {
                 builder.RegisterType<TickPricesSubscriber>()
                     .AsSelf()
@@ -49,6 +50,13 @@ namespace Lykke.Service.CryptoIndex.Modules
                     .WithParameter("exchangeName", exchange)
                     .SingleInstance();
             }
+
+            builder.RegisterType<TickPricePublisher>()
+                .As<ITickPricePublisher>()
+                .As<IStartable>()
+                .As<IStopable>()
+                .WithParameter(TypedParameter.From(_settings.RabbitMq))
+                .SingleInstance();
 
             // Repositories
 

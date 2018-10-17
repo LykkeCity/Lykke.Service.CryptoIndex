@@ -8,6 +8,8 @@ namespace Lykke.Service.CryptoIndex.Settings
         [AmqpCheck]
         public string ConnectionString { get; set; }
 
-        public IEnumerable<string> Exchanges { get; set; }
+        public IEnumerable<string> SubscribingExchanges { get; set; }
+
+        public string PublishingExchange { get; set; }
     }
 }

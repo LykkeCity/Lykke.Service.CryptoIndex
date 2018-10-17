@@ -23,6 +23,7 @@ namespace Lykke.Service.CryptoIndex.DomainServices.LCI10
     /// </summary>
     public class LCI10Calculator : ILCI10Calculator, ITickPriceHandler, IStartable, IStopable
     {
+        private const string Lci10 = "lci10";
         private const string Usd = "USD";
         private readonly object _sync = new object();
         private readonly List<AssetMarketCap> _marketCaps;
@@ -32,12 +33,13 @@ namespace Lykke.Service.CryptoIndex.DomainServices.LCI10
         private readonly IIndexHistoryRepository _indexHistoryRepository;
         private readonly ISettingsService _settingsService;
         private readonly IMarketCapitalizationService _marketCapitalizationService;
+        private readonly ITickPricePublisher _tickPricePublisher;
         private readonly TimerTrigger _weightsCalculationTrigger;
         private readonly TimerTrigger _indexCalculationTrigger;
         private readonly ILog _log;
 
         public LCI10Calculator(IIndexStateRepository indexStateRepository, IIndexHistoryRepository indexHistoryRepository,
-            ISettingsService settingsService, IMarketCapitalizationService marketCapitalizationService,
+            ISettingsService settingsService, IMarketCapitalizationService marketCapitalizationService, ITickPricePublisher tickPricePublisher,
             TimeSpan weightsCalculationInterval, TimeSpan indexCalculationInterval, ILogFactory logFactory)
         {
             _marketCaps = new List<AssetMarketCap>();
@@ -48,6 +50,7 @@ namespace Lykke.Service.CryptoIndex.DomainServices.LCI10
             _indexHistoryRepository = indexHistoryRepository;
             _settingsService = settingsService ?? throw new ArgumentNullException(nameof(settingsService));
             _marketCapitalizationService = marketCapitalizationService ?? throw new ArgumentNullException(nameof(marketCapitalizationService));
+            _tickPricePublisher = tickPricePublisher ?? throw new ArgumentNullException(nameof(tickPricePublisher));
 
             _weightsCalculationTrigger = new TimerTrigger(nameof(LCI10Calculator), weightsCalculationInterval, logFactory, CalculateWeights);
             _indexCalculationTrigger = new TimerTrigger(nameof(LCI10Calculator), indexCalculationInterval, logFactory, CalculateIndex);
@@ -198,11 +201,17 @@ namespace Lykke.Service.CryptoIndex.DomainServices.LCI10
                 assetsPrices = _pricesCache.Clone();
             }
 
+            // Save index as previous for the next execution
             var indexState = CalculateIndexState(settings.Assets, weights, assetsPrices, lastIndex);
             await _indexStateRepository.SetAsync(indexState);
 
+            // Save index to history
             var indexHistory = new IndexHistory(indexState.Value, marketCaps, weights, indexState.MiddlePrices, DateTime.UtcNow);
             await _indexHistoryRepository.InsertAsync(indexHistory);
+
+            // Publish index to RabbitMq
+            var tickPrice = new TickPrice(Lci10, Lci10, indexHistory.Value, indexHistory.Value, indexHistory.Time);
+            _tickPricePublisher.Publish(tickPrice);
 
             _log.Info($"Finished calculating index for {settings.Assets.Count} assets, value: {indexState.Value}.");
         }
@@ -231,7 +240,7 @@ namespace Lykke.Service.CryptoIndex.DomainServices.LCI10
                 rLci10 += weight * r;
             }
 
-            var index = lastIndex.Value * rLci10;
+            var index = Math.Round(lastIndex.Value * rLci10, 2);
 
             var indexState = new IndexState(index, middlePrices);
 
