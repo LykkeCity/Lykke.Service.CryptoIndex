@@ -1,0 +1,45 @@
+CryptoIndexService:
+    Db:
+        LogsConnectionString:
+            settings-key: CryptoIndexService-DbLogsConnectionString
+            types:
+              - AzureTableStorage
+        DataConnectionString:
+            settings-key: CryptoIndexService-DbDataConnectionString
+            types:
+              - AzureTableStorage
+
+    CoinMarketCapApiKey:
+        settings-key: CryptoIndexService-CoinMarketCapApiKey
+
+    WeightsCalculationInterval:
+        settings-key: CryptoIndexService-WeightsCalculationInterval
+
+    IndexCalculationInterval:
+        settings-key: CryptoIndexService-IndexCalculationInterval
+
+    RabbitMq:
+        ConnectionString:
+            settings-key: RawPriceRabbitMq
+            types:
+              - AzureTableStorage
+        SubscribingExchanges:
+            settings-key: CryptoIndexService-SubscribingTickPricesExchangeNames
+            types: 
+              - JsonArray
+        PublishingExchange:
+            settings-key: CryptoIndexService-PublishingTickPricesExchangeName
+
+SlackNotifications:
+    AzureQueue:
+        ConnectionString:
+            settings-key: SlackNotificationsConnString
+            types:
+                - AzureTableStorage
+        QueueName:
+            settings-key: SlackQueueName
+
+MonitoringServiceClient:
+    MonitoringServiceUrl:
+        settings-key: MonitoringServiceUrl
+
