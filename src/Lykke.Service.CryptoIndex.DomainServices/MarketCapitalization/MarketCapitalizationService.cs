@@ -9,7 +9,7 @@ using Lykke.Service.CryptoIndex.Domain.MarketCapitalization;
 
 namespace Lykke.Service.CryptoIndex.DomainServices.MarketCapitalization
 {
-    public class MarketCapitalizationService : IMarketCapitalizationService, IDisposable
+    public class MarketCapitalizationService : IMarketCapitalizationService
     {
         private readonly ICoinMarketCapClient _coinMarketCapClient;
         private readonly ILog _log;
