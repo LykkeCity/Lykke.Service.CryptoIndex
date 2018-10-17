@@ -23,10 +23,12 @@ CryptoIndexService:
             settings-key: RawPriceRabbitMq
             types:
               - AzureTableStorage
-        Exchanges:
-            settings-key: CryptoIndexService-TickPricesExchangeNames
+        SubscribingExchanges:
+            settings-key: CryptoIndexService-SubscribingTickPricesExchangeNames
             types: 
               - JsonArray
+        PublishingExchange:
+            settings-key: CryptoIndexService-PublishingTickPricesExchangeName
 
 SlackNotifications:
     AzureQueue:
