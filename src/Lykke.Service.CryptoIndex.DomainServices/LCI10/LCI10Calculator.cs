@@ -76,9 +76,21 @@ namespace Lykke.Service.CryptoIndex.DomainServices.LCI10
             _weightsCalculationTrigger?.Dispose();
         }
 
-        public async Task<decimal?> GetAssetMarketCapAsync(string asset)
+        public async Task<IReadOnlyDictionary<string, decimal>> GetAssetMarketCapAsync()
         {
-            return _marketCaps.FirstOrDefault(x => x.Asset == asset)?.MarketCap.Value;
+            var settings = await _settingsService.GetAsync();
+
+            var result = new Dictionary<string, decimal>();
+
+            foreach (var asset in settings.Assets)
+            {
+                var marketCap = _marketCaps.FirstOrDefault(x => x.Asset == asset);
+
+                if (marketCap != null)
+                    result.Add(asset, marketCap.MarketCap.Value);
+            }
+
+            return result;
         }
 
         private async Task CalculateWeights(ITimerTrigger timer, TimerTriggeredHandlerArgs args, CancellationToken ct)
@@ -145,7 +157,7 @@ namespace Lykke.Service.CryptoIndex.DomainServices.LCI10
 
             List<AssetMarketCap> marketCaps;
             IDictionary<string, decimal> weights;
-            var assetsPrices = await _tickPricesService.GetPrices();
+            var assetsPrices = await _tickPricesService.GetPricesAsync();
             var lastIndex = await _indexStateRepository.GetAsync();
 
             RecalculateTheWeightsIfSomeWeightsAreNotFound(settings.Assets);

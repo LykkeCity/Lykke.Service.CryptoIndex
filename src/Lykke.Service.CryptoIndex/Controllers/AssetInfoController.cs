@@ -1,7 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Net;
 using System.Threading.Tasks;
-using Lykke.Common.ApiLibrary.Exceptions;
 using Lykke.Service.CryptoIndex.Client.Api.LCI10;
 using Lykke.Service.CryptoIndex.Client.Models.LCI10;
 using Lykke.Service.CryptoIndex.Domain.LCI10;
@@ -22,22 +21,32 @@ namespace Lykke.Service.CryptoIndex.Controllers
             _tickPricesService = tickPricesService;
         }
 
-        [HttpGet]
-        [ProducesResponseType(typeof(AssetInfo), (int)HttpStatusCode.OK)]
-        public async Task<AssetInfo> GetAssetInfoAsync(string asset)
+        [HttpGet("all")]
+        [ProducesResponseType(typeof(IReadOnlyList<AssetInfo>), (int)HttpStatusCode.OK)]
+        public async Task<IReadOnlyList<AssetInfo>> GetAssetsInfoAsync()
         {
-            if (string.IsNullOrWhiteSpace(asset))
-                throw new ValidationApiException(HttpStatusCode.NotFound, "'asset' argument is null or empty.");
+            var marketCaps = await _lci10Calculator.GetAssetMarketCapAsync();
+            var prices = await _tickPricesService.GetPricesAsync();
 
-            var marketCap = await _lci10Calculator.GetAssetMarketCapAsync(asset);
-            var prices = await _tickPricesService.GetAssetPricesAsync(asset);
+            var result = new List<AssetInfo>();
 
-            var result = new AssetInfo
+            foreach (var asset in marketCaps.Keys)
             {
-                Asset = asset,
-                MarketCap = marketCap,
-                Prices = (IReadOnlyDictionary<string, decimal>)prices
-            };
+                if (!prices.ContainsKey(asset))
+                    continue;
+
+                var marketCap = marketCaps[asset];
+                var assetPrices = prices[asset];
+
+                var assetInfo = new AssetInfo
+                {
+                    Asset = asset,
+                    MarketCap = marketCap,
+                    Prices = (IReadOnlyDictionary<string, decimal>)assetPrices
+                };
+
+                result.Add(assetInfo);
+            }
 
             return result;
         }

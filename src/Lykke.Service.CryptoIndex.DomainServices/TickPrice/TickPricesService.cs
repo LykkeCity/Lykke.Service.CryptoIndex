@@ -56,15 +56,7 @@ namespace Lykke.Service.CryptoIndex.DomainServices.TickPrice
             }
         }
 
-        public async Task<IDictionary<string, decimal>> GetAssetPricesAsync(string asset)
-        {
-            if (!_pricesCache.ContainsKey(asset))
-                return new Dictionary<string, decimal>();
-
-            return _pricesCache[asset].Clone();
-        }
-
-        public async Task<IDictionary<string, IDictionary<string, decimal>>> GetPrices()
+        public async Task<IDictionary<string, IDictionary<string, decimal>>> GetPricesAsync()
         {
             return _pricesCache.Clone();
         }
