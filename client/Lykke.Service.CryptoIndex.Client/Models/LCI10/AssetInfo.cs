@@ -15,7 +15,7 @@ namespace Lykke.Service.CryptoIndex.Client.Models.LCI10
         /// <summary>
         /// Market Cap of asset
         /// </summary>
-        public decimal? MarketCap { get; set; }
+        public decimal MarketCap { get; set; }
 
         /// <summary>
         /// Exchanges prices of asset
