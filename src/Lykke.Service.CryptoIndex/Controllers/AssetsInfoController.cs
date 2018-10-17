@@ -10,12 +10,12 @@ using Microsoft.AspNetCore.Mvc;
 namespace Lykke.Service.CryptoIndex.Controllers
 {
     [Route("/api/lci10/[controller]")]
-    public class AssetInfoController : Controller, IAssetInfoApi
+    public class AssetsInfoController : Controller, IAssetsInfoApi
     {
         private readonly ILCI10Calculator _lci10Calculator;
         private readonly ITickPricesService _tickPricesService;
 
-        public AssetInfoController(ILCI10Calculator lci10Calculator, ITickPricesService tickPricesService)
+        public AssetsInfoController(ILCI10Calculator lci10Calculator, ITickPricesService tickPricesService)
         {
             _lci10Calculator = lci10Calculator;
             _tickPricesService = tickPricesService;
@@ -23,7 +23,7 @@ namespace Lykke.Service.CryptoIndex.Controllers
 
         [HttpGet("all")]
         [ProducesResponseType(typeof(IReadOnlyList<AssetInfo>), (int)HttpStatusCode.OK)]
-        public async Task<IReadOnlyList<AssetInfo>> GetAssetsInfoAsync()
+        public async Task<IReadOnlyList<AssetInfo>> GetAllAsync()
         {
             var marketCaps = await _lci10Calculator.GetAssetMarketCapAsync();
             var prices = await _tickPricesService.GetPricesAsync();

@@ -10,12 +10,12 @@ namespace Lykke.Service.CryptoIndex.Client.Api.LCI10
     /// Provides methods to work with asset
     /// </summary>
     [PublicAPI]
-    public interface IAssetInfoApi
+    public interface IAssetsInfoApi
     {
         /// <summary>
         /// Returns information about asset
         /// </summary>
-        [Get("/api/lci10/assetInfo/all")]
-        Task<IReadOnlyList<AssetInfo>> GetAssetsInfoAsync();
+        [Get("/api/lci10/assetsInfo/all")]
+        Task<IReadOnlyList<AssetInfo>> GetAllAsync();
     }
 }

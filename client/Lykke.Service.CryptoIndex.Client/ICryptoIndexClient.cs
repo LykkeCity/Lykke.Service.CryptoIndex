@@ -12,7 +12,7 @@ namespace Lykke.Service.CryptoIndex.Client
         /// <summary>
         /// Asset info API
         /// </summary>
-        IAssetInfoApi AssetInfo { get; }
+        IAssetsInfoApi AssetsInfo { get; }
 
         /// <summary>
         /// Settings API
@@ -23,5 +23,10 @@ namespace Lykke.Service.CryptoIndex.Client
         /// Index history API
         /// </summary>
         IIndexHistoryApi IndexHistory { get; }
+
+        /// <summary>
+        /// Tick prices API
+        /// </summary>
+        ITickPricesApi TickPrices { get; }
     }
 }

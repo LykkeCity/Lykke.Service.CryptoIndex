@@ -9,7 +9,7 @@ namespace Lykke.Service.CryptoIndex.Client
     public class CryptoIndexClient : ICryptoIndexClient
     {
         /// <inheritdoc/>
-        public IAssetInfoApi AssetInfo { get; }
+        public IAssetsInfoApi AssetsInfo { get; }
 
         /// <inheritdoc/>
         public ISettingsApi Settings { get; }
@@ -17,12 +17,16 @@ namespace Lykke.Service.CryptoIndex.Client
         /// <inheritdoc/>
         public IIndexHistoryApi IndexHistory { get; }
 
+        /// <inheritdoc/>
+        public ITickPricesApi TickPrices { get; }
+
         /// <summary>C-tor</summary>
         public CryptoIndexClient(IHttpClientGenerator httpClientGenerator)
         {
-            AssetInfo = httpClientGenerator.Generate<IAssetInfoApi>();
+            AssetsInfo = httpClientGenerator.Generate<IAssetsInfoApi>();
             Settings = httpClientGenerator.Generate<ISettingsApi>();
             IndexHistory = httpClientGenerator.Generate<IIndexHistoryApi>();
+            TickPrices = httpClientGenerator.Generate<ITickPricesApi>();
         }
     }
 }
