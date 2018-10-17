@@ -1,4 +1,5 @@
-﻿using Common;
+﻿using Autofac;
+using Common;
 using Common.Log;
 using JetBrains.Annotations;
 using Lykke.Common.Log;
@@ -12,7 +13,7 @@ using DomainTickPrice = Lykke.Service.CryptoIndex.Domain.TickPrice.TickPrice;
 namespace Lykke.Service.CryptoIndex.RabbitMq.Publishers
 {
     [UsedImplicitly]
-    public class TickPricePublisher : ITickPricePublisher
+    public class TickPricePublisher : ITickPricePublisher, IStartable, IStopable
     {
         private readonly ILogFactory _logFactory;
         private readonly RabbitMqSettings _settings;

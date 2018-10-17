@@ -101,7 +101,7 @@ namespace Lykke.Service.CryptoIndex.DomainServices.LCI10
             }
             catch (Exception e)
             {
-                _log.Error(e);
+                _log.Warning($"Something went wrong while calculating weights.", e);
             }
         }
 
@@ -189,7 +189,7 @@ namespace Lykke.Service.CryptoIndex.DomainServices.LCI10
             _log.Info($"Finished calculating index for {settings.Assets.Count} assets, value: {indexState.Value}.");
         }
 
-        private IndexState CalculateIndexState(IReadOnlyCollection<string> assets, IDictionary<string, decimal> assetsWeights,
+        private static IndexState CalculateIndexState(IReadOnlyCollection<string> assets, IDictionary<string, decimal> assetsWeights,
             IDictionary<string, IDictionary<string, decimal>> assetsPrices, IndexState lastIndex)
         {
             var middlePrices = GetMiddlePrices(assetsPrices);

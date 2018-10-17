@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Common.Log;
@@ -8,7 +9,7 @@ using Lykke.Service.CryptoIndex.Domain.MarketCapitalization;
 
 namespace Lykke.Service.CryptoIndex.DomainServices.MarketCapitalization
 {
-    public class MarketCapitalizationService : IMarketCapitalizationService
+    public class MarketCapitalizationService : IMarketCapitalizationService, IDisposable
     {
         private readonly ICoinMarketCapClient _coinMarketCapClient;
         private readonly ILog _log;

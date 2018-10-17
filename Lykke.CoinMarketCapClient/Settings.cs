@@ -8,7 +8,7 @@ namespace Lykke.CoinMarketCap.Client
 
         public string BaseAddress { get; } = "https://pro-api.coinmarketcap.com/v1";
 
-        public TimeSpan TimeOut { get; } = new TimeSpan(0, 0, 0, 10);
+        public TimeSpan TimeOut { get; } = TimeSpan.FromSeconds(10);
 
         public Settings(string apiKey)
         {
@@ -25,7 +25,7 @@ namespace Lykke.CoinMarketCap.Client
                 BaseAddress = baseAddress;
             }
 
-            if (timeOut != null && timeOut < new TimeSpan(0, 0, 0, 1) || timeOut > new TimeSpan(0, 0, 5, 0))
+            if (timeOut != null && timeOut < TimeSpan.FromSeconds(1) || timeOut > TimeSpan.FromMinutes(5))
                 throw new ArgumentOutOfRangeException($"Argument '{nameof(timeOut)}' must be between 1 second and 5 minutes.");
 
             BaseAddress = baseAddress;

@@ -1,9 +1,6 @@
-﻿using Autofac;
-using Common;
-
-namespace Lykke.Service.CryptoIndex.Domain.TickPrice
+﻿namespace Lykke.Service.CryptoIndex.Domain.TickPrice
 {
-    public interface ITickPricePublisher : IStartable, IStopable
+    public interface ITickPricePublisher
     {
         void Publish(TickPrice tickPrice);
     }
