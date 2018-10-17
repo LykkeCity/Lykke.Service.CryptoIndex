@@ -15,6 +15,7 @@ using Lykke.Service.CryptoIndex.Domain.MarketCapitalization;
 using Lykke.Service.CryptoIndex.Domain.TickPrice;
 using Lykke.Service.CryptoIndex.DomainServices.LCI10;
 using Lykke.Service.CryptoIndex.DomainServices.MarketCapitalization;
+using Lykke.Service.CryptoIndex.DomainServices.TickPrice;
 using Lykke.Service.CryptoIndex.RabbitMq.Publishers;
 using Lykke.Service.CryptoIndex.RabbitMq.Subscribers;
 using Lykke.Service.CryptoIndex.Settings;
@@ -80,6 +81,11 @@ namespace Lykke.Service.CryptoIndex.Modules
 
             // Services
 
+            builder.RegisterType<TickPricesService>()
+                .As<ITickPricesService>()
+                .As<ITickPriceHandler>()
+                .SingleInstance();
+
             builder.RegisterType<CoinMarketCapClient>()
                 .As<ICoinMarketCapClient>()
                 .WithParameter(TypedParameter.From(new CoinMarketCap.Client.Settings(_settings.CoinMarketCapApiKey)))
@@ -95,7 +101,6 @@ namespace Lykke.Service.CryptoIndex.Modules
 
             builder.RegisterType<LCI10Calculator>()
                 .As<ILCI10Calculator>()
-                .As<ITickPriceHandler>()
                 .As<IStartable>()
                 .As<IStopable>()
                 .WithParameter("weightsCalculationInterval", _settings.WeightsCalculationInterval)

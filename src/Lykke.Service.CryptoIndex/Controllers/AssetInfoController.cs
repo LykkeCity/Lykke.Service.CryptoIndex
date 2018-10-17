@@ -5,6 +5,7 @@ using Lykke.Common.ApiLibrary.Exceptions;
 using Lykke.Service.CryptoIndex.Client.Api.LCI10;
 using Lykke.Service.CryptoIndex.Client.Models.LCI10;
 using Lykke.Service.CryptoIndex.Domain.LCI10;
+using Lykke.Service.CryptoIndex.Domain.TickPrice;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Lykke.Service.CryptoIndex.Controllers
@@ -13,10 +14,12 @@ namespace Lykke.Service.CryptoIndex.Controllers
     public class AssetInfoController : Controller, IAssetInfoApi
     {
         private readonly ILCI10Calculator _lci10Calculator;
+        private readonly ITickPricesService _tickPricesService;
 
-        public AssetInfoController(ILCI10Calculator lci10Calculator)
+        public AssetInfoController(ILCI10Calculator lci10Calculator, ITickPricesService tickPricesService)
         {
             _lci10Calculator = lci10Calculator;
+            _tickPricesService = tickPricesService;
         }
 
         [HttpGet]
@@ -27,7 +30,7 @@ namespace Lykke.Service.CryptoIndex.Controllers
                 throw new ValidationApiException(HttpStatusCode.NotFound, "'asset' argument is null or empty.");
 
             var marketCap = await _lci10Calculator.GetAssetMarketCapAsync(asset);
-            var prices = await _lci10Calculator.GetAssetPricesAsync(asset);
+            var prices = await _tickPricesService.GetAssetPricesAsync(asset);
 
             var result = new AssetInfo
             {
