@@ -145,7 +145,7 @@ namespace Lykke.Service.CryptoIndex.DomainServices.LCI10
             }
             catch (Exception e)
             {
-                _log.Error(e);
+                _log.Warning($"Somethings went wrong while index calculation.", e);
             }
         }
 
