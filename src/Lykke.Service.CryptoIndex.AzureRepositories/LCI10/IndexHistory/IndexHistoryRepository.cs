@@ -19,7 +19,7 @@ namespace Lykke.Service.CryptoIndex.Domain.AzureRepositories.LCI10.IndexHistory
             _storage = storage;
         }
 
-        public async Task<IEnumerable<Domain.LCI10.IndexHistory.IndexHistory>> GetAsync(DateTime from, DateTime to)
+        public async Task<IReadOnlyList<Domain.LCI10.IndexHistory.IndexHistory>> GetAsync(DateTime from, DateTime to)
         {
             var pKeyFrom = GetPartitionKey(from);
             var pKeyTo = GetPartitionKey(to);
@@ -40,7 +40,7 @@ namespace Lykke.Service.CryptoIndex.Domain.AzureRepositories.LCI10.IndexHistory
 
             var model = await _storage.WhereAsync(query);
 
-            var domain = Mapper.Map<IEnumerable<Domain.LCI10.IndexHistory.IndexHistory>>(model);
+            var domain = Mapper.Map<IReadOnlyList<Domain.LCI10.IndexHistory.IndexHistory>>(model);
 
             return domain;
         }

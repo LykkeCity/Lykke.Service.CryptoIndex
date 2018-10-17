@@ -8,6 +8,6 @@ namespace Lykke.Service.CryptoIndex.Domain.LCI10.IndexHistory
     {
         Task InsertAsync(IndexHistory indexHistory);
 
-        Task<IEnumerable<IndexHistory>> GetAsync(DateTime from, DateTime to);
+        Task<IReadOnlyList<IndexHistory>> GetAsync(DateTime from, DateTime to);
     }
 }

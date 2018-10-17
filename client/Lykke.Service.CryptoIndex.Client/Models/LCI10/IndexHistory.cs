@@ -21,12 +21,12 @@ namespace Lykke.Service.CryptoIndex.Client.Models.LCI10
         /// <summary>
         /// Weights
         /// </summary>
-        public IReadOnlyDictionary<string, decimal> Weights { get; set; }
+        public IDictionary<string, decimal> Weights { get; set; }
 
         /// <summary>
         /// Middle prices
         /// </summary>
-        public IReadOnlyDictionary<string, decimal> MiddlePrices { get; set; }
+        public IDictionary<string, decimal> MiddlePrices { get; set; }
 
         /// <summary>
         /// Timestamp
