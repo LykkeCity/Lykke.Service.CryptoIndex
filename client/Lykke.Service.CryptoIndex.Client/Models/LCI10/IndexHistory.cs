@@ -1,11 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
+using JetBrains.Annotations;
 
 namespace Lykke.Service.CryptoIndex.Client.Models.LCI10
 {
     /// <summary>
     /// Index history element
     /// </summary>
+    [UsedImplicitly(ImplicitUseTargetFlags.WithMembers)]
     public class IndexHistory
     {
         /// <summary>
@@ -22,6 +24,11 @@ namespace Lykke.Service.CryptoIndex.Client.Models.LCI10
         /// Weights
         /// </summary>
         public IDictionary<string, decimal> Weights { get; set; }
+
+        /// <summary>
+        /// All prices
+        /// </summary>
+        public IDictionary<string, IDictionary<string, decimal>> Prices { get; set; }
 
         /// <summary>
         /// Middle prices

@@ -1,10 +1,12 @@
 ﻿using System.Collections.Generic;
+using JetBrains.Annotations;
 
 namespace Lykke.Service.CryptoIndex.Client.Models.LCI10
 {
     /// <summary>
     /// Represents settings information
     /// </summary>
+    [UsedImplicitly(ImplicitUseTargetFlags.WithMembers)]
     public class Settings
     {
         /// <summary>

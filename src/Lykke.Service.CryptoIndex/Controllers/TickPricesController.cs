@@ -2,8 +2,8 @@
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
-using Lykke.Service.CryptoIndex.Client.Api.LCI10;
-using Lykke.Service.CryptoIndex.Domain.TickPrice;
+using Lykke.Service.CryptoIndex.Client.Api;
+using Lykke.Service.CryptoIndex.Domain.Services;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Lykke.Service.CryptoIndex.Controllers

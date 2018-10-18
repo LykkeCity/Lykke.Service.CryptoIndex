@@ -3,7 +3,7 @@ using System.Threading.Tasks;
 using AutoMapper;
 using Lykke.Common.ApiLibrary.Exceptions;
 using Lykke.Service.CryptoIndex.Client.Api.LCI10;
-using Lykke.Service.CryptoIndex.Domain.LCI10.Settings;
+using Lykke.Service.CryptoIndex.Domain.Services.LCI10;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Lykke.Service.CryptoIndex.Controllers
@@ -36,7 +36,7 @@ namespace Lykke.Service.CryptoIndex.Controllers
             if (settings == null)
                 throw new ValidationApiException(HttpStatusCode.NotFound, "'settings' argument is null.");
 
-            var domain = Mapper.Map<Domain.LCI10.Settings.Settings>(settings);
+            var domain = Mapper.Map<Domain.Models.LCI10.Settings>(settings);
 
             await _settingsService.SetAsync(domain);
         }

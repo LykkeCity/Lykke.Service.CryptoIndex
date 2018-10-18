@@ -7,7 +7,8 @@ using Common.Log;
 using Lykke.Common.Log;
 using Lykke.RabbitMqBroker;
 using Lykke.RabbitMqBroker.Subscriber;
-using Lykke.Service.CryptoIndex.Domain.TickPrice;
+using Lykke.Service.CryptoIndex.Domain.Handlers;
+using Lykke.Service.CryptoIndex.Domain.Models;
 
 namespace Lykke.Service.CryptoIndex.RabbitMq.Subscribers
 {

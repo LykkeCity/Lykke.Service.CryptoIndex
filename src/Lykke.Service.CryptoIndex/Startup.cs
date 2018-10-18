@@ -21,6 +21,8 @@ namespace Lykke.Service.CryptoIndex
         [UsedImplicitly]
         public IServiceProvider ConfigureServices(IServiceCollection services)
         {
+            services.AddResponseCaching();
+
             return services.BuildServiceProvider<AppSettings>(options =>
             {
                 options.SwaggerOptions = _swaggerOptions;
@@ -45,6 +47,8 @@ namespace Lykke.Service.CryptoIndex
         {
             app.UseLykkeConfiguration(options =>
             {
+                app.UseResponseCaching();
+
                 options.SwaggerOptions = _swaggerOptions;
                 options.DefaultErrorHandler = exception => ErrorResponse.Create(exception.Message);
             });

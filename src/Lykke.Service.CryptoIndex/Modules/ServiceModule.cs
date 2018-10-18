@@ -1,18 +1,18 @@
 ﻿using Autofac;
+using AzureStorage.Blob;
 using AzureStorage.Tables;
 using Common;
 using JetBrains.Annotations;
 using Lykke.CoinMarketCap.Client;
 using Lykke.Common.Log;
-using Lykke.Service.CryptoIndex.Domain.Repositories.LCI10.IndexHistory;
-using Lykke.Service.CryptoIndex.Domain.Repositories.LCI10.IndexState;
-using Lykke.Service.CryptoIndex.Domain.Repositories.LCI10.Settings;
-using Lykke.Service.CryptoIndex.Domain.LCI10;
-using Lykke.Service.CryptoIndex.Domain.LCI10.IndexHistory;
-using Lykke.Service.CryptoIndex.Domain.LCI10.IndexState;
-using Lykke.Service.CryptoIndex.Domain.LCI10.Settings;
-using Lykke.Service.CryptoIndex.Domain.MarketCapitalization;
-using Lykke.Service.CryptoIndex.Domain.TickPrice;
+using Lykke.Service.CryptoIndex.Domain.Handlers;
+using Lykke.Service.CryptoIndex.Domain.Models;
+using Lykke.Service.CryptoIndex.Domain.Models.LCI10;
+using Lykke.Service.CryptoIndex.Domain.Publishers;
+using Lykke.Service.CryptoIndex.Domain.Repositories.LCI10;
+using Lykke.Service.CryptoIndex.Domain.Repositories.Models.LCI10;
+using Lykke.Service.CryptoIndex.Domain.Repositories.Repositories.LCI10;
+using Lykke.Service.CryptoIndex.Domain.Services;
 using Lykke.Service.CryptoIndex.Domain.Services.LCI10;
 using Lykke.Service.CryptoIndex.Domain.Services.MarketCapitalization;
 using Lykke.Service.CryptoIndex.Domain.Services.TickPrice;
@@ -61,21 +61,28 @@ namespace Lykke.Service.CryptoIndex.Modules
 
             // Repositories
 
-            builder.Register(container => new SettingsRepository(
+            // Blob
+
+            builder.RegisterInstance(AzureBlobStorage.Create(_connectionString));
+            builder.RegisterType<IndexHistoryBlobRepository>();
+
+            // Tables
+
+            builder.Register(c => new SettingsRepository(
                     AzureTableStorage<SettingsEntity>.Create(_connectionString,
-                        nameof(Settings), container.Resolve<ILogFactory>())))
+                        nameof(Settings), c.Resolve<ILogFactory>())))
                 .As<ISettingsRepository>()
                 .SingleInstance();
 
-            builder.Register(container => new IndexHistoryRepository(
+            builder.Register(c => new IndexHistoryRepository(
                     AzureTableStorage<IndexHistoryEntity>.Create(_connectionString,
-                        nameof(IndexHistory), container.Resolve<ILogFactory>())))
+                        nameof(IndexHistory), c.Resolve<ILogFactory>()), c.Resolve<IndexHistoryBlobRepository>()))
                 .As<IIndexHistoryRepository>()
                 .SingleInstance();
 
-            builder.Register(container => new IndexStateRepository(
+            builder.Register(c => new IndexStateRepository(
                     AzureTableStorage<IndexStateEntity>.Create(_connectionString,
-                        nameof(IndexState), container.Resolve<ILogFactory>())))
+                        nameof(IndexState), c.Resolve<ILogFactory>())))
                 .As<IIndexStateRepository>()
                 .SingleInstance();
 
