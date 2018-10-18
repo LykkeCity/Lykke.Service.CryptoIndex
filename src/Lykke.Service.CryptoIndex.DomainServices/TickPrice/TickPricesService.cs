@@ -8,7 +8,7 @@ using Lykke.Service.CryptoIndex.Domain;
 using Lykke.Service.CryptoIndex.Domain.LCI10.Settings;
 using Lykke.Service.CryptoIndex.Domain.TickPrice;
 
-namespace Lykke.Service.CryptoIndex.DomainServices.TickPrice
+namespace Lykke.Service.CryptoIndex.Domain.Services.TickPrice
 {
     public class TickPricesService : ITickPricesService, ITickPriceHandler
     {

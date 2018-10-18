@@ -28,8 +28,8 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\client\Lykke.Service.CryptoIndex.Client\Lykke.Service.CryptoIndex.Client.csproj" />
-    <ProjectReference Include="..\Lykke.Service.CryptoIndex.AzureRepositories\Lykke.Service.CryptoIndex.Domain.AzureRepositories.csproj" />
-    <ProjectReference Include="..\Lykke.Service.CryptoIndex.DomainServices\Lykke.Service.CryptoIndex.DomainServices.csproj" />
+    <ProjectReference Include="..\Lykke.Service.CryptoIndex.AzureRepositories\Lykke.Service.CryptoIndex.Domain.Repositories.csproj" />
+    <ProjectReference Include="..\Lykke.Service.CryptoIndex.DomainServices\Lykke.Service.CryptoIndex.Domain.Services.csproj" />
     <ProjectReference Include="..\Lykke.Service.CryptoIndex.Domain\Lykke.Service.CryptoIndex.Domain.csproj" />
   </ItemGroup>
   <Target Name="PrepublishScript" BeforeTargets="PrepareForPublish">

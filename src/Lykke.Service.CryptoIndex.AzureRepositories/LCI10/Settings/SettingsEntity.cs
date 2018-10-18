@@ -2,7 +2,7 @@
 using Lykke.AzureStorage.Tables;
 using Lykke.AzureStorage.Tables.Entity.Annotation;
 
-namespace Lykke.Service.CryptoIndex.Domain.AzureRepositories.LCI10.Settings
+namespace Lykke.Service.CryptoIndex.Domain.Repositories.LCI10.Settings
 {
     public class SettingsEntity : AzureTableEntity
     {

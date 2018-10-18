@@ -16,7 +16,7 @@ using Lykke.Service.CryptoIndex.Domain.LCI10.Settings;
 using Lykke.Service.CryptoIndex.Domain.MarketCapitalization;
 using Lykke.Service.CryptoIndex.Domain.TickPrice;
 
-namespace Lykke.Service.CryptoIndex.DomainServices.LCI10
+namespace Lykke.Service.CryptoIndex.Domain.Services.LCI10
 {
     /// <summary>
     /// See the specification - https://lykkex.atlassian.net/secure/attachment/46308/LCI_specs.pdf
@@ -24,7 +24,6 @@ namespace Lykke.Service.CryptoIndex.DomainServices.LCI10
     public class LCI10Calculator : ILCI10Calculator, IStartable, IStopable
     {
         private const string Lci10 = "lci10";
-
         private readonly object _sync = new object();
         private readonly List<AssetMarketCap> _marketCaps;
         private readonly IDictionary<string, decimal> _weights;
@@ -56,24 +55,6 @@ namespace Lykke.Service.CryptoIndex.DomainServices.LCI10
             _indexCalculationTrigger = new TimerTrigger(nameof(LCI10Calculator), indexCalculationInterval, logFactory, CalculateIndex);
 
             _log = logFactory.CreateLog(this);
-        }
-
-        public void Start()
-        {
-            _weightsCalculationTrigger.Start();
-            _indexCalculationTrigger.Start();
-        }
-
-        public void Stop()
-        {
-            _weightsCalculationTrigger.Stop();
-            _indexCalculationTrigger.Stop();
-        }
-
-        public void Dispose()
-        {
-            _marketCapitalizationService?.Dispose();
-            _weightsCalculationTrigger?.Dispose();
         }
 
         public async Task<IReadOnlyDictionary<string, decimal>> GetAssetMarketCapAsync()
@@ -168,7 +149,7 @@ namespace Lykke.Service.CryptoIndex.DomainServices.LCI10
                 weights = _weights.Clone();
             }
 
-            if (!IsAllDataArePresented(marketCaps, weights, assetsPrices))
+            if (!IsAllDataPresent(marketCaps, weights, assetsPrices))
             {
                 _log.Info("Skipped LCI10 calculation.");
                 return;
@@ -242,13 +223,6 @@ namespace Lykke.Service.CryptoIndex.DomainServices.LCI10
             return middlePrice;
         }
 
-        private static decimal GetPreviousMiddlePrice(string asset, IDictionary<string, decimal> previousPrices, decimal currentMiddlePrice)
-        {
-            return previousPrices.ContainsKey(asset)  // previous prices found in DB?
-                ? previousPrices[asset]               // yes, use them
-                : currentMiddlePrice;                 // no, use current
-        }
-
         private static IDictionary<string, decimal> GetMiddlePrices(IDictionary<string, IDictionary<string, decimal>> assetsPrices)
         {
             var result = new Dictionary<string, decimal>();
@@ -259,6 +233,13 @@ namespace Lykke.Service.CryptoIndex.DomainServices.LCI10
             }
 
             return result;
+        }
+
+        private static decimal GetPreviousMiddlePrice(string asset, IDictionary<string, decimal> previousPrices, decimal currentMiddlePrice)
+        {
+            return previousPrices.ContainsKey(asset)  // previous prices found in DB?
+                ? previousPrices[asset]               // yes, use them
+                : currentMiddlePrice;                 // no, use current
         }
 
         private void RecalculateTheWeightsIfSomeWeightsAreNotFound(IReadOnlyList<string> assets)
@@ -273,7 +254,7 @@ namespace Lykke.Service.CryptoIndex.DomainServices.LCI10
                 CalculateWeights().GetAwaiter().GetResult();
         }
 
-        private bool IsAllDataArePresented(IEnumerable<AssetMarketCap> marketCaps, IDictionary<string, decimal> weights,
+        private bool IsAllDataPresent(IEnumerable<AssetMarketCap> marketCaps, IDictionary<string, decimal> weights,
             IDictionary<string, IDictionary<string, decimal>> prices)
         {
             if (!marketCaps.Any())
@@ -295,6 +276,24 @@ namespace Lykke.Service.CryptoIndex.DomainServices.LCI10
             }
 
             return true;
+        }
+
+        public void Start()
+        {
+            _weightsCalculationTrigger.Start();
+            _indexCalculationTrigger.Start();
+        }
+
+        public void Stop()
+        {
+            _weightsCalculationTrigger.Stop();
+            _indexCalculationTrigger.Stop();
+        }
+
+        public void Dispose()
+        {
+            _marketCapitalizationService?.Dispose();
+            _weightsCalculationTrigger?.Dispose();
         }
     }
 }

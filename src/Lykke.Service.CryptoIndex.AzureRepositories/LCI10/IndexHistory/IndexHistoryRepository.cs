@@ -8,7 +8,7 @@ using Lykke.AzureStorage.Tables;
 using Lykke.Service.CryptoIndex.Domain.LCI10.IndexHistory;
 using Microsoft.WindowsAzure.Storage.Table;
 
-namespace Lykke.Service.CryptoIndex.Domain.AzureRepositories.LCI10.IndexHistory
+namespace Lykke.Service.CryptoIndex.Domain.Repositories.LCI10.IndexHistory
 {
     public class IndexHistoryRepository : IIndexHistoryRepository
     {

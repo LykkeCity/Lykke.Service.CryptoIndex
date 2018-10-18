@@ -1,4 +1,4 @@
-﻿namespace Lykke.Service.CryptoIndex.Domain.AzureRepositories.MarketCap
+﻿namespace Lykke.Service.CryptoIndex.Domain.Repositories.MarketCap
 {
     public class MarketCapEntity
     {

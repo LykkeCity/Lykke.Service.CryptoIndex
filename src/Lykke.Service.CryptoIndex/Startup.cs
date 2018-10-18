@@ -33,7 +33,7 @@ namespace Lykke.Service.CryptoIndex
 
                 Mapper.Initialize(cfg =>
                 {
-                    cfg.AddProfiles(typeof(Domain.AzureRepositories.AutoMapperProfile));
+                    cfg.AddProfiles(typeof(Domain.Repositories.AutoMapperProfile));
                     cfg.AddProfiles(typeof(AutoMapperProfile));
                 });
                 Mapper.AssertConfigurationIsValid();

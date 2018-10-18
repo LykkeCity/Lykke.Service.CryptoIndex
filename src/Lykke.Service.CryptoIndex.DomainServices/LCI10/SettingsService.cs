@@ -2,7 +2,7 @@
 using System.Threading.Tasks;
 using Lykke.Service.CryptoIndex.Domain.LCI10.Settings;
 
-namespace Lykke.Service.CryptoIndex.DomainServices.LCI10
+namespace Lykke.Service.CryptoIndex.Domain.Services.LCI10
 {
     public class SettingsService : ISettingsService
     {

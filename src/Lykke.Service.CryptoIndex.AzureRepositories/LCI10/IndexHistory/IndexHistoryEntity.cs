@@ -3,9 +3,9 @@ using System.Collections.Generic;
 using JetBrains.Annotations;
 using Lykke.AzureStorage.Tables;
 using Lykke.AzureStorage.Tables.Entity.Annotation;
-using Lykke.Service.CryptoIndex.Domain.AzureRepositories.MarketCap;
+using Lykke.Service.CryptoIndex.Domain.Repositories.MarketCap;
 
-namespace Lykke.Service.CryptoIndex.Domain.AzureRepositories.LCI10.IndexHistory
+namespace Lykke.Service.CryptoIndex.Domain.Repositories.LCI10.IndexHistory
 {
     [UsedImplicitly(ImplicitUseTargetFlags.WithMembers)]
     public class IndexHistoryEntity : AzureTableEntity

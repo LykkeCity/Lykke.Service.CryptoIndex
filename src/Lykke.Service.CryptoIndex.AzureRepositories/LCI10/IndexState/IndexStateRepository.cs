@@ -3,7 +3,7 @@ using AutoMapper;
 using AzureStorage;
 using Lykke.Service.CryptoIndex.Domain.LCI10.IndexState;
 
-namespace Lykke.Service.CryptoIndex.Domain.AzureRepositories.LCI10.IndexState
+namespace Lykke.Service.CryptoIndex.Domain.Repositories.LCI10.IndexState
 {
     public class IndexStateRepository : IIndexStateRepository
     {

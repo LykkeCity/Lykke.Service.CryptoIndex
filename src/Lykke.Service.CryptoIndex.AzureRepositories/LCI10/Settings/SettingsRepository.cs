@@ -3,7 +3,7 @@ using AutoMapper;
 using AzureStorage;
 using Lykke.Service.CryptoIndex.Domain.LCI10.Settings;
 
-namespace Lykke.Service.CryptoIndex.Domain.AzureRepositories.LCI10.Settings
+namespace Lykke.Service.CryptoIndex.Domain.Repositories.LCI10.Settings
 {
     public class SettingsRepository : ISettingsRepository
     {

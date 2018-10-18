@@ -1,14 +1,14 @@
 ﻿using AutoMapper;
-using Lykke.Service.CryptoIndex.Domain.AzureRepositories.LCI10.IndexHistory;
-using Lykke.Service.CryptoIndex.Domain.AzureRepositories.LCI10.IndexState;
-using Lykke.Service.CryptoIndex.Domain.AzureRepositories.LCI10.Settings;
-using Lykke.Service.CryptoIndex.Domain.AzureRepositories.MarketCap;
+using Lykke.Service.CryptoIndex.Domain.Repositories.LCI10.IndexHistory;
+using Lykke.Service.CryptoIndex.Domain.Repositories.LCI10.IndexState;
+using Lykke.Service.CryptoIndex.Domain.Repositories.LCI10.Settings;
+using Lykke.Service.CryptoIndex.Domain.Repositories.MarketCap;
 using Lykke.Service.CryptoIndex.Domain.LCI10.IndexHistory;
 using Lykke.Service.CryptoIndex.Domain.LCI10.IndexState;
 using Lykke.Service.CryptoIndex.Domain.LCI10.Settings;
 using Lykke.Service.CryptoIndex.Domain.MarketCapitalization;
 
-namespace Lykke.Service.CryptoIndex.Domain.AzureRepositories
+namespace Lykke.Service.CryptoIndex.Domain.Repositories
 {
     public class AutoMapperProfile : Profile
     {
