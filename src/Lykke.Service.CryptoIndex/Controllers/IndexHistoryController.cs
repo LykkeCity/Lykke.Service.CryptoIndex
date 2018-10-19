@@ -20,7 +20,7 @@ namespace Lykke.Service.CryptoIndex.Controllers
             _indexHistoryRepository = indexHistoryRepository;
         }
 
-        [HttpGet("indexHistories/{from}/{to}")]
+        [HttpGet("indexHistories")]
         [ProducesResponseType(typeof(IReadOnlyList<IndexHistory>), (int)HttpStatusCode.OK)]
         [ResponseCache(Duration = 60 * 10, VaryByQueryKeys = new[] { "*" })]
         public async Task<IReadOnlyList<IndexHistory>> GetIndexHistoryAsync(DateTime from, DateTime to)
@@ -32,7 +32,7 @@ namespace Lykke.Service.CryptoIndex.Controllers
             return result;
         }
 
-        [HttpGet("timestamps/{from}/{to}")]
+        [HttpGet("timestamps")]
         [ProducesResponseType(typeof(IReadOnlyList<IndexHistory>), (int)HttpStatusCode.OK)]
         [ResponseCache(Duration = 60 * 10, VaryByQueryKeys = new[] { "*" })]
         public async Task<IReadOnlyList<DateTime>> GetTimestampsAsync(DateTime from, DateTime to)
@@ -42,7 +42,7 @@ namespace Lykke.Service.CryptoIndex.Controllers
             return timestamps;
         }
 
-        [HttpGet("/{timestamp}")]
+        [HttpGet]
         [ProducesResponseType(typeof(IndexHistory), (int)HttpStatusCode.OK)]
         [ResponseCache(Duration = 60 * 10, VaryByQueryKeys = new[] { "*" })]
         public async Task<IndexHistory> GetAsync(DateTime timestamp)
