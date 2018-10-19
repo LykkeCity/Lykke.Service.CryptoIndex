@@ -35,6 +35,11 @@ namespace Lykke.Service.CryptoIndex.Domain.Repositories.Repositories.LCI10
                 await DeleteBlobAsync(blobName);
         }
 
+        public new async Task Clear()
+        {
+            await base.Clear();
+        }
+
         public static string GetBlobName(DateTime dateTime)
             => $"{dateTime.ToIsoDateTime()}";
     }

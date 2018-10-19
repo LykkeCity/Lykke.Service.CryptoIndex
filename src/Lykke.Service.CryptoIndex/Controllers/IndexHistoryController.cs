@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using AutoMapper;
 using Lykke.Service.CryptoIndex.Client.Api.LCI10;
 using Lykke.Service.CryptoIndex.Domain.Repositories.LCI10;
+using Lykke.Service.CryptoIndex.Domain.Services.LCI10;
 using Microsoft.AspNetCore.Mvc;
 using IndexHistory = Lykke.Service.CryptoIndex.Client.Models.LCI10.IndexHistory;
 
@@ -14,10 +15,12 @@ namespace Lykke.Service.CryptoIndex.Controllers
     public class IndexHistoryController : Controller, IIndexHistoryApi
     {
         private readonly IIndexHistoryRepository _indexHistoryRepository;
+        private readonly ILCI10Calculator _lci10Calculator;
 
-        public IndexHistoryController(IIndexHistoryRepository indexHistoryRepository)
+        public IndexHistoryController(IIndexHistoryRepository indexHistoryRepository, ILCI10Calculator lci10Calculator)
         {
             _indexHistoryRepository = indexHistoryRepository;
+            _lci10Calculator = lci10Calculator;
         }
 
         [HttpGet("indexHistories")]
@@ -52,6 +55,12 @@ namespace Lykke.Service.CryptoIndex.Controllers
             var result = Mapper.Map<IndexHistory>(domain);
 
             return result;
+        }
+
+        [HttpGet("reset")]
+        public async Task ResetAsync()
+        {
+            await _lci10Calculator.Reset();
         }
     }
 }

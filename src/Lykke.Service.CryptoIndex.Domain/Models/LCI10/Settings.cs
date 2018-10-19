@@ -14,10 +14,16 @@ namespace Lykke.Service.CryptoIndex.Domain.Models.LCI10
         /// </summary>
         public IReadOnlyList<string> Assets { get; }
 
-        public Settings(IReadOnlyList<string> sources, IReadOnlyList<string> assets)
+        /// <summary>
+        /// Is crypto index calculation enabled
+        /// </summary>
+        public bool Enabled { get; }
+
+        public Settings(IReadOnlyList<string> sources, IReadOnlyList<string> assets, bool enabled)
         {
             Sources = sources;
             Assets = assets;
+            Enabled = enabled;
         }
     }
 }

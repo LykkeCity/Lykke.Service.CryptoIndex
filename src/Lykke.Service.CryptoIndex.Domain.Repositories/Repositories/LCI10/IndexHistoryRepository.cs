@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -91,6 +90,13 @@ namespace Lykke.Service.CryptoIndex.Domain.Repositories.Repositories.LCI10
                 blob.Prices, model.MiddlePrices, model.Time);
 
             return domain;
+        }
+
+        public async Task Clear()
+        {
+            await _storage.DeleteAsync();
+            await _storage.CreateTableIfNotExistsAsync();
+            await _blobRepository.Clear();
         }
 
         private static string GetPartitionKey(DateTime time)

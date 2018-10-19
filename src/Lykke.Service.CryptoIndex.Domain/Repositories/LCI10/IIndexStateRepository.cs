@@ -8,5 +8,7 @@ namespace Lykke.Service.CryptoIndex.Domain.Repositories.LCI10
         Task SetAsync(IndexState indexState);
 
         Task<IndexState> GetAsync();
+
+        Task Clear();
     }
 }

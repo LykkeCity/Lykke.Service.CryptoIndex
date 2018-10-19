@@ -30,5 +30,11 @@ namespace Lykke.Service.CryptoIndex.Client.Api.LCI10
         /// </summary>
         [Get("/api/lci10/indexHistory")]
         Task<IndexHistory> GetAsync(DateTime timestamp);
+
+        /// <summary>
+        /// Resets all the records in the database
+        /// </summary>
+        [Get("/api/lci10/indexHistory/reset")]
+        Task ResetAsync();
     }
 }

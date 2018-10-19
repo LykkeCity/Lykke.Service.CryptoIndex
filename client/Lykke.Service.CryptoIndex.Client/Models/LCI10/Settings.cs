@@ -18,5 +18,10 @@ namespace Lykke.Service.CryptoIndex.Client.Models.LCI10
         /// Constituents of index (assets which we build the index from)
         /// </summary>
         public IReadOnlyList<string> Assets { get; set; } = new List<string>();
+
+        /// <summary>
+        /// Is crypto index calculation enabled
+        /// </summary>
+        public bool Enabled { get; set; }
     }
 }

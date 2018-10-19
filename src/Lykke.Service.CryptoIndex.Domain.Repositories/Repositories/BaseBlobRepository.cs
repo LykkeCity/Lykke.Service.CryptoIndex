@@ -61,5 +61,11 @@ namespace Lykke.Service.CryptoIndex.Domain.Repositories.Repositories
         {
             await Storage.DelBlobAsync(_container, blobKey);
         }
+
+        protected async Task Clear()
+        {
+            await Storage.DeleteBlobsByPrefixAsync(_container, _container);
+            await Storage.CreateContainerIfNotExistsAsync(_container);
+        }
     }
 }

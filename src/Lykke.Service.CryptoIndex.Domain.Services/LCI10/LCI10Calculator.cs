@@ -23,6 +23,7 @@ namespace Lykke.Service.CryptoIndex.Domain.Services.LCI10
     {
         private const string Lci10 = "lci10";
         private readonly object _sync = new object();
+        private bool _restarted;
         private readonly List<AssetMarketCap> _marketCaps;
         private readonly IDictionary<string, decimal> _weights;
         private readonly IIndexStateRepository _indexStateRepository;
@@ -72,10 +73,25 @@ namespace Lykke.Service.CryptoIndex.Domain.Services.LCI10
             return result;
         }
 
+        public Task Reset()
+        {
+            lock (_sync)
+            {
+                _restarted = true;
+                _indexStateRepository.Clear().GetAwaiter().GetResult();
+                _indexHistoryRepository.Clear().GetAwaiter().GetResult();
+            }
+
+            return Task.CompletedTask;
+        }
+
         private async Task CalculateWeights(ITimerTrigger timer, TimerTriggeredHandlerArgs args, CancellationToken ct)
         {
             try
             {
+                if (!Settings.Enabled)
+                    return;
+
                 await CalculateWeights();
             }
             catch (Exception e)
@@ -123,6 +139,9 @@ namespace Lykke.Service.CryptoIndex.Domain.Services.LCI10
         {
             try
             {
+                if (!Settings.Enabled)
+                    return;
+
                 await CalculateIndex();
             }
             catch (Exception e)
@@ -154,6 +173,15 @@ namespace Lykke.Service.CryptoIndex.Domain.Services.LCI10
             {
                 _log.Info("Skipped LCI10 calculation.");
                 return;
+            }
+
+            lock (_sync)
+            {
+                if (_restarted || !Settings.Enabled)
+                {
+                    _restarted = false;
+                    return;
+                }       
             }
 
             // Save index as previous for the next execution
@@ -277,6 +305,14 @@ namespace Lykke.Service.CryptoIndex.Domain.Services.LCI10
             }
 
             return true;
+        }
+
+        private Settings Settings => _settingsService.GetAsync().GetAwaiter().GetResult();
+
+        private void SetEnabled(bool enabled)
+        {
+            var settings = new Settings(Settings.Sources, Settings.Assets, enabled);
+            _settingsService.SetAsync(settings).GetAwaiter().GetResult();
         }
 
         public void Start()

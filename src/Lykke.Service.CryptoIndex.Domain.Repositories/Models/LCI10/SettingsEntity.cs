@@ -11,5 +11,7 @@ namespace Lykke.Service.CryptoIndex.Domain.Repositories.Models.LCI10
 
         [JsonValueSerializer]
         public IReadOnlyList<string> Assets { get; set; }
+        
+        public bool Enabled { get; set; }
     }
 }
