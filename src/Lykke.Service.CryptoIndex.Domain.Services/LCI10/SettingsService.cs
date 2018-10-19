@@ -1,8 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
-using Lykke.Service.CryptoIndex.Domain.Models;
 using Lykke.Service.CryptoIndex.Domain.Models.LCI10;
-using Lykke.Service.CryptoIndex.Domain.Repositories;
 using Lykke.Service.CryptoIndex.Domain.Repositories.LCI10;
 
 namespace Lykke.Service.CryptoIndex.Domain.Services.LCI10
@@ -26,7 +24,7 @@ namespace Lykke.Service.CryptoIndex.Domain.Services.LCI10
 
             if (Settings == null)
             {
-                Settings = new Settings(new List<string>(), new List<string>());
+                Settings = new Settings(new List<string>(), new List<string>(), true);
                 await _settingsRepository.InsertOrReplaceAsync(Settings);
             }
 
