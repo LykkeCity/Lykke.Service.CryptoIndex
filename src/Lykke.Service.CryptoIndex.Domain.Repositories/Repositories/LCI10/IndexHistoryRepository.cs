@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -46,7 +47,8 @@ namespace Lykke.Service.CryptoIndex.Domain.Repositories.Repositories.LCI10
 
             var models = await _storage.WhereAsync(query);
 
-            var domain = Mapper.Map<IReadOnlyList<IndexHistory>>(models);
+            var domain = models.Select(x => new IndexHistory(x.Value, Mapper.Map<IReadOnlyList<AssetMarketCap>>(x.MarketCaps), x.Weights,
+                new Dictionary<string, IDictionary<string, decimal>>(), x.MiddlePrices, x.Time)).ToList();
             
             return domain;
         }
