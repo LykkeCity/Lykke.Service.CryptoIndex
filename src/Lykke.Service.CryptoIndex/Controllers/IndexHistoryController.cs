@@ -58,6 +58,7 @@ namespace Lykke.Service.CryptoIndex.Controllers
         }
 
         [HttpGet("reset")]
+        [ProducesResponseType((int)HttpStatusCode.NoContent)]
         public async Task ResetAsync()
         {
             await _lci10Calculator.Reset();

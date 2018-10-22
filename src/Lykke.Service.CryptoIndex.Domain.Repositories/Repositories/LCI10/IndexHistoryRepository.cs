@@ -92,13 +92,6 @@ namespace Lykke.Service.CryptoIndex.Domain.Repositories.Repositories.LCI10
             return domain;
         }
 
-        public async Task Clear()
-        {
-            await _storage.DeleteAsync();
-            await _storage.CreateTableIfNotExistsAsync();
-            await _blobRepository.Clear();
-        }
-
         private static string GetPartitionKey(DateTime time)
             => time.Date.ToIsoDate();
 

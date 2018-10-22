@@ -11,7 +11,6 @@ using Lykke.Common.Log;
 using Lykke.Service.CryptoIndex.Domain.Models;
 using Lykke.Service.CryptoIndex.Domain.Models.LCI10;
 using Lykke.Service.CryptoIndex.Domain.Publishers;
-using Lykke.Service.CryptoIndex.Domain.Repositories;
 using Lykke.Service.CryptoIndex.Domain.Repositories.LCI10;
 
 namespace Lykke.Service.CryptoIndex.Domain.Services.LCI10
@@ -21,9 +20,9 @@ namespace Lykke.Service.CryptoIndex.Domain.Services.LCI10
     /// </summary>
     public class LCI10Calculator : ILCI10Calculator, IStartable, IStopable
     {
+        private const decimal InitialIndexValue = 1000m;
         private const string Lci10 = "lci10";
         private readonly object _sync = new object();
-        private bool _restarted;
         private readonly List<AssetMarketCap> _marketCaps;
         private readonly IDictionary<string, decimal> _weights;
         private readonly IIndexStateRepository _indexStateRepository;
@@ -35,6 +34,9 @@ namespace Lykke.Service.CryptoIndex.Domain.Services.LCI10
         private readonly TimerTrigger _weightsCalculationTrigger;
         private readonly TimerTrigger _indexCalculationTrigger;
         private readonly ILog _log;
+
+        private Settings Settings => _settingsService.GetAsync().GetAwaiter().GetResult();
+        private IndexState State => _indexStateRepository.GetAsync().GetAwaiter().GetResult();
 
         public LCI10Calculator(IIndexStateRepository indexStateRepository, IIndexHistoryRepository indexHistoryRepository,
             ISettingsService settingsService, ITickPricePublisher tickPricePublisher, IMarketCapitalizationService marketCapitalizationService,
@@ -77,9 +79,7 @@ namespace Lykke.Service.CryptoIndex.Domain.Services.LCI10
         {
             lock (_sync)
             {
-                _restarted = true;
                 _indexStateRepository.Clear().GetAwaiter().GetResult();
-                _indexHistoryRepository.Clear().GetAwaiter().GetResult();
             }
 
             return Task.CompletedTask;
@@ -177,18 +177,23 @@ namespace Lykke.Service.CryptoIndex.Domain.Services.LCI10
 
             lock (_sync)
             {
-                if (_restarted || !Settings.Enabled)
+                if (!Settings.Enabled)
                 {
-                    _restarted = false;
                     return;
                 }       
             }
 
-            // Save index as previous for the next execution
+            // Get current index state
             var indexState = CalculateIndexState(settings.Assets, weights, assetsPrices, lastIndex);
+
+            // if there was a reset then skip until next iteration which will have initial state
+            if (indexState.Value != InitialIndexValue && State == null)
+                return;
+
+            // Save index state for the next execution
             await _indexStateRepository.SetAsync(indexState);
 
-            // Save index to history
+            // Save all index info to history
             var indexHistory = new IndexHistory(indexState.Value, marketCaps, weights, assetsPrices, indexState.MiddlePrices, DateTime.UtcNow);
             await _indexHistoryRepository.InsertAsync(indexHistory);
 
@@ -205,7 +210,7 @@ namespace Lykke.Service.CryptoIndex.Domain.Services.LCI10
             var middlePrices = GetMiddlePrices(assetsPrices);
 
             if (lastIndex == null)
-                lastIndex = new IndexState(1000, middlePrices);
+                lastIndex = new IndexState(InitialIndexValue, middlePrices);
 
             CheckThatAllAssetsArePresent(assets, assetsWeights, assetsPrices);
 
@@ -305,14 +310,6 @@ namespace Lykke.Service.CryptoIndex.Domain.Services.LCI10
             }
 
             return true;
-        }
-
-        private Settings Settings => _settingsService.GetAsync().GetAwaiter().GetResult();
-
-        private void SetEnabled(bool enabled)
-        {
-            var settings = new Settings(Settings.Sources, Settings.Assets, enabled);
-            _settingsService.SetAsync(settings).GetAwaiter().GetResult();
         }
 
         public void Start()

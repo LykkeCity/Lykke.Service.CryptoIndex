@@ -37,8 +37,7 @@ namespace Lykke.Service.CryptoIndex.Domain.Repositories.Repositories.LCI10
 
         public async Task Clear()
         {
-            await _storage.DeleteAsync();
-            await _storage.CreateTableIfNotExistsAsync();
+            await _storage.DeleteAsync(ConstKey, ConstKey);
         }
     }
 }
