@@ -4,7 +4,6 @@ using System.Linq;
 using System.Threading.Tasks;
 using Common.Log;
 using Lykke.Common.Log;
-using Lykke.Service.CryptoIndex.Domain;
 using Lykke.Service.CryptoIndex.Domain.Handlers;
 using Lykke.Service.CryptoIndex.Domain.Services.LCI10;
 
@@ -34,9 +33,6 @@ namespace Lykke.Service.CryptoIndex.Domain.Services.TickPrice
             var asset = tickPrice.AssetPair.ToUpper().Replace(Usd, "");
 
             var settings = await _settingsService.GetAsync();
-
-            if (!settings.Assets.Contains(asset))
-                return;
 
             if (!settings.Sources.Contains(tickPrice.Source))
                 return;

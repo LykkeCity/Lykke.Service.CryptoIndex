@@ -16,5 +16,10 @@ namespace Lykke.Service.CryptoIndex.Domain.Models
             Value = value;
             Asset = asset;
         }
+
+        public override string ToString()
+        {
+            return $"{Value} {Asset}";
+        }
     }
 }

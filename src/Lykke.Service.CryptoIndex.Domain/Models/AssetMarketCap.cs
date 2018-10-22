@@ -15,5 +15,10 @@ namespace Lykke.Service.CryptoIndex.Domain.Models
             Asset = asset;
             MarketCap = marketCap ?? throw new ArgumentNullException(nameof(MarketCap));
         }
+
+        public override string ToString()
+        {
+            return $"{Asset} = {MarketCap.Value}";
+        }
     }
 }

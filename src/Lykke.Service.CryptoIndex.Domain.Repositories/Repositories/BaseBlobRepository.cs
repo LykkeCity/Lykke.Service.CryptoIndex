@@ -3,7 +3,6 @@ using System.IO;
 using System.Text;
 using System.Threading.Tasks;
 using AzureStorage;
-using Microsoft.WindowsAzure.Storage;
 
 namespace Lykke.Service.CryptoIndex.Domain.Repositories.Repositories
 {
@@ -61,30 +60,6 @@ namespace Lykke.Service.CryptoIndex.Domain.Repositories.Repositories
         protected async Task DeleteBlobAsync(string blobKey)
         {
             await Storage.DelBlobAsync(_container, blobKey);
-        }
-
-        protected async Task Clear()
-        {
-            try
-            {
-                await Storage.DeleteBlobsByPrefixAsync(_container, _container);
-            }
-            catch ()
-            {
-            }
-
-            while (true)
-            {
-                try
-                {
-                    await Storage.CreateContainerIfNotExistsAsync(_container);
-                    break;
-                }
-                catch
-                {
-                    // do nothing
-                }
-            }            
         }
     }
 }

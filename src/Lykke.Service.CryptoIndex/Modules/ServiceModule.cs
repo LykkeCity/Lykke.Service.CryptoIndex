@@ -1,4 +1,5 @@
 ﻿using Autofac;
+using Autofac.Core.NonPublicProperty;
 using AzureStorage.Blob;
 using AzureStorage.Tables;
 using Common;
@@ -6,7 +7,6 @@ using JetBrains.Annotations;
 using Lykke.CoinMarketCap.Client;
 using Lykke.Common.Log;
 using Lykke.Service.CryptoIndex.Domain.Handlers;
-using Lykke.Service.CryptoIndex.Domain.Models;
 using Lykke.Service.CryptoIndex.Domain.Models.LCI10;
 using Lykke.Service.CryptoIndex.Domain.Publishers;
 using Lykke.Service.CryptoIndex.Domain.Repositories.LCI10;
@@ -86,6 +86,12 @@ namespace Lykke.Service.CryptoIndex.Modules
                 .As<IIndexStateRepository>()
                 .SingleInstance();
 
+            builder.Register(c => new WarningRepository(
+                    AzureTableStorage<WarningEntity>.Create(_connectionString,
+                        nameof(Warning), c.Resolve<ILogFactory>())))
+                .As<IWarningRepository>()
+                .SingleInstance();
+
             // Services
 
             builder.RegisterType<TickPricesService>()
@@ -112,6 +118,7 @@ namespace Lykke.Service.CryptoIndex.Modules
                 .As<IStopable>()
                 .WithParameter("weightsCalculationInterval", _settings.WeightsCalculationInterval)
                 .WithParameter("indexCalculationInterval", _settings.IndexCalculationInterval)
+                .AutoWireNonPublicProperties()
                 .SingleInstance();
         }
     }

@@ -27,36 +27,27 @@ namespace Lykke.Service.CryptoIndex.Domain.Services.LCI10
         private readonly List<AssetMarketCap> _marketCaps;
         private readonly IDictionary<string, decimal> _allMarketCapsAssets;
         private readonly IDictionary<string, decimal> _assetsWeights;
-        private readonly IIndexStateRepository _indexStateRepository;
-        private readonly IIndexHistoryRepository _indexHistoryRepository;
-        private readonly IWarningRepository _warningRepository;
-        private readonly ISettingsService _settingsService;
-        private readonly ITickPricesService _tickPricesService;
-        private readonly ITickPricePublisher _tickPricePublisher;
-        private readonly IMarketCapitalizationService _marketCapitalizationService;
         private readonly TimerTrigger _weightsCalculationTrigger;
         private readonly TimerTrigger _indexCalculationTrigger;
         private readonly ILog _log;
 
-        private Settings Settings => _settingsService.GetAsync().GetAwaiter().GetResult();
-        private IndexState State => _indexStateRepository.GetAsync().GetAwaiter().GetResult();
+        private IIndexStateRepository IndexStateRepository { get; set; }
+        private IIndexHistoryRepository IndexHistoryRepository { get; set; }
+        private IWarningRepository WarningRepository { get; set; }
+        private ISettingsService SettingsService { get; set; }
+        private ITickPricesService TickPricesService { get; set; }
+        private ITickPricePublisher TickPricePublisher { get; set; }
+        private IMarketCapitalizationService MarketCapitalizationService { get; set; }
+
+        private Settings Settings => SettingsService.GetAsync().GetAwaiter().GetResult();
+        private IndexState State => IndexStateRepository.GetAsync().GetAwaiter().GetResult();
         private IReadOnlyList<string> TopAssets => _assetsWeights.Keys.ToList();
 
-        public LCI10Calculator(IIndexStateRepository indexStateRepository, IIndexHistoryRepository indexHistoryRepository, IWarningRepository warningRepository,
-            ISettingsService settingsService, ITickPricePublisher tickPricePublisher, IMarketCapitalizationService marketCapitalizationService,
-            TimeSpan weightsCalculationInterval, TimeSpan indexCalculationInterval, ITickPricesService tickPricesService, ILogFactory logFactory)
+        public LCI10Calculator(TimeSpan weightsCalculationInterval, TimeSpan indexCalculationInterval, ILogFactory logFactory)
         {
             _marketCaps = new List<AssetMarketCap>();
             _allMarketCapsAssets = new Dictionary<string, decimal>();
             _assetsWeights = new ConcurrentDictionary<string, decimal>();
-
-            _indexStateRepository = indexStateRepository ?? throw new ArgumentNullException(nameof(indexStateRepository));
-            _indexHistoryRepository = indexHistoryRepository ?? throw new ArgumentNullException(nameof(_indexHistoryRepository));
-            _warningRepository = warningRepository ?? throw new ArgumentNullException(nameof(_warningRepository));
-            _settingsService = settingsService ?? throw new ArgumentNullException(nameof(settingsService));
-            _marketCapitalizationService = marketCapitalizationService ?? throw new ArgumentNullException(nameof(marketCapitalizationService));
-            _tickPricePublisher = tickPricePublisher ?? throw new ArgumentNullException(nameof(tickPricePublisher));
-            _tickPricesService = tickPricesService;
 
             _weightsCalculationTrigger = new TimerTrigger(nameof(LCI10Calculator), weightsCalculationInterval, logFactory, CalculateWeights);
             _indexCalculationTrigger = new TimerTrigger(nameof(LCI10Calculator), indexCalculationInterval, logFactory, CalculateIndex);
@@ -78,7 +69,7 @@ namespace Lykke.Service.CryptoIndex.Domain.Services.LCI10
         {
             lock (_sync)
             {
-                _indexStateRepository.Clear().GetAwaiter().GetResult();
+                IndexStateRepository.Clear().GetAwaiter().GetResult();
             }
 
             return Task.CompletedTask;
@@ -88,9 +79,6 @@ namespace Lykke.Service.CryptoIndex.Domain.Services.LCI10
         {
             try
             {
-                if (!Settings.Enabled)
-                    return;
-
                 await CalculateWeights();
             }
             catch (Exception e)
@@ -104,7 +92,7 @@ namespace Lykke.Service.CryptoIndex.Domain.Services.LCI10
             _log.Info("Started calculating weights...");
 
             // Get top 100 market caps
-            var all = await _marketCapitalizationService.GetAllAsync();
+            var all = await MarketCapitalizationService.GetAllAsync();
 
             // All market caps assets
             all.ForEach(x => _allMarketCapsAssets.Add(x.Asset, x.MarketCap.Value));
@@ -115,6 +103,8 @@ namespace Lykke.Service.CryptoIndex.Domain.Services.LCI10
             // Sum of top market caps
             var totalMarketCap = topMarketCaps.Select(x => x.MarketCap.Value).Sum();
 
+            var wantedAssets = topMarketCaps.Select(x => x.Asset).ToList();
+
             lock (_sync)
             {
                 // Refresh market caps
@@ -123,7 +113,7 @@ namespace Lykke.Service.CryptoIndex.Domain.Services.LCI10
 
                 // Calculate weights
                 _assetsWeights.Clear();
-                foreach (var asset in TopAssets)
+                foreach (var asset in wantedAssets)
                 {
                     var assetMarketCap = topMarketCaps.Single(x => x.Asset == asset).MarketCap.Value;
                     var assetWeight = assetMarketCap / totalMarketCap;
@@ -131,7 +121,7 @@ namespace Lykke.Service.CryptoIndex.Domain.Services.LCI10
                 }
             }
 
-            _log.Info($"Finished calculating weights for {TopAssets.Count} assets.");
+            _log.Info($"Finished calculating weights for {wantedAssets.Count} assets.");
         }
 
         private IReadOnlyList<AssetMarketCap> GetTopMarketCaps(IEnumerable<AssetMarketCap> all)
@@ -167,8 +157,8 @@ namespace Lykke.Service.CryptoIndex.Domain.Services.LCI10
 
             List<AssetMarketCap> marketCaps;
             IDictionary<string, decimal> assetWeights;
-            var assetsPrices = await _tickPricesService.GetPricesAsync();
-            var lastIndex = await _indexStateRepository.GetAsync();
+            var assetsPrices = await TickPricesService.GetPricesAsync();
+            var lastIndex = await IndexStateRepository.GetAsync();
 
             lock (_sync)
             {
@@ -198,15 +188,15 @@ namespace Lykke.Service.CryptoIndex.Domain.Services.LCI10
                 return;
 
             // Save index state for the next execution
-            await _indexStateRepository.SetAsync(indexState);
+            await IndexStateRepository.SetAsync(indexState);
 
             // Save all index info to history
             var indexHistory = new IndexHistory(indexState.Value, marketCaps, assetWeights, assetsPrices, indexState.MiddlePrices, DateTime.UtcNow);
-            await _indexHistoryRepository.InsertAsync(indexHistory);
+            await IndexHistoryRepository.InsertAsync(indexHistory);
 
             // Publish index to RabbitMq
             var tickPrice = new Models.TickPrice(Lci10, Lci10, indexHistory.Value, indexHistory.Value, indexHistory.Time);
-            _tickPricePublisher.Publish(tickPrice);
+            TickPricePublisher?.Publish(tickPrice);
 
             _log.Info($"Finished calculating index for {TopAssets.Count} assets, value: {indexState.Value}.");
         }
@@ -248,7 +238,7 @@ namespace Lykke.Service.CryptoIndex.Domain.Services.LCI10
             if (assetsWeights.Count != assetsPrices.Count)
             {
                 var message = $"Some assets are missed, weights: {assetsWeights.Keys.ToJson()}, prices: {assetsPrices.Keys.ToJson()}.";
-                _warningRepository.SaveAsync(new Warning(message, DateTime.UtcNow));
+                WarningRepository.SaveAsync(new Warning(message, DateTime.UtcNow));
                 throw new InvalidOperationException(message);
             }    
         }
@@ -322,7 +312,7 @@ namespace Lykke.Service.CryptoIndex.Domain.Services.LCI10
 
         public void Dispose()
         {
-            _marketCapitalizationService?.Dispose();
+            MarketCapitalizationService?.Dispose();
             _weightsCalculationTrigger?.Dispose();
         }
     }
