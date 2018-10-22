@@ -196,7 +196,7 @@ namespace Lykke.Service.CryptoIndex.Domain.Services.LCI10
 
             // Publish index to RabbitMq
             var tickPrice = new Models.TickPrice(Lci10, Lci10, indexHistory.Value, indexHistory.Value, indexHistory.Time);
-            TickPricePublisher?.Publish(tickPrice);
+            TickPricePublisher.Publish(tickPrice);
 
             _log.Info($"Finished calculating index for {TopAssets.Count} assets, value: {indexState.Value}.");
         }
