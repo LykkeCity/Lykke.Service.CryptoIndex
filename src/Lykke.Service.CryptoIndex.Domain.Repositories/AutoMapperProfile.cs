@@ -22,6 +22,9 @@ namespace Lykke.Service.CryptoIndex.Domain.Repositories
             CreateMap<IndexState, IndexStateEntity>(MemberList.Source);
             CreateMap<IndexStateEntity, IndexState>();
 
+            CreateMap<Warning, WarningEntity>(MemberList.Source);
+            CreateMap<WarningEntity, Warning>();
+
             CreateMap<Settings, SettingsEntity>(MemberList.Source);
             CreateMap<SettingsEntity, Settings>();
         }

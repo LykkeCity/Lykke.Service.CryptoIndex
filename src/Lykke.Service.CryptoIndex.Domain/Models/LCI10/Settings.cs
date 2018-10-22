@@ -10,19 +10,25 @@ namespace Lykke.Service.CryptoIndex.Domain.Models.LCI10
         public IReadOnlyList<string> Sources { get; }
 
         /// <summary>
-        /// Constituents of index (assets which we build the index from)
+        /// Сryptocurrencies pegged to other currencies (which we are not interested in)
         /// </summary>
-        public IReadOnlyList<string> Assets { get; }
+        public IReadOnlyList<string> ExcludedAssets { get; }
+
+        /// <summary>
+        /// Count of the top assets
+        /// </summary>
+        public int TopCount { get; }
 
         /// <summary>
         /// Is crypto index calculation enabled
         /// </summary>
         public bool Enabled { get; }
 
-        public Settings(IReadOnlyList<string> sources, IReadOnlyList<string> assets, bool enabled)
+        public Settings(IReadOnlyList<string> sources, IReadOnlyList<string> excludedAssets, int topCount, bool enabled)
         {
             Sources = sources;
-            Assets = assets;
+            ExcludedAssets = excludedAssets;
+            TopCount = topCount;
             Enabled = enabled;
         }
     }

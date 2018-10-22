@@ -15,9 +15,14 @@ namespace Lykke.Service.CryptoIndex.Client.Models.LCI10
         public IReadOnlyList<string> Sources { get; set; } = new List<string>();
 
         /// <summary>
-        /// Constituents of index (assets which we build the index from)
+        /// Сryptocurrencies pegged to other currencies (which we are not interested in)
         /// </summary>
-        public IReadOnlyList<string> Assets { get; set; } = new List<string>();
+        public IReadOnlyList<string> ExcludedAssets { get; set; } = new List<string>();
+
+        /// <summary>
+        /// Count of the top assets
+        /// </summary>
+        public int TopCount { get; set; }
 
         /// <summary>
         /// Is crypto index calculation enabled
