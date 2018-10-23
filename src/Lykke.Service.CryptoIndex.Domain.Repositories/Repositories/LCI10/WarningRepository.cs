@@ -24,6 +24,8 @@ namespace Lykke.Service.CryptoIndex.Domain.Repositories.Repositories.LCI10
         public async Task SaveAsync(Warning warning)
         {
             var model = Mapper.Map<WarningEntity>(warning);
+            model.PartitionKey = GetPartitionKey(warning.Time);
+            model.RowKey = GetRowKey(warning.Time);
 
             await _storage.InsertAsync(model);
         }
