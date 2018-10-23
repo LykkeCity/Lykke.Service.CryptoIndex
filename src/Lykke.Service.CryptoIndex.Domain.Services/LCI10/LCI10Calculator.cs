@@ -127,7 +127,7 @@ namespace Lykke.Service.CryptoIndex.Domain.Services.LCI10
         private IReadOnlyList<AssetMarketCap> GetTopMarketCaps(IEnumerable<AssetMarketCap> all)
         {
             // Exclude not wanted assets
-            var wantedOnly = all.Where(x => !Settings.ExcludedAssets.Contains(x.Asset));
+            var wantedOnly = all.Where(x => !Settings.ExcludedAssets.Contains(x.Asset)).ToList();
 
             // Get top wanted market caps
             var result = wantedOnly.OrderByDescending(x => x.MarketCap.Value)
@@ -235,9 +235,11 @@ namespace Lykke.Service.CryptoIndex.Domain.Services.LCI10
         private void CheckThatAllAssetsArePresent(IDictionary<string, decimal> assetsWeights,
             IDictionary<string, IDictionary<string, decimal>> assetsPrices)
         {
-            if (assetsWeights.Count != assetsPrices.Count)
+            var notFound = assetsWeights.Keys.Where(x => !assetsPrices.Keys.Contains(x)).ToList();
+
+            if (notFound.Any())
             {
-                var message = $"Some assets are missed, weights: {assetsWeights.Keys.ToJson()}, prices: {assetsPrices.Keys.ToJson()}.";
+                var message = $"Some assets are missed: {notFound}, weights: {assetsWeights.Keys.ToJson()}, prices: {assetsPrices.Keys.ToJson()}.";
                 WarningRepository.SaveAsync(new Warning(message, DateTime.UtcNow));
                 throw new InvalidOperationException(message);
             }    
