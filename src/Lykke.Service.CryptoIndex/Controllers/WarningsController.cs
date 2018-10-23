@@ -20,7 +20,7 @@ namespace Lykke.Service.CryptoIndex.Controllers
             _warningRepository = warningRepository;
         }
 
-        [HttpGet("indexHistories")]
+        [HttpGet]
         [ProducesResponseType(typeof(IReadOnlyList<Warning>), (int)HttpStatusCode.OK)]
         [ResponseCache(Duration = 60 * 10, VaryByQueryKeys = new[] { "*" })]
         public async Task<IReadOnlyList<Warning>> GetWarningsAsync(DateTime from, DateTime to)
