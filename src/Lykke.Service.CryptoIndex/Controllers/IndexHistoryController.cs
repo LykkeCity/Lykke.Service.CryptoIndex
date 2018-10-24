@@ -11,7 +11,7 @@ using IndexHistory = Lykke.Service.CryptoIndex.Client.Models.LCI10.IndexHistory;
 
 namespace Lykke.Service.CryptoIndex.Controllers
 {
-    [Route("/api/lci10/[controller]")]
+    [Route("/api/[controller]")]
     public class IndexHistoryController : Controller, IIndexHistoryApi
     {
         private readonly IIndexHistoryRepository _indexHistoryRepository;
@@ -52,13 +52,6 @@ namespace Lykke.Service.CryptoIndex.Controllers
             var result = Mapper.Map<IndexHistory>(domain);
 
             return result;
-        }
-
-        [HttpGet("reset")]
-        [ProducesResponseType((int)HttpStatusCode.NoContent)]
-        public async Task ResetAsync()
-        {
-            await _lci10Calculator.Reset();
         }
     }
 }

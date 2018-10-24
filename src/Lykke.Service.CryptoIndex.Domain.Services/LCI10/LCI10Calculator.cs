@@ -67,13 +67,6 @@ namespace Lykke.Service.CryptoIndex.Domain.Services.LCI10
             return result;
         }
 
-        public Task Reset()
-        {
-            IndexStateRepository.Clear().GetAwaiter().GetResult();
-
-            return Task.CompletedTask;
-        }
-
         private async Task CalculateWeights(ITimerTrigger timer, TimerTriggeredHandlerArgs args, CancellationToken ct)
         {
             try
@@ -178,15 +171,15 @@ namespace Lykke.Service.CryptoIndex.Domain.Services.LCI10
                 return;
 
             // Save index state for the next execution
-            await IndexStateRepository.SetAsync(indexState);
+            //await IndexStateRepository.SetAsync(indexState);
 
-            // Save all index info to history
-            var indexHistory = new IndexHistory(indexState.Value, topMarketCaps, topAssetWeights, topAssetsPrices, indexState.MiddlePrices, DateTime.UtcNow);
-            await IndexHistoryRepository.InsertAsync(indexHistory);
+            //// Save all index info to history
+            //var indexHistory = new IndexHistory(indexState.Value, topMarketCaps, topAssetWeights, topAssetsPrices, indexState.MiddlePrices, DateTime.UtcNow);
+            //await IndexHistoryRepository.InsertAsync(indexHistory);
 
-            // Publish index to RabbitMq
-            var tickPrice = new Models.TickPrice(Lci10, Lci10, indexHistory.Value, indexHistory.Value, indexHistory.Time);
-            TickPricePublisher.Publish(tickPrice);
+            //// Publish index to RabbitMq
+            //var tickPrice = new Models.TickPrice(Lci10, Lci10, indexHistory.Value, indexHistory.Value, indexHistory.Time);
+            //TickPricePublisher.Publish(tickPrice);
 
             _log.Info($"Finished calculating index for {topAssets.Count} assets, value: {indexState.Value}.");
         }

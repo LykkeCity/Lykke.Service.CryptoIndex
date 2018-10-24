@@ -16,7 +16,7 @@ namespace Lykke.Service.CryptoIndex.Client.Api.LCI10
         /// <summary>
         /// Returns warnings
         /// </summary>
-        [Get("/api/lci10/warnings")]
+        [Get("/api/warnings")]
         Task<IReadOnlyList<Warning>> GetWarningsAsync(DateTime from, DateTime to);
     }
 }

@@ -10,7 +10,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Lykke.Service.CryptoIndex.Controllers
 {
-    [Route("/api/lci10/[controller]")]
+    [Route("/api/[controller]")]
     public class WarningsController : Controller, IWarningsApi
     {
         private readonly IWarningRepository _warningRepository;

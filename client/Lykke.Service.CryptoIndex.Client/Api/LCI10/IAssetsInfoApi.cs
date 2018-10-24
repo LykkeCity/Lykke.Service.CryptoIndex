@@ -15,7 +15,7 @@ namespace Lykke.Service.CryptoIndex.Client.Api.LCI10
         /// <summary>
         /// Returns information about asset
         /// </summary>
-        [Get("/api/lci10/assetsInfo/all")]
+        [Get("/api/assetsInfo/all")]
         Task<IReadOnlyList<AssetInfo>> GetAllAsync();
     }
 }

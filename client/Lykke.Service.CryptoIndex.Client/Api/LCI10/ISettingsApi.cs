@@ -14,13 +14,19 @@ namespace Lykke.Service.CryptoIndex.Client.Api.LCI10
         /// <summary>
         /// Returns current settings
         /// </summary>
-        [Get("/api/lci10/settings")]
+        [Get("/api/settings")]
         Task<Settings> GetAsync();
 
         /// <summary>
         /// Set settings
         /// </summary>
-        [Post("/api/lci10/settings")]
+        [Post("/api/settings")]
         Task SetAsync(Settings settings);
+
+        /// <summary>
+        /// Resets all the records in the database
+        /// </summary>
+        [Get("/api/indexHistory/reset")]
+        Task ResetAsync();
     }
 }

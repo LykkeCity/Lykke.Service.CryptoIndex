@@ -9,7 +9,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Lykke.Service.CryptoIndex.Controllers
 {
-    [Route("/api/lci10/[controller]")]
+    [Route("/api/[controller]")]
     public class AssetsInfoController : Controller, IAssetsInfoApi
     {
         private readonly ILCI10Calculator _lci10Calculator;
