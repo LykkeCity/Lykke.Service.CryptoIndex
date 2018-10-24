@@ -15,9 +15,9 @@ namespace Lykke.Service.CryptoIndex.Client.Models.LCI10
         public IReadOnlyList<string> Sources { get; set; } = new List<string>();
 
         /// <summary>
-        /// Сryptocurrencies pegged to other currencies (which we are not interested in)
+        /// White list of assets
         /// </summary>
-        public IReadOnlyList<string> ExcludedAssets { get; set; } = new List<string>();
+        public IReadOnlyList<string> Assets { get; set; } = new List<string>();
 
         /// <summary>
         /// Count of the top assets

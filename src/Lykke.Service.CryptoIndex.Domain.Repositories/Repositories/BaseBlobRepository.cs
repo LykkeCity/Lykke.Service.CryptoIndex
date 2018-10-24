@@ -15,8 +15,6 @@ namespace Lykke.Service.CryptoIndex.Domain.Repositories.Repositories
         {
             _container = container;
             Storage = storage;
-
-            storage.CreateContainerIfNotExistsAsync(_container).GetAwaiter().GetResult();
         }
 
         protected async Task SaveBlobAsync(string blobKey, byte[] blobData)

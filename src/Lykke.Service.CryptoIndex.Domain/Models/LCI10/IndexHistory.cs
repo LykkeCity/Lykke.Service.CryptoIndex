@@ -25,7 +25,7 @@ namespace Lykke.Service.CryptoIndex.Domain.Models.LCI10
             Weights = weights ?? throw new ArgumentNullException(nameof(weights));
             Prices = prices ?? throw new ArgumentNullException(nameof(prices));
             MiddlePrices = middlePrices ?? throw new ArgumentNullException(nameof(middlePrices));
-            Time = time == default(DateTime) ? throw new ArgumentOutOfRangeException(nameof(time)) : time;
+            Time = time == default(DateTime) ? throw new ArgumentOutOfRangeException(nameof(time)) : time.WoMilliseconds();
         }
 
         public override string ToString()

@@ -17,7 +17,7 @@ namespace Lykke.Service.CryptoIndex.Client.Api.LCI10
         /// Returns index history
         /// </summary>
         [Get("/api/lci10/indexHistory/indexHistories")]
-        Task<IReadOnlyList<IndexHistory>> GetIndexHistoryAsync(DateTime from, DateTime to);
+        Task<IReadOnlyList<IndexHistory>> GetIndexHistoriesAsync(DateTime from, DateTime to);
 
         /// <summary>
         /// Returns timestamps

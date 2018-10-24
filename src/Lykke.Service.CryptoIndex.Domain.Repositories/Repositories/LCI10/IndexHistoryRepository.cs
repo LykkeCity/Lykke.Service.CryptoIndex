@@ -27,28 +27,32 @@ namespace Lykke.Service.CryptoIndex.Domain.Repositories.Repositories.LCI10
 
         public async Task<IReadOnlyList<IndexHistory>> GetAsync(DateTime from, DateTime to)
         {
-            var pKeyFrom = GetPartitionKey(from);
-            var pKeyTo = GetPartitionKey(to);
-            var rowKeyFrom = GetRowKey(from);
-            var rowKeyTo = GetRowKey(to);
+            var filter = TableQuery.CombineFilters(
+                TableQuery.GenerateFilterCondition(nameof(AzureTableEntity.PartitionKey), QueryComparisons.GreaterThan,
+                    GetPartitionKey(to)),
+                TableOperators.And,
+                TableQuery.GenerateFilterCondition(nameof(AzureTableEntity.PartitionKey), QueryComparisons.LessThan,
+                    GetPartitionKey(from)));
 
-            var query = new TableQuery<IndexHistoryEntity>();
-
-            var pKeyCondFrom = TableQuery.GenerateFilterCondition(nameof(AzureTableEntity.PartitionKey), QueryComparisons.GreaterThanOrEqual, pKeyFrom);
-            var pKeyCondTo = TableQuery.GenerateFilterCondition(nameof(AzureTableEntity.PartitionKey), QueryComparisons.LessThanOrEqual, pKeyTo);
-            var pKeyFilter = TableQuery.CombineFilters(pKeyCondFrom, TableOperators.And, pKeyCondTo);
-
-            var rowKeyCondFrom = TableQuery.GenerateFilterCondition(nameof(AzureTableEntity.RowKey), QueryComparisons.GreaterThanOrEqual, rowKeyFrom);
-            var rowKeyCondTo = TableQuery.GenerateFilterCondition(nameof(AzureTableEntity.RowKey), QueryComparisons.LessThanOrEqual, rowKeyTo);
-            var rowKeyFilter = TableQuery.CombineFilters(rowKeyCondFrom, TableOperators.And, rowKeyCondTo);
-
-            query.FilterString = TableQuery.CombineFilters(pKeyFilter, TableOperators.And, rowKeyFilter);
+            var query = new TableQuery<IndexHistoryEntity>().Where(filter);
 
             var models = await _storage.WhereAsync(query);
 
             var domain = models.Select(x => new IndexHistory(x.Value, Mapper.Map<IReadOnlyList<AssetMarketCap>>(x.MarketCaps), x.Weights,
                 new Dictionary<string, IDictionary<string, decimal>>(), x.MiddlePrices, x.Time)).ToList();
             
+            return domain;
+        }
+
+        public async Task<IReadOnlyList<IndexHistory>> TakeLastAsync(int count)
+        {
+            var query = new TableQuery<IndexHistoryEntity>().Take(count);
+
+            var models = await _storage.WhereAsync(query);
+
+            var domain = models.Select(x => new IndexHistory(x.Value, Mapper.Map<IReadOnlyList<AssetMarketCap>>(x.MarketCaps), x.Weights,
+                new Dictionary<string, IDictionary<string, decimal>>(), x.MiddlePrices, x.Time)).ToList();
+
             return domain;
         }
 
@@ -93,7 +97,7 @@ namespace Lykke.Service.CryptoIndex.Domain.Repositories.Repositories.LCI10
         }
 
         private static string GetPartitionKey(DateTime time)
-            => time.Date.ToIsoDate();
+            => (DateTime.MaxValue.Ticks - time.Ticks).ToString();
 
         private static string GetRowKey(DateTime time)
             => time.ToIsoDateTime();

@@ -10,7 +10,7 @@ namespace Lykke.Service.CryptoIndex.Domain.Repositories.Models.LCI10
         public IReadOnlyList<string> Sources { get; set; }
 
         [JsonValueSerializer]
-        public IReadOnlyList<string> ExcludedAssets { get; set; }
+        public IReadOnlyList<string> Assets { get; set; }
         
         public int TopCount { get; set; }
 

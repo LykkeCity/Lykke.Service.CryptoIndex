@@ -10,9 +10,9 @@ namespace Lykke.Service.CryptoIndex.Domain.Models.LCI10
         public IReadOnlyList<string> Sources { get; }
 
         /// <summary>
-        /// Сryptocurrencies pegged to other currencies (which we are not interested in)
+        /// White list of assets
         /// </summary>
-        public IReadOnlyList<string> ExcludedAssets { get; }
+        public IReadOnlyList<string> Assets { get; }
 
         /// <summary>
         /// Count of the top assets
@@ -24,10 +24,10 @@ namespace Lykke.Service.CryptoIndex.Domain.Models.LCI10
         /// </summary>
         public bool Enabled { get; }
 
-        public Settings(IReadOnlyList<string> sources, IReadOnlyList<string> excludedAssets, int topCount, bool enabled)
+        public Settings(IReadOnlyList<string> sources, IReadOnlyList<string> assets, int topCount, bool enabled)
         {
             Sources = sources;
-            ExcludedAssets = excludedAssets;
+            Assets = assets;
             TopCount = topCount;
             Enabled = enabled;
         }
