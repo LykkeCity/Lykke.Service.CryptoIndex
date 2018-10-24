@@ -22,6 +22,8 @@ namespace Lykke.Service.CryptoIndex.Domain.Services.LCI10
     {
         private const decimal InitialIndexValue = 1000m;
         private const string Lci10 = "lci10";
+        private static TimeSpan _waitForTopAssetsPricesFromStart = TimeSpan.FromMinutes(2);
+        private readonly DateTime _startedAt;
         private readonly object _sync = new object();
         private readonly List<AssetMarketCap> _topMarketCaps;
         private readonly IDictionary<string, decimal> _topAssetsWeights;
@@ -42,6 +44,7 @@ namespace Lykke.Service.CryptoIndex.Domain.Services.LCI10
 
         public LCI10Calculator(TimeSpan weightsCalculationInterval, TimeSpan indexCalculationInterval, ILogFactory logFactory)
         {
+            _startedAt = DateTime.UtcNow;
             _topMarketCaps = new List<AssetMarketCap>();
             _topAssetsWeights = new ConcurrentDictionary<string, decimal>();
 
@@ -158,6 +161,11 @@ namespace Lykke.Service.CryptoIndex.Domain.Services.LCI10
             var topAssets = topAssetWeights.Keys.ToList();
             var topAssetsPrices = GetTopAssetsPrices(allAssetsPrices, topAssets);
 
+            // If just started and prices not present yet, then skip.
+            // If started more then {_waitForTopAssetsPricesFromStart} ago then write a warning to the DB and log.
+            if (!AllPricesArePresentForTopAssets(topAssetWeights, topAssetsPrices))
+                return;
+
             // Get current index state
             var indexState = CalculateIndexState(topAssetWeights, topAssetsPrices, lastIndex);
 
@@ -191,8 +199,6 @@ namespace Lykke.Service.CryptoIndex.Domain.Services.LCI10
             if (lastIndex == null)
                 lastIndex = new IndexState(InitialIndexValue, topMiddlePrices);
 
-            CheckThatAllAssetsArePresent(topAssetWeights, topAssetsPrices);
-
             var rLci10 = 0m;
 
             foreach (var asset in topAssetWeights.Keys.ToList())
@@ -224,17 +230,26 @@ namespace Lykke.Service.CryptoIndex.Domain.Services.LCI10
             return result;
         }
 
-        private void CheckThatAllAssetsArePresent(IDictionary<string, decimal> topAssetWeights,
+        private bool AllPricesArePresentForTopAssets(IDictionary<string, decimal> topAssetWeights,
             IDictionary<string, IDictionary<string, decimal>> topAssetsPrices)
         {
             var assetsWoPrices = topAssetWeights.Keys.Where(x => !topAssetsPrices.Keys.Contains(x)).ToList();
 
             if (assetsWoPrices.Any())
             {
-                var message = $"Some assets don't have prices: {assetsWoPrices}.";
-                WarningRepository.SaveAsync(new Warning(message, DateTime.UtcNow));
-                throw new InvalidOperationException(message);
-            }    
+                var message = $"Some assets don't have prices: {assetsWoPrices.ToJson()}.";
+
+                // If just started then skip current iteration
+                if (DateTime.UtcNow - _startedAt > _waitForTopAssetsPricesFromStart)
+                {
+                    WarningRepository.SaveAsync(new Warning(message, DateTime.UtcNow));
+                    throw new InvalidOperationException(message);
+                }
+                
+                return false;
+            }
+
+            return true;
         }
 
         private static decimal GetMiddlePrice(string asset, IDictionary<string, IDictionary<string, decimal>> assetsPrices)
