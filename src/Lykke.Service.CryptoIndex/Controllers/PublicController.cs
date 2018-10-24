@@ -22,6 +22,7 @@ namespace Lykke.Service.CryptoIndex.Controllers
 
         [HttpGet("twoTickPrices")]
         [ProducesResponseType(typeof(TwoTickPrices), (int)HttpStatusCode.OK)]
+        [ResponseCache(Duration = 30, VaryByQueryKeys = new[] { "*" })]
         public async Task<TwoTickPrices> GetTwoTickPricesAsync()
         {
             var indexHistories = (await _indexHistoryRepository.TakeLastAsync(2)).OrderByDescending(x => x.Time).ToList();
