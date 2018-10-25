@@ -17,8 +17,6 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Lykke.Service.CryptoIndex.D
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Lykke.Service.CryptoIndex.Domain.Repositories", "src\Lykke.Service.CryptoIndex.Domain.Repositories\Lykke.Service.CryptoIndex.Domain.Repositories.csproj", "{4BE49E02-AAAD-460B-8D00-57F412A3D181}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Lykke.Service.CryptoIndex.Contract", "contract\Lykke.Service.CryptoIndex.Contract\Lykke.Service.CryptoIndex.Contract.csproj", "{931B95E3-AF9F-4A4C-9C6A-5959C2FBCAC9}"
-EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Lykke.Service.CryptoIndex.Client", "client\Lykke.Service.CryptoIndex.Client\Lykke.Service.CryptoIndex.Client.csproj", "{3C300C31-97D3-41E8-A627-C53491BDA28B}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Lykke.Service.CryptoIndex.Tests", "tests\Lykke.Service.CryptoIndex.Tests\Lykke.Service.CryptoIndex.Tests.csproj", "{A61FFDEE-5725-4650-A788-6E55EE5EFD5B}"
@@ -47,10 +45,6 @@ Global
 		{4BE49E02-AAAD-460B-8D00-57F412A3D181}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{4BE49E02-AAAD-460B-8D00-57F412A3D181}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{4BE49E02-AAAD-460B-8D00-57F412A3D181}.Release|Any CPU.Build.0 = Release|Any CPU
-		{931B95E3-AF9F-4A4C-9C6A-5959C2FBCAC9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{931B95E3-AF9F-4A4C-9C6A-5959C2FBCAC9}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{931B95E3-AF9F-4A4C-9C6A-5959C2FBCAC9}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{931B95E3-AF9F-4A4C-9C6A-5959C2FBCAC9}.Release|Any CPU.Build.0 = Release|Any CPU
 		{3C300C31-97D3-41E8-A627-C53491BDA28B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{3C300C31-97D3-41E8-A627-C53491BDA28B}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{3C300C31-97D3-41E8-A627-C53491BDA28B}.Release|Any CPU.ActiveCfg = Release|Any CPU

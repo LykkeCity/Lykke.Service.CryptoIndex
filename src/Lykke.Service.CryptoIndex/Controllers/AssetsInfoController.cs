@@ -1,10 +1,9 @@
 ﻿using System.Collections.Generic;
 using System.Net;
 using System.Threading.Tasks;
-using Lykke.Service.CryptoIndex.Client.Api.LCI10;
-using Lykke.Service.CryptoIndex.Client.Models.LCI10;
+using Lykke.Service.CryptoIndex.Client.Api;
+using Lykke.Service.CryptoIndex.Client.Models;
 using Lykke.Service.CryptoIndex.Domain.Services;
-using Lykke.Service.CryptoIndex.Domain.Services.LCI10;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Lykke.Service.CryptoIndex.Controllers

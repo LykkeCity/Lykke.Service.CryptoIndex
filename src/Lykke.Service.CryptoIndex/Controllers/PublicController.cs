@@ -3,11 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
-using AutoMapper;
 using Lykke.Common.ApiLibrary.Exceptions;
-using Lykke.Service.CryptoIndex.Client.Api.LCI10;
-using Lykke.Service.CryptoIndex.Client.Models.LCI10;
-using Lykke.Service.CryptoIndex.Domain.Repositories.LCI10;
+using Lykke.Service.CryptoIndex.Client.Api;
+using Lykke.Service.CryptoIndex.Domain.Repositories;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Lykke.Service.CryptoIndex.Controllers

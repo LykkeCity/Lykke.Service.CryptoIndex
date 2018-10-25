@@ -1,6 +1,5 @@
 ﻿using Lykke.HttpClientGenerator;
 using Lykke.Service.CryptoIndex.Client.Api;
-using Lykke.Service.CryptoIndex.Client.Api.LCI10;
 
 namespace Lykke.Service.CryptoIndex.Client
 {

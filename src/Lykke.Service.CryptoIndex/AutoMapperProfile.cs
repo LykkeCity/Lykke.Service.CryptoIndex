@@ -1,6 +1,5 @@
 ﻿using AutoMapper;
 using Lykke.Service.CryptoIndex.Domain.Models;
-using Lykke.Service.CryptoIndex.Domain.Models.LCI10;
 
 namespace Lykke.Service.CryptoIndex
 {
@@ -8,10 +7,10 @@ namespace Lykke.Service.CryptoIndex
     {
         public AutoMapperProfile()
         {
-            CreateMap<Client.Models.LCI10.Settings, Domain.Models.LCI10.Settings>();
-            CreateMap<Domain.Models.LCI10.Settings, Client.Models.LCI10.Settings>();
+            CreateMap<Client.Models.Settings, Domain.Models.Settings>();
+            CreateMap<Domain.Models.Settings, Client.Models.Settings>();
 
-            CreateMap<IndexHistory, Client.Models.LCI10.IndexHistory>();
+            CreateMap<IndexHistory, Client.Models.IndexHistory>();
         }
     }
 }

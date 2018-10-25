@@ -1,8 +1,6 @@
 ﻿using AutoMapper;
 using Lykke.Service.CryptoIndex.Domain.Models;
-using Lykke.Service.CryptoIndex.Domain.Models.LCI10;
-using Lykke.Service.CryptoIndex.Domain.Repositories.Models.LCI10;
-using Lykke.Service.CryptoIndex.Domain.Repositories.Models.MarketCap;
+using Lykke.Service.CryptoIndex.Domain.Repositories.Models;
 
 namespace Lykke.Service.CryptoIndex.Domain.Repositories
 {

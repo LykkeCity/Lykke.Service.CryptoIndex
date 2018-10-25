@@ -3,11 +3,11 @@ using System.Collections.Generic;
 using System.Net;
 using System.Threading.Tasks;
 using AutoMapper;
-using Lykke.Service.CryptoIndex.Client.Api.LCI10;
-using Lykke.Service.CryptoIndex.Domain.Repositories.LCI10;
-using Lykke.Service.CryptoIndex.Domain.Services.LCI10;
+using Lykke.Service.CryptoIndex.Client.Api;
+using Lykke.Service.CryptoIndex.Domain.Repositories;
+using Lykke.Service.CryptoIndex.Domain.Services;
 using Microsoft.AspNetCore.Mvc;
-using IndexHistory = Lykke.Service.CryptoIndex.Client.Models.LCI10.IndexHistory;
+using IndexHistory = Lykke.Service.CryptoIndex.Client.Models.IndexHistory;
 
 namespace Lykke.Service.CryptoIndex.Controllers
 {
