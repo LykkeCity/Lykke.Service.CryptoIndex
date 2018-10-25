@@ -206,6 +206,13 @@ namespace Lykke.Service.CryptoIndex.Domain.Services.LCI10
                 rLci10 += weight * r;
             }
 
+            if (rLci10 == 0)
+            {
+                var message = $"rLci10 equals 0: topAssetWeights = {topAssetWeights.ToJson()}, topAssetsPrices: {topAssetsPrices.ToJson()}, lastIndex: {lastIndex.ToJson()}.";
+                WarningRepository.SaveAsync(new Warning(message, DateTime.UtcNow));
+                throw new InvalidOperationException(message);
+            }
+
             var index = Math.Round(lastIndex.Value * rLci10, 2);
 
             var indexState = new IndexState(index, topMiddlePrices);
