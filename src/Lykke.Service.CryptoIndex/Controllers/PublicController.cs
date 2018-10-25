@@ -4,6 +4,7 @@ using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
 using AutoMapper;
+using Lykke.Common.ApiLibrary.Exceptions;
 using Lykke.Service.CryptoIndex.Client.Api.LCI10;
 using Lykke.Service.CryptoIndex.Client.Models.LCI10;
 using Lykke.Service.CryptoIndex.Domain.Repositories.LCI10;
@@ -41,6 +42,18 @@ namespace Lykke.Service.CryptoIndex.Controllers
             var result = await _indexHistoryRepository.GetUpToDateAsync(to, limit);
             
             return result;
+        }
+
+        [HttpGet("index/current")]
+        [ProducesResponseType(typeof((DateTime, decimal)), (int)HttpStatusCode.OK)]
+        public async Task<(DateTime, decimal)> GetCurrentAsync()
+        {
+            var result = (await _indexHistoryRepository.TakeLastAsync(1)).SingleOrDefault();
+
+            if (result == null)
+                throw new ValidationApiException(HttpStatusCode.NotFound, "Current index value is not found.");
+
+            return (result.Time, result.Value);
         }
     }
 }
