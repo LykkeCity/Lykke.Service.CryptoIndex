@@ -45,6 +45,7 @@ namespace Lykke.Service.CryptoIndex.Controllers
 
         [HttpGet]
         [ProducesResponseType(typeof(IndexHistory), (int)HttpStatusCode.OK)]
+        [ResponseCache(Duration = 60 * 10, VaryByQueryKeys = new[] { "*" })]
         public async Task<IndexHistory> GetAsync(DateTime timestamp)
         {
             var domain = await _indexHistoryRepository.GetAsync(timestamp);
