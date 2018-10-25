@@ -36,8 +36,12 @@ namespace Lykke.Service.CryptoIndex.Domain.Repositories.Repositories
 
             var models = await _storage.WhereAsync(query);
 
-            var domain = models.Select(x => new IndexHistory(x.Value, Mapper.Map<IReadOnlyList<AssetMarketCap>>(x.MarketCaps), x.Weights,
-                new Dictionary<string, IDictionary<string, decimal>>(), x.MiddlePrices, x.Time)).ToList();
+            var emptyPrices = new Dictionary<string, IDictionary<string, decimal>>();
+            var domain = models.OrderBy(x => x.Time)
+                               .Select(x => 
+                                    new IndexHistory(x.Value, Mapper.Map<IReadOnlyList<AssetMarketCap>>(x.MarketCaps),
+                                        x.Weights, emptyPrices, x.MiddlePrices, x.Time))
+                               .ToList();
             
             return domain;
         }
@@ -51,7 +55,7 @@ namespace Lykke.Service.CryptoIndex.Domain.Repositories.Repositories
 
             var models = await _storage.WhereAsync(query);
 
-            var domain = models.Select(x => (x.Time, x.Value)).ToList();
+            var domain = models.OrderBy(x => x.Time).Select(x => (x.Time, x.Value)).ToList();
 
             return domain;
         }
@@ -62,8 +66,9 @@ namespace Lykke.Service.CryptoIndex.Domain.Repositories.Repositories
 
             var models = await _storage.WhereAsync(query);
 
-            var domain = models.Select(x => new IndexHistory(x.Value, Mapper.Map<IReadOnlyList<AssetMarketCap>>(x.MarketCaps), x.Weights,
-                new Dictionary<string, IDictionary<string, decimal>>(), x.MiddlePrices, x.Time)).ToList();
+            var emptyPrices = new Dictionary<string, IDictionary<string, decimal>>();
+            var domain = models.Select(x => new IndexHistory(x.Value, Mapper.Map<IReadOnlyList<AssetMarketCap>>(x.MarketCaps),
+                x.Weights, emptyPrices, x.MiddlePrices, x.Time)).ToList();
 
             return domain;
         }
@@ -72,7 +77,7 @@ namespace Lykke.Service.CryptoIndex.Domain.Repositories.Repositories
         {
             var indexHistories = await GetAsync(from, to);
 
-            var timestamps = indexHistories.Select(x => x.Time).ToList();
+            var timestamps = indexHistories.OrderBy(x => x.Time).Select(x => x.Time).ToList();
 
             return timestamps;
         }
