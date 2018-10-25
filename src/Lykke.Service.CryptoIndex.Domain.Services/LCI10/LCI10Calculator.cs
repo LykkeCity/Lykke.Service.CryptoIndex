@@ -156,7 +156,7 @@ namespace Lykke.Service.CryptoIndex.Domain.Services.LCI10
 
             // If just started and prices not present yet, then skip.
             // If started more then {_waitForTopAssetsPricesFromStart} ago then write a warning to the DB and log.
-            if (!AllPricesArePresentForTopAssets(topAssetWeights, topAssetsPrices))
+            if (!WeightsAreCalculatedAndAllPricesArePresented(topAssetWeights, topAssetsPrices))
                 return;
 
             // Get current index state
@@ -230,9 +230,12 @@ namespace Lykke.Service.CryptoIndex.Domain.Services.LCI10
             return result;
         }
 
-        private bool AllPricesArePresentForTopAssets(IDictionary<string, decimal> topAssetWeights,
+        private bool WeightsAreCalculatedAndAllPricesArePresented(IDictionary<string, decimal> topAssetWeights,
             IDictionary<string, IDictionary<string, decimal>> topAssetsPrices)
         {
+            if (!topAssetWeights.Any())
+                return false;
+
             var assetsWoPrices = topAssetWeights.Keys.Where(x => !topAssetsPrices.Keys.Contains(x)).ToList();
 
             if (assetsWoPrices.Any())
