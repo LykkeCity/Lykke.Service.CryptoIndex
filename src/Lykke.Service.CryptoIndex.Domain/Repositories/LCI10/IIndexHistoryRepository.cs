@@ -15,6 +15,8 @@ namespace Lykke.Service.CryptoIndex.Domain.Repositories.LCI10
 
         Task<IReadOnlyList<DateTime>> GetTimestampsAsync(DateTime from, DateTime to);
 
+        Task<IReadOnlyList<(DateTime, decimal)>> GetUpToDateAsync(DateTime to, int limit);
+
         Task<IReadOnlyList<IndexHistory>> TakeLastAsync(int count);
     }
 }

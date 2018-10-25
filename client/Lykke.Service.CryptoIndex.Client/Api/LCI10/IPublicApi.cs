@@ -1,6 +1,7 @@
-﻿using System.Threading.Tasks;
+﻿using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 using JetBrains.Annotations;
-using Lykke.Service.CryptoIndex.Client.Models.LCI10;
 using Refit;
 
 namespace Lykke.Service.CryptoIndex.Client.Api.LCI10
@@ -12,9 +13,15 @@ namespace Lykke.Service.CryptoIndex.Client.Api.LCI10
     public interface IPublicApi
     {
         /// <summary>
-        /// Returns current and previous tick prices
+        /// Returns indices
         /// </summary>
-        [Get("/api/public/twoTickPrices")]
-        Task<TwoTickPrices> GetTwoTickPricesAsync();
+        [Get("/api/public/indices")]
+        Task<IReadOnlyList<(DateTime, decimal)>> GetIndexHistoriesAsync(DateTime from, DateTime to);
+
+        /// <summary>
+        /// Returns indices up to date
+        /// </summary>
+        [Get("/api/public/indices/upToDate")]
+        Task<IReadOnlyList<(DateTime, decimal)>> GetIndexHistoriesAsync(DateTime to, int limit);
     }
 }

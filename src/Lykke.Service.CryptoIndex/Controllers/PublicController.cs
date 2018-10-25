@@ -1,6 +1,9 @@
-﻿using System.Linq;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
+using AutoMapper;
 using Lykke.Service.CryptoIndex.Client.Api.LCI10;
 using Lykke.Service.CryptoIndex.Client.Models.LCI10;
 using Lykke.Service.CryptoIndex.Domain.Repositories.LCI10;
@@ -20,15 +23,23 @@ namespace Lykke.Service.CryptoIndex.Controllers
             _indexStateRepository = indexStateRepository;
         }
 
-        [HttpGet("twoTickPrices")]
-        [ProducesResponseType(typeof(TwoTickPrices), (int)HttpStatusCode.OK)]
-        [ResponseCache(Duration = 30, VaryByQueryKeys = new[] { "*" })]
-        public async Task<TwoTickPrices> GetTwoTickPricesAsync()
+        [HttpGet("indices")]
+        [ProducesResponseType(typeof(IReadOnlyList<(DateTime, decimal)>), (int)HttpStatusCode.OK)]
+        public async Task<IReadOnlyList<(DateTime, decimal)>> GetIndexHistoriesAsync(DateTime from, DateTime to)
         {
-            var indexHistories = (await _indexHistoryRepository.TakeLastAsync(2)).OrderByDescending(x => x.Time).ToList();
+            var domain = await _indexHistoryRepository.GetAsync(from, to);
 
-            var result = new TwoTickPrices(indexHistories[0].Value, indexHistories[1].Value);
+            var result = domain.Select(x => (x.Time, x.Value)).ToList();
 
+            return result;
+        }
+
+        [HttpGet("indices/upToDate")]
+        [ProducesResponseType(typeof(IReadOnlyList<(DateTime, decimal)>), (int)HttpStatusCode.OK)]
+        public async Task<IReadOnlyList<(DateTime, decimal)>> GetIndexHistoriesAsync(DateTime to, int limit)
+        {
+            var result = await _indexHistoryRepository.GetUpToDateAsync(to, limit);
+            
             return result;
         }
     }

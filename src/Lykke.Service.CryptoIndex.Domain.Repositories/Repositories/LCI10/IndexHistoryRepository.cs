@@ -44,6 +44,20 @@ namespace Lykke.Service.CryptoIndex.Domain.Repositories.Repositories.LCI10
             return domain;
         }
 
+        public async Task<IReadOnlyList<(DateTime, decimal)>> GetUpToDateAsync(DateTime to, int limit)
+        {
+            var filter = TableQuery.GenerateFilterCondition(nameof(AzureTableEntity.PartitionKey), QueryComparisons.GreaterThan,
+                    GetPartitionKey(to));
+
+            var query = new TableQuery<IndexHistoryEntity>().Where(filter).Take(limit);
+
+            var models = await _storage.WhereAsync(query);
+
+            var domain = models.Select(x => (x.Time, x.Value)).ToList();
+
+            return domain;
+        }
+
         public async Task<IReadOnlyList<IndexHistory>> TakeLastAsync(int count)
         {
             var query = new TableQuery<IndexHistoryEntity>().Take(count);
