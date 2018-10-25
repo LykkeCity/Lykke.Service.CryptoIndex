@@ -12,9 +12,15 @@ namespace Lykke.Service.CryptoIndex.Client.Api
     public interface ITickPricesApi
     {
         /// <summary>
-        /// Returns information about asset
+        /// Returns all available sources
         /// </summary>
         [Get("/api/tickPrices/sources")]
-        Task<IReadOnlyList<string>> GetExchangesAsync();
+        Task<IReadOnlyList<string>> GetSourcesAsync();
+
+        /// <summary>
+        /// Returns all available assets
+        /// </summary>
+        [Get("/api/tickPrices/assets")]
+        Task<IReadOnlyList<string>> GetAssetsAsync();
     }
 }

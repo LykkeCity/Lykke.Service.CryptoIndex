@@ -20,11 +20,22 @@ namespace Lykke.Service.CryptoIndex.Controllers
 
         [HttpGet("sources")]
         [ProducesResponseType(typeof(IReadOnlyList<string>), (int)HttpStatusCode.OK)]
-        public async Task<IReadOnlyList<string>> GetExchangesAsync()
+        public async Task<IReadOnlyList<string>> GetSourcesAsync()
         {
             var prices = await _tickPricesService.GetPricesAsync();
 
             var result = prices.SelectMany(x => x.Value.Keys).Distinct().OrderBy(x => x).ToList();
+
+            return result;
+        }
+
+        [HttpGet("assets")]
+        [ProducesResponseType(typeof(IReadOnlyList<string>), (int)HttpStatusCode.OK)]
+        public async Task<IReadOnlyList<string>> GetAssetsAsync()
+        {
+            var prices = await _tickPricesService.GetPricesAsync();
+
+            var result = prices.Select(x => x.Key).Distinct().OrderBy(x => x).ToList();
 
             return result;
         }
