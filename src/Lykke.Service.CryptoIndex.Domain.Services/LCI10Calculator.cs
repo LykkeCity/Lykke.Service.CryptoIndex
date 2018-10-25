@@ -24,6 +24,7 @@ namespace Lykke.Service.CryptoIndex.Domain.Services
         private static TimeSpan _waitForTopAssetsPricesFromStart = TimeSpan.FromMinutes(2);
         private readonly DateTime _startedAt;
         private readonly object _sync = new object();
+        private readonly List<AssetMarketCap> _allMarketCaps;
         private readonly List<AssetMarketCap> _topMarketCaps;
         private readonly IDictionary<string, decimal> _topAssetsWeights;
         private readonly TimerTrigger _weightsCalculationTrigger;
@@ -44,10 +45,11 @@ namespace Lykke.Service.CryptoIndex.Domain.Services
         public LCI10Calculator(TimeSpan weightsCalculationInterval, TimeSpan indexCalculationInterval, ILogFactory logFactory)
         {
             _startedAt = DateTime.UtcNow;
+            _allMarketCaps = new List<AssetMarketCap>();
             _topMarketCaps = new List<AssetMarketCap>();
             _topAssetsWeights = new ConcurrentDictionary<string, decimal>();
 
-            _weightsCalculationTrigger = new TimerTrigger(nameof(LCI10Calculator), weightsCalculationInterval, logFactory, CalculateWeights);
+            _weightsCalculationTrigger = new TimerTrigger(nameof(LCI10Calculator), weightsCalculationInterval, logFactory, RefreshCoinMarketCapDataAndCalculateWeights);
             _indexCalculationTrigger = new TimerTrigger(nameof(LCI10Calculator), indexCalculationInterval, logFactory, CalculateIndex);
 
             _log = logFactory.CreateLog(this);
@@ -66,10 +68,12 @@ namespace Lykke.Service.CryptoIndex.Domain.Services
             return result;
         }
 
-        private async Task CalculateWeights(ITimerTrigger timer, TimerTriggeredHandlerArgs args, CancellationToken ct)
+        private async Task RefreshCoinMarketCapDataAndCalculateWeights(ITimerTrigger timer, TimerTriggeredHandlerArgs args, CancellationToken ct)
         {
             try
             {
+                await RefreshCoinMarketCapData();
+
                 await CalculateWeights();
             }
             catch (Exception e)
@@ -78,12 +82,29 @@ namespace Lykke.Service.CryptoIndex.Domain.Services
             }
         }
 
+        private async Task RefreshCoinMarketCapData()
+        {
+            // Get top 100 market caps
+            var allMarketCaps = await MarketCapitalizationService.GetAllAsync();
+
+            lock (_sync)
+            {
+                // Refresh market caps
+                _allMarketCaps.Clear();
+                _allMarketCaps.AddRange(allMarketCaps);
+            }
+        }
+
         private async Task CalculateWeights()
         {
             _log.Info("Calculating weights...");
 
             // Get top 100 market caps
-            var allMarketCaps = await MarketCapitalizationService.GetAllAsync();
+            List<AssetMarketCap> allMarketCaps;
+            lock (_sync)
+            {
+                allMarketCaps = _allMarketCaps.ToList();
+            }
 
             // Top wanted market caps
             var topMarketCaps = allMarketCaps.Where(x => Settings.Assets.Contains(x.Asset))
@@ -143,6 +164,10 @@ namespace Lykke.Service.CryptoIndex.Domain.Services
             var allAssetsPrices = await TickPricesService.GetPricesAsync();
             var lastIndex = await IndexStateRepository.GetAsync();
 
+            // If Settings.TopCount changed from last time then recalculate weights
+            if (lastIndex.MiddlePrices.Count != Settings.TopCount)
+                await CalculateWeights();
+
             lock (_sync)
             {
                 topMarketCaps = _topMarketCaps.ToList();
@@ -155,7 +180,7 @@ namespace Lykke.Service.CryptoIndex.Domain.Services
 
             // If just started and prices not present yet, then skip.
             // If started more then {_waitForTopAssetsPricesFromStart} ago then write a warning to the DB and log.
-            if (!WeightsAreCalculatedAndAllPricesArePresented(topAssetWeights, topAssetsPrices))
+            if (!IsWeightsAreCalculatedAndAllPricesArePresented(topAssetWeights, topAssetsPrices))
                 return;
 
             // Get current index state
@@ -229,7 +254,7 @@ namespace Lykke.Service.CryptoIndex.Domain.Services
             return result;
         }
 
-        private bool WeightsAreCalculatedAndAllPricesArePresented(IDictionary<string, decimal> topAssetWeights,
+        private bool IsWeightsAreCalculatedAndAllPricesArePresented(IDictionary<string, decimal> topAssetWeights,
             IDictionary<string, IDictionary<string, decimal>> topAssetsPrices)
         {
             if (!topAssetWeights.Any())
