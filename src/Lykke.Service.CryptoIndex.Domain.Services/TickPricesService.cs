@@ -26,7 +26,7 @@ namespace Lykke.Service.CryptoIndex.Domain.Services
 
         public async Task HandleAsync(Models.TickPrice tickPrice)
         {
-            if (!tickPrice.AssetPair.ToUpper().EndsWith(Usd) || !tickPrice.Ask.HasValue)
+            if (!tickPrice.AssetPair.ToUpper().EndsWith(Usd) || !tickPrice.Ask.HasValue && !tickPrice.Bid.HasValue)
                 return;
 
             var asset = tickPrice.AssetPair.ToUpper().Replace(Usd, "");
@@ -36,18 +36,22 @@ namespace Lykke.Service.CryptoIndex.Domain.Services
             if (!settings.Sources.Contains(tickPrice.Source))
                 return;
 
+            var price = tickPrice.Ask.HasValue && tickPrice.Bid.HasValue
+                ? (tickPrice.Ask.Value + tickPrice.Bid.Value) / 2
+                : tickPrice.Ask ?? tickPrice.Bid.Value;
+
             if (!_pricesCache.ContainsKey(asset))
             {
                 var newDictionary = new ConcurrentDictionary<string, decimal>
                 {
-                    [tickPrice.Source] = tickPrice.Ask.Value
+                    [tickPrice.Source] = price
                 };
                 _pricesCache[asset] = newDictionary;
             }
             else
             {
                 var exchangesPrices = _pricesCache[asset];
-                exchangesPrices[tickPrice.Source] = tickPrice.Ask.Value;
+                exchangesPrices[tickPrice.Source] = price;
             }
         }
 
