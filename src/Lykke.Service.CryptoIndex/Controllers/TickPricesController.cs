@@ -20,6 +20,7 @@ namespace Lykke.Service.CryptoIndex.Controllers
 
         [HttpGet("sources")]
         [ProducesResponseType(typeof(IReadOnlyList<string>), (int)HttpStatusCode.OK)]
+        [ResponseCache(Duration = 1, VaryByQueryKeys = new[] { "*" })]
         public async Task<IReadOnlyList<string>> GetSourcesAsync()
         {
             var prices = await _tickPricesService.GetPricesAsync();
@@ -31,6 +32,7 @@ namespace Lykke.Service.CryptoIndex.Controllers
 
         [HttpGet("assets")]
         [ProducesResponseType(typeof(IReadOnlyList<string>), (int)HttpStatusCode.OK)]
+        [ResponseCache(Duration = 1, VaryByQueryKeys = new[] { "*" })]
         public async Task<IReadOnlyList<string>> GetAssetsAsync()
         {
             var prices = await _tickPricesService.GetPricesAsync();
