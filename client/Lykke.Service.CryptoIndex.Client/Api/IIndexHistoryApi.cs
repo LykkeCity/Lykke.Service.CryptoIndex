@@ -17,7 +17,7 @@ namespace Lykke.Service.CryptoIndex.Client.Api
         /// Returns index history
         /// </summary>
         [Get("/api/indexHistory/indexHistories")]
-        Task<IReadOnlyList<IndexHistory>> GetIndexHistoriesAsync(DateTime from, DateTime to);
+        Task<IReadOnlyList<IndexHistory>> GetLastIndexHistoriesAsync(int limit);
 
         /// <summary>
         /// Returns timestamps

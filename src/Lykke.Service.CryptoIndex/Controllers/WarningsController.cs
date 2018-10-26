@@ -21,6 +21,7 @@ namespace Lykke.Service.CryptoIndex.Controllers
 
         [HttpGet("last")]
         [ProducesResponseType(typeof(IReadOnlyList<Warning>), (int)HttpStatusCode.OK)]
+        [ResponseCache(Duration = 1, VaryByQueryKeys = new[] { "*" })]
         public async Task<IReadOnlyList<Warning>> GetLastWarningsAsync(int limit)
         {
             var domain = await _warningRepository.TakeAsync(limit);
