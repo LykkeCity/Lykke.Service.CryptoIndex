@@ -15,18 +15,28 @@ namespace Lykke.Service.CryptoIndex.Client
         IAssetsInfoApi AssetsInfo { get; }
 
         /// <summary>
-        /// Settings API
-        /// </summary>
-        ISettingsApi Settings { get; }
-
-        /// <summary>
         /// Index history API
         /// </summary>
         IIndexHistoryApi IndexHistory { get; }
 
         /// <summary>
+        /// Public API for lykke.com
+        /// </summary>
+        IPublicApi Public { get; }
+
+        /// <summary>
+        /// Settings API
+        /// </summary>
+        ISettingsApi Settings { get; }
+
+        /// <summary>
         /// Tick prices API
         /// </summary>
         ITickPricesApi TickPrices { get; }
+
+        /// <summary>
+        /// Warnings API
+        /// </summary>
+        IWarningsApi Warnings { get; }
     }
 }

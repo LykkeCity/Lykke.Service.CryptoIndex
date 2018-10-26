@@ -12,21 +12,29 @@ namespace Lykke.Service.CryptoIndex.Client
         public IAssetsInfoApi AssetsInfo { get; }
 
         /// <inheritdoc/>
-        public ISettingsApi Settings { get; }
-
-        /// <inheritdoc/>
         public IIndexHistoryApi IndexHistory { get; }
 
         /// <inheritdoc/>
+        public IPublicApi Public { get; }
+
+        /// <inheritdoc/>
+        public ISettingsApi Settings { get; }
+
+        /// <inheritdoc/>
         public ITickPricesApi TickPrices { get; }
+
+        /// <inheritdoc/>
+        public IWarningsApi Warnings { get; }
 
         /// <summary>C-tor</summary>
         public CryptoIndexClient(IHttpClientGenerator httpClientGenerator)
         {
             AssetsInfo = httpClientGenerator.Generate<IAssetsInfoApi>();
-            Settings = httpClientGenerator.Generate<ISettingsApi>();
             IndexHistory = httpClientGenerator.Generate<IIndexHistoryApi>();
+            Public = httpClientGenerator.Generate<IPublicApi>();
+            Settings = httpClientGenerator.Generate<ISettingsApi>();
             TickPrices = httpClientGenerator.Generate<ITickPricesApi>();
+            Warnings = httpClientGenerator.Generate<IWarningsApi>();
         }
     }
 }
