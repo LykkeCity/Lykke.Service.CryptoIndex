@@ -144,9 +144,6 @@ namespace Lykke.Service.CryptoIndex.Domain.Services
         {
             try
             {
-                if (!Settings.Enabled)
-                    return;
-
                 await CalculateIndex();
             }
             catch (Exception e)
@@ -165,7 +162,7 @@ namespace Lykke.Service.CryptoIndex.Domain.Services
             var lastIndex = await IndexStateRepository.GetAsync();
 
             // If Settings.TopCount changed from last time then recalculate weights
-            if (lastIndex.MiddlePrices.Count != Settings.TopCount)
+            if (_topAssetsWeights.Count != Settings.TopCount)
                 await CalculateWeights();
 
             lock (_sync)
@@ -179,31 +176,26 @@ namespace Lykke.Service.CryptoIndex.Domain.Services
             var topAssetsPrices = GetTopAssetsPrices(allAssetsPrices, topAssets);
 
             // If just started and prices not present yet, then skip.
-            // If started more then {_waitForTopAssetsPricesFromStart} ago then write a warning to the DB and log.
+            // If started more then {_waitForTopAssetsPricesFromStart} ago then write a warning to DB and log.
             if (!IsWeightsAreCalculatedAndAllPricesArePresented(topAssetWeights, topAssetsPrices))
+            {
+                _log.Info($"Skipped calculating index because some prices are not present yet, waiting for them for {_waitForTopAssetsPricesFromStart.TotalMinutes} minutes since start.");
                 return;
+            }
 
             // Get current index state
             var indexState = CalculateIndexState(topAssetWeights, topAssetsPrices, lastIndex);
 
             // if there was a reset then skip until next iteration which will have initial state
             if (indexState.Value != InitialIndexValue && State == null)
+            {
+                _log.Info($"Skipped saving and publishing index because of reset - previous state is null and current index not equals {InitialIndexValue}.");
                 return;
+            }
 
-            // Skip if changed to 'disabled'
-            if (!Settings.Enabled)
-                return;
-
-            // Save index state for the next execution
-            await IndexStateRepository.SetAsync(indexState);
-
-            // Save all index info to history
             var indexHistory = new IndexHistory(indexState.Value, topMarketCaps, topAssetWeights, topAssetsPrices, indexState.MiddlePrices, DateTime.UtcNow);
-            await IndexHistoryRepository.InsertAsync(indexHistory);
 
-            // Publish index to RabbitMq
-            var tickPrice = new Models.TickPrice(Lci10, Lci10, indexHistory.Value, indexHistory.Value, indexHistory.Time);
-            TickPricePublisher.Publish(tickPrice);
+            await SaveAndPublish(indexState, indexHistory);
 
             _log.Info($"Finished calculating index for {topAssets.Count} assets, value: {indexState.Value}.");
         }
@@ -230,28 +222,33 @@ namespace Lykke.Service.CryptoIndex.Domain.Services
                 rLci10 += weight * r;
             }
 
-            if (rLci10 == 0)
-            {
-                var message = $"rLci10 equals 0: topAssetWeights = {topAssetWeights.ToJson()}, topAssetsPrices: {topAssetsPrices.ToJson()}, lastIndex: {lastIndex.ToJson()}.";
-                WarningRepository.SaveAsync(new Warning(message, DateTime.UtcNow));
-                throw new InvalidOperationException(message);
-            }
+            var indexValue = Math.Round(lastIndex.Value * rLci10, 2);
 
-            var index = Math.Round(lastIndex.Value * rLci10, 2);
+            ValidateIndexValue(indexValue, topAssetWeights, topAssetsPrices, lastIndex);
 
-            var indexState = new IndexState(index, topMiddlePrices);
+            var indexState = new IndexState(indexValue, topMiddlePrices);
 
             return indexState;
         }
 
-        private IDictionary<string, IDictionary<string, decimal>> GetTopAssetsPrices(IDictionary<string, IDictionary<string, decimal>> allAssetsPrices, IReadOnlyList<string> topAssets)
+        private async Task SaveAndPublish(IndexState indexState, IndexHistory indexHistory)
         {
-            var result = new Dictionary<string, IDictionary<string, decimal>>();
-            foreach (var asset in topAssets)
-                if (allAssetsPrices.ContainsKey(asset))
-                    result[asset] = allAssetsPrices[asset];
+            // Skip if changed to 'disabled'
+            if (!Settings.Enabled)
+            {
+                _log.Info($"Skipped saving and publishing index because {nameof(Settings)}.{nameof(Settings.Enabled)} = {Settings.Enabled}.");
+                return;
+            }
 
-            return result;
+            // Save index state for the next execution
+            await IndexStateRepository.SetAsync(indexState);
+
+            // Save all index info to history
+            await IndexHistoryRepository.InsertAsync(indexHistory);
+
+            // Publish index to RabbitMq
+            var tickPrice = new TickPrice(Lci10, Lci10, indexHistory.Value, indexHistory.Value, indexHistory.Time);
+            TickPricePublisher.Publish(tickPrice);
         }
 
         private bool IsWeightsAreCalculatedAndAllPricesArePresented(IDictionary<string, decimal> topAssetWeights,
@@ -277,6 +274,16 @@ namespace Lykke.Service.CryptoIndex.Domain.Services
             }
 
             return true;
+        }
+
+        private static IDictionary<string, IDictionary<string, decimal>> GetTopAssetsPrices(IDictionary<string, IDictionary<string, decimal>> allAssetsPrices, IReadOnlyList<string> topAssets)
+        {
+            var result = new Dictionary<string, IDictionary<string, decimal>>();
+            foreach (var asset in topAssets)
+                if (allAssetsPrices.ContainsKey(asset))
+                    result[asset] = allAssetsPrices[asset];
+
+            return result;
         }
 
         private static decimal GetMiddlePrice(string asset, IDictionary<string, IDictionary<string, decimal>> assetsPrices)
@@ -308,6 +315,17 @@ namespace Lykke.Service.CryptoIndex.Domain.Services
             return previousPrices.ContainsKey(asset)  // previous prices found in DB?
                 ? previousPrices[asset]               // yes, use them
                 : currentMiddlePrice;                 // no, use current
+        }
+
+        private void ValidateIndexValue(decimal indexValue, IDictionary<string, decimal> topAssetWeights,
+            IDictionary<string, IDictionary<string, decimal>> topAssetsPrices, IndexState lastIndex)
+        {
+            if (indexValue > 0)
+                return;
+
+            var message = $"Index value less or equals to 0: topAssetWeights = {topAssetWeights.ToJson()}, topAssetsPrices: {topAssetsPrices.ToJson()}, lastIndex: {lastIndex.ToJson()}.";
+            WarningRepository.SaveAsync(new Warning(message, DateTime.UtcNow));
+            throw new InvalidOperationException(message);
         }
 
         public void Start()

@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Net;
 using System.Threading.Tasks;
 using AutoMapper;
@@ -20,12 +19,11 @@ namespace Lykke.Service.CryptoIndex.Controllers
             _warningRepository = warningRepository;
         }
 
-        [HttpGet]
+        [HttpGet("last")]
         [ProducesResponseType(typeof(IReadOnlyList<Warning>), (int)HttpStatusCode.OK)]
-        [ResponseCache(Duration = 60 * 10, VaryByQueryKeys = new[] { "*" })]
-        public async Task<IReadOnlyList<Warning>> GetWarningsAsync(DateTime from, DateTime to)
+        public async Task<IReadOnlyList<Warning>> GetLastWarningsAsync(int limit)
         {
-            var domain = await _warningRepository.GetAsync(from, to);
+            var domain = await _warningRepository.TakeAsync(limit);
 
             var result = Mapper.Map<IReadOnlyList<Warning>>(domain);
 

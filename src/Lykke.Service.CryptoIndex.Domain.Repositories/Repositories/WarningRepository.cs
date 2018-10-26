@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using AutoMapper;
 using AzureStorage;
@@ -31,32 +32,37 @@ namespace Lykke.Service.CryptoIndex.Domain.Repositories.Repositories
         
         public async Task<IReadOnlyList<Warning>> GetAsync(DateTime from, DateTime to)
         {
-            var pKeyFrom = GetPartitionKey(from);
-            var pKeyTo = GetPartitionKey(to);
-            var rowKeyFrom = GetRowKey(from);
-            var rowKeyTo = GetRowKey(to);
+            var filter = TableQuery.CombineFilters(
+                TableQuery.GenerateFilterCondition(nameof(AzureTableEntity.PartitionKey), QueryComparisons.GreaterThan,
+                    GetPartitionKey(to)),
+                TableOperators.And,
+                TableQuery.GenerateFilterCondition(nameof(AzureTableEntity.PartitionKey), QueryComparisons.LessThan,
+                    GetPartitionKey(from)));
 
-            var query = new TableQuery<WarningEntity>();
-
-            var pKeyCondFrom = TableQuery.GenerateFilterCondition(nameof(AzureTableEntity.PartitionKey), QueryComparisons.GreaterThanOrEqual, pKeyFrom);
-            var pKeyCondTo = TableQuery.GenerateFilterCondition(nameof(AzureTableEntity.PartitionKey), QueryComparisons.LessThanOrEqual, pKeyTo);
-            var pKeyFilter = TableQuery.CombineFilters(pKeyCondFrom, TableOperators.And, pKeyCondTo);
-
-            var rowKeyCondFrom = TableQuery.GenerateFilterCondition(nameof(AzureTableEntity.RowKey), QueryComparisons.GreaterThanOrEqual, rowKeyFrom);
-            var rowKeyCondTo = TableQuery.GenerateFilterCondition(nameof(AzureTableEntity.RowKey), QueryComparisons.LessThanOrEqual, rowKeyTo);
-            var rowKeyFilter = TableQuery.CombineFilters(rowKeyCondFrom, TableOperators.And, rowKeyCondTo);
-
-            query.FilterString = TableQuery.CombineFilters(pKeyFilter, TableOperators.And, rowKeyFilter);
+            var query = new TableQuery<WarningEntity>().Where(filter);
 
             var models = await _storage.WhereAsync(query);
 
             var domain = Mapper.Map<IReadOnlyList<Warning>>(models);
-            
+
+            domain = domain.OrderBy(x => x.Time).ToList();
+
+            return domain;
+        }
+
+        public async Task<IReadOnlyList<Warning>> TakeAsync(int limit)
+        {
+            var query = new TableQuery<WarningEntity>().Take(limit);
+
+            var models = await _storage.WhereAsync(query);
+
+            var domain = Mapper.Map<IReadOnlyList<Warning>>(models);
+
             return domain;
         }
 
         private static string GetPartitionKey(DateTime time)
-            => time.Date.ToIsoDate();
+            => (DateTime.MaxValue.Ticks - time.Ticks).ToString();
 
         private static string GetRowKey(DateTime time)
             => time.ToIsoDateTime();

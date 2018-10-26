@@ -10,5 +10,7 @@ namespace Lykke.Service.CryptoIndex.Domain.Repositories
         Task SaveAsync(Warning warning);
 
         Task<IReadOnlyList<Warning>> GetAsync(DateTime from, DateTime to);
+
+        Task<IReadOnlyList<Warning>> TakeAsync(int limit);
     }
 }
