@@ -1,48 +1,51 @@
 ﻿using System.Collections.Generic;
 using System.Net;
 using System.Threading.Tasks;
-using Lykke.Service.CryptoIndex.Client.Api.LCI10;
-using Lykke.Service.CryptoIndex.Client.Models.LCI10;
-using Lykke.Service.CryptoIndex.Domain.LCI10;
-using Lykke.Service.CryptoIndex.Domain.TickPrice;
+using Lykke.Service.CryptoIndex.Client.Api;
+using Lykke.Service.CryptoIndex.Client.Models;
+using Lykke.Service.CryptoIndex.Domain.Services;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Lykke.Service.CryptoIndex.Controllers
 {
-    [Route("/api/lci10/[controller]")]
+    [Route("/api/[controller]")]
     public class AssetsInfoController : Controller, IAssetsInfoApi
     {
+        private readonly ISettingsService _settingsService;
         private readonly ILCI10Calculator _lci10Calculator;
         private readonly ITickPricesService _tickPricesService;
 
-        public AssetsInfoController(ILCI10Calculator lci10Calculator, ITickPricesService tickPricesService)
+        public AssetsInfoController(ISettingsService settingsService, ILCI10Calculator lci10Calculator, ITickPricesService tickPricesService)
         {
+            _settingsService = settingsService;
             _lci10Calculator = lci10Calculator;
             _tickPricesService = tickPricesService;
         }
 
         [HttpGet("all")]
         [ProducesResponseType(typeof(IReadOnlyList<AssetInfo>), (int)HttpStatusCode.OK)]
+        [ResponseCache(Duration = 1, VaryByQueryKeys = new[] { "*" })]
         public async Task<IReadOnlyList<AssetInfo>> GetAllAsync()
         {
-            var marketCaps = await _lci10Calculator.GetAssetMarketCapAsync();
+            var settings = await _settingsService.GetAsync();
+            var marketCaps = await _lci10Calculator.GetAllAssetsMarketCapsAsync();
             var prices = await _tickPricesService.GetPricesAsync();
 
             var result = new List<AssetInfo>();
 
-            foreach (var asset in marketCaps.Keys)
+            foreach (var asset in settings.Assets)
             {
-                if (!prices.ContainsKey(asset))
-                    continue;
-
                 var marketCap = marketCaps[asset];
-                var assetPrices = prices[asset];
+
+                IDictionary<string, decimal> assetPrices = new Dictionary<string, decimal>();
+                if (prices.ContainsKey(asset))
+                    assetPrices = prices[asset];
 
                 var assetInfo = new AssetInfo
                 {
                     Asset = asset,
                     MarketCap = marketCap,
-                    Prices = (IReadOnlyDictionary<string, decimal>)assetPrices
+                    Prices = assetPrices as IReadOnlyDictionary<string, decimal>
                 };
 
                 result.Add(assetInfo);

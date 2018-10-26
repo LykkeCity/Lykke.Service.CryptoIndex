@@ -5,10 +5,10 @@ using JetBrains.Annotations;
 using Lykke.Common.Log;
 using Lykke.RabbitMqBroker.Publisher;
 using Lykke.RabbitMqBroker.Subscriber;
-using Lykke.Service.CryptoIndex.Domain.TickPrice;
+using Lykke.Service.CryptoIndex.Domain.Publishers;
 using Lykke.Service.CryptoIndex.Settings;
 using TickPrice = Lykke.Service.CryptoIndex.RabbitMq.Models.TickPrice;
-using DomainTickPrice = Lykke.Service.CryptoIndex.Domain.TickPrice.TickPrice;
+using DomainTickPrice = Lykke.Service.CryptoIndex.Domain.Models.TickPrice;
 
 namespace Lykke.Service.CryptoIndex.RabbitMq.Publishers
 {

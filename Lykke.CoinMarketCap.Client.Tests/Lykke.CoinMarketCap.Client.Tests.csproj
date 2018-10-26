@@ -15,7 +15,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Lykke.CoinMarketCapClient\Lykke.CoinMarketCap.Client.csproj" />
+    <ProjectReference Include="..\Lykke.CoinMarketCap.Client\Lykke.CoinMarketCap.Client.csproj" />
   </ItemGroup>
 
 </Project>

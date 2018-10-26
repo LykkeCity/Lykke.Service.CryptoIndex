@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 
 namespace Lykke.Service.CryptoIndex.Domain
@@ -22,6 +23,11 @@ namespace Lykke.Service.CryptoIndex.Domain
             }
 
             return result;
+        }
+
+        public static DateTime WoMilliseconds(this DateTime dt)
+        {
+            return new DateTime(dt.Year, dt.Month, dt.Day, dt.Hour, dt.Minute, dt.Second, dt.Kind);
         }
     }
 }

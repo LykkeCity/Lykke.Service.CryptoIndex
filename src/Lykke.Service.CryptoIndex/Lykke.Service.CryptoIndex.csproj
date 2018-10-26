@@ -20,16 +20,19 @@
     </None>
   </ItemGroup>
   <ItemGroup>
+    <PackageReference Include="Autofac.Core.NonPublicProperty" Version="1.0.0" />
     <PackageReference Include="AutoMapper" Version="7.0.1" />
     <PackageReference Include="Lykke.RabbitMqBroker" Version="7.5.0" />
     <PackageReference Include="Lykke.Sdk" Version="5.3.1" />
     <PackageReference Include="Microsoft.AspNetCore" Version="2.1.4" />
+    <PackageReference Include="Microsoft.AspNetCore.ResponseCaching" Version="2.1.1" />
     <PackageReference Include="Microsoft.AspNetCore.StaticFiles" Version="2.1.1" />
+    <PackageReference Include="System.Runtime.Caching" Version="4.5.0" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\client\Lykke.Service.CryptoIndex.Client\Lykke.Service.CryptoIndex.Client.csproj" />
-    <ProjectReference Include="..\Lykke.Service.CryptoIndex.AzureRepositories\Lykke.Service.CryptoIndex.Domain.AzureRepositories.csproj" />
-    <ProjectReference Include="..\Lykke.Service.CryptoIndex.DomainServices\Lykke.Service.CryptoIndex.DomainServices.csproj" />
+    <ProjectReference Include="..\Lykke.Service.CryptoIndex.Domain.Repositories\Lykke.Service.CryptoIndex.Domain.Repositories.csproj" />
+    <ProjectReference Include="..\Lykke.Service.CryptoIndex.Domain.Services\Lykke.Service.CryptoIndex.Domain.Services.csproj" />
     <ProjectReference Include="..\Lykke.Service.CryptoIndex.Domain\Lykke.Service.CryptoIndex.Domain.csproj" />
   </ItemGroup>
   <Target Name="PrepublishScript" BeforeTargets="PrepareForPublish">

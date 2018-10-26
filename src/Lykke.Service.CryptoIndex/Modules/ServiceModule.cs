@@ -1,21 +1,18 @@
 ﻿using Autofac;
+using Autofac.Core.NonPublicProperty;
+using AzureStorage.Blob;
 using AzureStorage.Tables;
 using Common;
 using JetBrains.Annotations;
 using Lykke.CoinMarketCap.Client;
 using Lykke.Common.Log;
-using Lykke.Service.CryptoIndex.Domain.AzureRepositories.LCI10.IndexHistory;
-using Lykke.Service.CryptoIndex.Domain.AzureRepositories.LCI10.IndexState;
-using Lykke.Service.CryptoIndex.Domain.AzureRepositories.LCI10.Settings;
-using Lykke.Service.CryptoIndex.Domain.LCI10;
-using Lykke.Service.CryptoIndex.Domain.LCI10.IndexHistory;
-using Lykke.Service.CryptoIndex.Domain.LCI10.IndexState;
-using Lykke.Service.CryptoIndex.Domain.LCI10.Settings;
-using Lykke.Service.CryptoIndex.Domain.MarketCapitalization;
-using Lykke.Service.CryptoIndex.Domain.TickPrice;
-using Lykke.Service.CryptoIndex.DomainServices.LCI10;
-using Lykke.Service.CryptoIndex.DomainServices.MarketCapitalization;
-using Lykke.Service.CryptoIndex.DomainServices.TickPrice;
+using Lykke.Service.CryptoIndex.Domain.Handlers;
+using Lykke.Service.CryptoIndex.Domain.Models;
+using Lykke.Service.CryptoIndex.Domain.Publishers;
+using Lykke.Service.CryptoIndex.Domain.Repositories;
+using Lykke.Service.CryptoIndex.Domain.Repositories.Models;
+using Lykke.Service.CryptoIndex.Domain.Repositories.Repositories;
+using Lykke.Service.CryptoIndex.Domain.Services;
 using Lykke.Service.CryptoIndex.RabbitMq.Publishers;
 using Lykke.Service.CryptoIndex.RabbitMq.Subscribers;
 using Lykke.Service.CryptoIndex.Settings;
@@ -61,22 +58,35 @@ namespace Lykke.Service.CryptoIndex.Modules
 
             // Repositories
 
-            builder.Register(container => new SettingsRepository(
+            // Blob
+
+            builder.RegisterInstance(AzureBlobStorage.Create(_connectionString));
+            builder.RegisterType<IndexHistoryBlobRepository>();
+
+            // Tables
+
+            builder.Register(c => new SettingsRepository(
                     AzureTableStorage<SettingsEntity>.Create(_connectionString,
-                        nameof(Settings), container.Resolve<ILogFactory>())))
+                        nameof(Settings), c.Resolve<ILogFactory>())))
                 .As<ISettingsRepository>()
                 .SingleInstance();
 
-            builder.Register(container => new IndexHistoryRepository(
+            builder.Register(c => new IndexHistoryRepository(
                     AzureTableStorage<IndexHistoryEntity>.Create(_connectionString,
-                        nameof(IndexHistory), container.Resolve<ILogFactory>())))
+                        nameof(IndexHistory), c.Resolve<ILogFactory>()), c.Resolve<IndexHistoryBlobRepository>()))
                 .As<IIndexHistoryRepository>()
                 .SingleInstance();
 
-            builder.Register(container => new IndexStateRepository(
+            builder.Register(c => new IndexStateRepository(
                     AzureTableStorage<IndexStateEntity>.Create(_connectionString,
-                        nameof(IndexState), container.Resolve<ILogFactory>())))
+                        nameof(IndexState), c.Resolve<ILogFactory>())))
                 .As<IIndexStateRepository>()
+                .SingleInstance();
+
+            builder.Register(c => new WarningRepository(
+                    AzureTableStorage<WarningEntity>.Create(_connectionString,
+                        nameof(Warning), c.Resolve<ILogFactory>())))
+                .As<IWarningRepository>()
                 .SingleInstance();
 
             // Services
@@ -105,6 +115,7 @@ namespace Lykke.Service.CryptoIndex.Modules
                 .As<IStopable>()
                 .WithParameter("weightsCalculationInterval", _settings.WeightsCalculationInterval)
                 .WithParameter("indexCalculationInterval", _settings.IndexCalculationInterval)
+                .AutoWireNonPublicProperties()
                 .SingleInstance();
         }
     }
