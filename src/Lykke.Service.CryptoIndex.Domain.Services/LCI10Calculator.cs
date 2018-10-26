@@ -55,13 +55,13 @@ namespace Lykke.Service.CryptoIndex.Domain.Services
             _log = logFactory.CreateLog(this);
         }
 
-        public async Task<IReadOnlyDictionary<string, decimal>> GetTopAssetsMarketCapsAsync()
+        public async Task<IReadOnlyDictionary<string, decimal>> GetAllAssetsMarketCapsAsync()
         {
             var result = new Dictionary<string, decimal>();
 
             lock (_sync)
             {
-                foreach (var x in _topMarketCaps)
+                foreach (var x in _allMarketCaps)
                     result.Add(x.Asset, x.MarketCap.Value);
             }
 

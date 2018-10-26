@@ -5,6 +5,6 @@ namespace Lykke.Service.CryptoIndex.Domain.Services
 {
     public interface ILCI10Calculator
     {
-        Task<IReadOnlyDictionary<string, decimal>> GetTopAssetsMarketCapsAsync();
+        Task<IReadOnlyDictionary<string, decimal>> GetAllAssetsMarketCapsAsync();
     }
 }
