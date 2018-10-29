@@ -31,11 +31,6 @@ namespace Lykke.Service.CryptoIndex.Domain.Services
 
             var asset = tickPrice.AssetPair.ToUpper().Replace(Usd, "");
 
-            var settings = await _settingsService.GetAsync();
-
-            if (!settings.Sources.Contains(tickPrice.Source))
-                return;
-
             var price = tickPrice.Ask.HasValue && tickPrice.Bid.HasValue
                 ? (tickPrice.Ask.Value + tickPrice.Bid.Value) / 2
                 : tickPrice.Ask ?? tickPrice.Bid.Value;
