@@ -113,6 +113,7 @@ namespace Lykke.Service.CryptoIndex.Modules
                 .As<ILCI10Calculator>()
                 .As<IStartable>()
                 .As<IStopable>()
+                .WithParameter("indexName", _settings.IndexName)
                 .WithParameter("weightsCalculationInterval", _settings.WeightsCalculationInterval)
                 .WithParameter("indexCalculationInterval", _settings.IndexCalculationInterval)
                 .AutoWireNonPublicProperties()

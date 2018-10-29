@@ -8,6 +8,8 @@ namespace Lykke.Service.CryptoIndex.Settings
     {
         public string CoinMarketCapApiKey { get; set; }
 
+        public string IndexName { get; set; }
+
         public TimeSpan WeightsCalculationInterval { get; set; }
 
         public TimeSpan IndexCalculationInterval { get; set; }

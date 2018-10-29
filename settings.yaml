@@ -9,6 +9,9 @@ CryptoIndexService:
             types:
               - AzureTableStorage
 
+    IndexName:
+        settings-key: CryptoIndexService-IndexName
+
     CoinMarketCapApiKey:
         settings-key: CryptoIndexService-CoinMarketCapApiKey
 

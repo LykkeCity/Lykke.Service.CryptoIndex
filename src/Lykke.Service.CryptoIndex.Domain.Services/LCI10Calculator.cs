@@ -20,8 +20,8 @@ namespace Lykke.Service.CryptoIndex.Domain.Services
     public class LCI10Calculator : ILCI10Calculator, IStartable, IStopable
     {
         private const decimal InitialIndexValue = 1000m;
-        private const string Lci10 = "lci10";
         private static TimeSpan _waitForTopAssetsPricesFromStart = TimeSpan.FromMinutes(2);
+        private readonly string _indexName;
         private readonly DateTime _startedAt;
         private readonly object _sync = new object();
         private readonly List<AssetMarketCap> _allMarketCaps;
@@ -42,13 +42,14 @@ namespace Lykke.Service.CryptoIndex.Domain.Services
         private Settings Settings => SettingsService.GetAsync().GetAwaiter().GetResult();
         private IndexState State => IndexStateRepository.GetAsync().GetAwaiter().GetResult();
 
-        public LCI10Calculator(TimeSpan weightsCalculationInterval, TimeSpan indexCalculationInterval, ILogFactory logFactory)
+        public LCI10Calculator(string indexName, TimeSpan weightsCalculationInterval, TimeSpan indexCalculationInterval, ILogFactory logFactory)
         {
             _startedAt = DateTime.UtcNow;
             _allMarketCaps = new List<AssetMarketCap>();
             _topMarketCaps = new List<AssetMarketCap>();
             _topAssetsWeights = new ConcurrentDictionary<string, decimal>();
 
+            _indexName = indexName;
             _weightsCalculationTrigger = new TimerTrigger(nameof(LCI10Calculator), weightsCalculationInterval, logFactory, RefreshCoinMarketCapDataAndCalculateWeights);
             _indexCalculationTrigger = new TimerTrigger(nameof(LCI10Calculator), indexCalculationInterval, logFactory, CalculateIndex);
 
@@ -247,7 +248,7 @@ namespace Lykke.Service.CryptoIndex.Domain.Services
             await IndexHistoryRepository.InsertAsync(indexHistory);
 
             // Publish index to RabbitMq
-            var tickPrice = new TickPrice(Lci10, Lci10, indexHistory.Value, indexHistory.Value, indexHistory.Time);
+            var tickPrice = new TickPrice(_indexName, _indexName, indexHistory.Value, indexHistory.Value, indexHistory.Time);
             TickPricePublisher.Publish(tickPrice);
         }
 
