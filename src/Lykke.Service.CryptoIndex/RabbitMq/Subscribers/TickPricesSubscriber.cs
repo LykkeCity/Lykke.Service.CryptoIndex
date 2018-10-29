@@ -17,6 +17,7 @@ namespace Lykke.Service.CryptoIndex.RabbitMq.Subscribers
         private const string QueuePostfix = ".CryptoIndex";
         private readonly string _connectionString;
         private readonly string _exchangeName;
+        private readonly string _suffixName;
         private RabbitMqSubscriber<Models.TickPrice> _subscriber;
 
         private readonly ITickPriceHandler[] _tickPriceHandlers;
@@ -26,12 +27,14 @@ namespace Lykke.Service.CryptoIndex.RabbitMq.Subscribers
         public TickPricesSubscriber(
             string connectionString,
             string exchangeName,
+            string suffixName,
             ITickPriceHandler[] tickPriceHandlers,
             ILogFactory logFactory)
         {
             _connectionString = connectionString;
             _exchangeName = exchangeName;
-            
+            _suffixName = suffixName;
+
             _tickPriceHandlers = tickPriceHandlers;
             _logFactory = logFactory;
             _log = logFactory.CreateLog(this);
@@ -43,7 +46,7 @@ namespace Lykke.Service.CryptoIndex.RabbitMq.Subscribers
             {
                 ConnectionString = _connectionString,
                 ExchangeName = _exchangeName,
-                QueueName = _exchangeName + QueuePostfix,
+                QueueName = _exchangeName + QueuePostfix + $".{_suffixName}",
                 IsDurable = false
             };
 

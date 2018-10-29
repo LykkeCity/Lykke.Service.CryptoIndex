@@ -19,6 +19,7 @@ namespace Lykke.Service.CryptoIndex.Domain.Services
     /// </summary>
     public class LCI10Calculator : ILCI10Calculator, IStartable, IStopable
     {
+        private const string RabbitMqSource = "LCI";
         private const decimal InitialIndexValue = 1000m;
         private static TimeSpan _waitForTopAssetsPricesFromStart = TimeSpan.FromMinutes(2);
         private readonly string _indexName;
@@ -248,7 +249,7 @@ namespace Lykke.Service.CryptoIndex.Domain.Services
             await IndexHistoryRepository.InsertAsync(indexHistory);
 
             // Publish index to RabbitMq
-            var tickPrice = new TickPrice(_indexName, _indexName, indexHistory.Value, indexHistory.Value, indexHistory.Time);
+            var tickPrice = new TickPrice(RabbitMqSource, _indexName.ToUpper(), indexHistory.Value, indexHistory.Value, indexHistory.Time);
             TickPricePublisher.Publish(tickPrice);
         }
 

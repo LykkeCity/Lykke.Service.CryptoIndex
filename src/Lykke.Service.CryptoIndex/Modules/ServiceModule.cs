@@ -46,6 +46,7 @@ namespace Lykke.Service.CryptoIndex.Modules
                     .As<IStopable>()
                     .WithParameter("connectionString", _settings.RabbitMq.ConnectionString)
                     .WithParameter("exchangeName", exchange)
+                    .WithParameter("suffixName", _settings.IndexName)
                     .SingleInstance();
             }
 
