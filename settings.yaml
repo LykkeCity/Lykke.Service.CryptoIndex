@@ -30,8 +30,6 @@ CryptoIndexService:
             settings-key: CryptoIndexService-SubscribingTickPricesExchangeNames
             types: 
               - JsonArray
-        QueueSuffix:
-            settings-key: CryptoIndexService-QueueSuffix
         PublishingExchange:
             settings-key: CryptoIndexService-PublishingTickPricesExchangeName
 
