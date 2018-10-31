@@ -5,10 +5,9 @@ using JetBrains.Annotations;
 using Lykke.Common.Log;
 using Lykke.RabbitMqBroker.Publisher;
 using Lykke.RabbitMqBroker.Subscriber;
+using Lykke.Service.CryptoIndex.Domain.Models;
 using Lykke.Service.CryptoIndex.Domain.Publishers;
 using Lykke.Service.CryptoIndex.Settings;
-using TickPrice = Lykke.Service.CryptoIndex.RabbitMq.Models.TickPrice;
-using DomainTickPrice = Lykke.Service.CryptoIndex.Domain.Models.TickPrice;
 
 namespace Lykke.Service.CryptoIndex.RabbitMq.Publishers
 {
@@ -17,7 +16,7 @@ namespace Lykke.Service.CryptoIndex.RabbitMq.Publishers
     {
         private readonly ILogFactory _logFactory;
         private readonly RabbitMqSettings _settings;
-        private RabbitMqPublisher<TickPrice> _publisher;
+        private RabbitMqPublisher<IndexTickPrice> _publisher;
         private readonly ILog _log;
 
         public TickPricePublisher(RabbitMqSettings settings, ILogFactory logFactory)
@@ -32,22 +31,10 @@ namespace Lykke.Service.CryptoIndex.RabbitMq.Publishers
             _publisher?.Dispose();
         }
 
-        public void Publish(DomainTickPrice tickPrice)
+        public void Publish(IndexTickPrice tickPrice)
         {
-            _publisher.ProduceAsync(Convert(tickPrice));
+            _publisher.ProduceAsync(tickPrice);
             _log.Info($"Published tick price: {tickPrice.ToJson()}.");
-        }
-
-        private static TickPrice Convert(DomainTickPrice tickPrice)
-        {
-            return new TickPrice
-            {
-                Source = tickPrice.Source,
-                Timestamp = tickPrice.Timestamp,
-                AssetPair = tickPrice.AssetPair,
-                Ask = tickPrice.Ask,
-                Bid = tickPrice.Bid
-            };
         }
 
         public void Start()
@@ -55,8 +42,8 @@ namespace Lykke.Service.CryptoIndex.RabbitMq.Publishers
             var settings = RabbitMqSubscriptionSettings
                 .ForPublisher(_settings.ConnectionString, _settings.PublishingExchange);
 
-            _publisher = new RabbitMqPublisher<TickPrice>(_logFactory, settings)
-                .SetSerializer(new JsonMessageSerializer<TickPrice>())
+            _publisher = new RabbitMqPublisher<IndexTickPrice>(_logFactory, settings)
+                .SetSerializer(new JsonMessageSerializer<IndexTickPrice>())
                 .DisableInMemoryQueuePersistence()
                 .Start();
         }

@@ -249,7 +249,7 @@ namespace Lykke.Service.CryptoIndex.Domain.Services
             await IndexHistoryRepository.InsertAsync(indexHistory);
 
             // Publish index to RabbitMq
-            var tickPrice = new TickPrice(RabbitMqSource, _indexName.ToUpper(), indexHistory.Value, indexHistory.Value, indexHistory.Time);
+            var tickPrice = new IndexTickPrice(RabbitMqSource, _indexName.ToUpper(), indexHistory.Value, indexHistory.Value, indexHistory.Time, indexHistory.Weights);
             TickPricePublisher.Publish(tickPrice);
         }
 

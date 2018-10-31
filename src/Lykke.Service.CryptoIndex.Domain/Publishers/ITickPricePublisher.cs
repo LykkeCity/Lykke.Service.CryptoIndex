@@ -1,7 +1,9 @@
-﻿namespace Lykke.Service.CryptoIndex.Domain.Publishers
+﻿using Lykke.Service.CryptoIndex.Domain.Models;
+
+namespace Lykke.Service.CryptoIndex.Domain.Publishers
 {
     public interface ITickPricePublisher
     {
-        void Publish(Models.TickPrice tickPrice);
+        void Publish(IndexTickPrice tickPrice);
     }
 }
