@@ -175,7 +175,7 @@ namespace Lykke.Service.CryptoIndex.Domain.Services
                     await Rebuild();
                 }
 
-                await CalculateIndex();
+                await CalculateSavePublish();
             }
             catch (Exception e)
             {
@@ -226,7 +226,7 @@ namespace Lykke.Service.CryptoIndex.Domain.Services
             }
         }
 
-        private async Task CalculateIndex()
+        private async Task CalculateSavePublish()
         {
             lock (_sync)
             {
@@ -262,7 +262,7 @@ namespace Lykke.Service.CryptoIndex.Domain.Services
             }
 
             // Get current index state
-            var indexState = await CalculateIndexState(topAssetWeights, topAssetsPrices);
+            var indexState = await CalculateIndex(topAssetWeights, topAssetsPrices);
 
             // if there was a reset then skip until next iteration which will have initial state
             if (indexState.Value != InitialIndexValue && State == null)
@@ -278,7 +278,7 @@ namespace Lykke.Service.CryptoIndex.Domain.Services
             _log.Info($"Finished calculating index for {topAssets.Count} assets, value: {indexState.Value}.");
         }
 
-        private async Task<IndexState> CalculateIndexState(IDictionary<string, decimal> topAssetWeights,
+        private async Task<IndexState> CalculateIndex(IDictionary<string, decimal> topAssetWeights,
             IDictionary<string, IDictionary<string, decimal>> topAssetsPrices)
         {
             var topMiddlePrices = GetMiddlePrices(topAssetsPrices);

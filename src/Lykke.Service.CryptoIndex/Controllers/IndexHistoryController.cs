@@ -29,7 +29,6 @@ namespace Lykke.Service.CryptoIndex.Controllers
 
         [HttpGet("indexHistories")]
         [ProducesResponseType(typeof(IReadOnlyList<IndexHistory>), (int)HttpStatusCode.OK)]
-        [ResponseCache(Duration = 30, VaryByQueryKeys = new[] { "*" })]
         public async Task<IReadOnlyList<IndexHistory>> GetLastIndexHistoriesAsync(int limit)
         {
             var firstStateTime = await _firstStateAfterResetTimeRepository.GetAsync();
@@ -42,7 +41,6 @@ namespace Lykke.Service.CryptoIndex.Controllers
 
         [HttpGet("timestamps")]
         [ProducesResponseType(typeof(IReadOnlyList<IndexHistory>), (int)HttpStatusCode.OK)]
-        [ResponseCache(Duration = 60 * 60, VaryByQueryKeys = new[] { "*" })]
         public async Task<IReadOnlyList<DateTime>> GetTimestampsAsync(DateTime from, DateTime to)
         {
             var firstStateAfterResetTime = await _firstStateAfterResetTimeRepository.GetAsync();

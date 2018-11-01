@@ -24,7 +24,6 @@ namespace Lykke.Service.CryptoIndex.Controllers
 
         [HttpGet("all")]
         [ProducesResponseType(typeof(IReadOnlyList<AssetInfo>), (int)HttpStatusCode.OK)]
-        [ResponseCache(Duration = 1, VaryByQueryKeys = new[] { "*" })]
         public async Task<IReadOnlyList<AssetInfo>> GetAllAsync()
         {
             var settings = await _settingsService.GetAsync();
