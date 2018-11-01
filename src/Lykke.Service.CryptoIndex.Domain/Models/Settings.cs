@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 
 namespace Lykke.Service.CryptoIndex.Domain.Models
 {
@@ -24,12 +25,19 @@ namespace Lykke.Service.CryptoIndex.Domain.Models
         /// </summary>
         public bool Enabled { get; }
 
-        public Settings(IReadOnlyList<string> sources, IReadOnlyList<string> assets, int topCount, bool enabled)
+        /// <summary>
+        /// The time when CoinMarketCap data should be refreshed and weights recalculated.
+        /// </summary>
+        public TimeSpan RebuildTime { get; }
+
+        /// <inheritdoc />
+        public Settings(IReadOnlyList<string> sources, IReadOnlyList<string> assets, int topCount, bool enabled, TimeSpan rebuildTime)
         {
             Sources = sources;
             Assets = assets;
             TopCount = topCount;
             Enabled = enabled;
+            RebuildTime = rebuildTime;
         }
     }
 }

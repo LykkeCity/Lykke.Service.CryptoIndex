@@ -29,7 +29,7 @@ namespace Lykke.Service.CryptoIndex.Domain.Repositories.Repositories
                 TableQuery.GenerateFilterCondition(nameof(AzureTableEntity.PartitionKey), QueryComparisons.GreaterThan,
                     GetPartitionKey(to)),
                 TableOperators.And,
-                TableQuery.GenerateFilterCondition(nameof(AzureTableEntity.PartitionKey), QueryComparisons.LessThan,
+                TableQuery.GenerateFilterCondition(nameof(AzureTableEntity.PartitionKey), QueryComparisons.LessThanOrEqual,
                     GetPartitionKey(from)));
 
             var query = new TableQuery<IndexHistoryEntity>().Where(filter);
@@ -60,9 +60,14 @@ namespace Lykke.Service.CryptoIndex.Domain.Repositories.Repositories
             return domain;
         }
 
-        public async Task<IReadOnlyList<IndexHistory>> TakeLastAsync(int count)
+        public async Task<IReadOnlyList<IndexHistory>> TakeLastAsync(int count, DateTime? from = null)
         {
-            var query = new TableQuery<IndexHistoryEntity>().Take(count);
+            var fromValue = from ?? DateTime.MinValue;
+
+            var filter = TableQuery.GenerateFilterCondition(nameof(AzureTableEntity.PartitionKey), QueryComparisons.LessThanOrEqual,
+                GetPartitionKey(fromValue));
+
+            var query = new TableQuery<IndexHistoryEntity>().Where(filter).Take(count);
 
             var models = await _storage.WhereAsync(query);
 

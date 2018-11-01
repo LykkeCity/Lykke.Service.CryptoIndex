@@ -15,20 +15,24 @@ namespace Lykke.Service.CryptoIndex.Controllers
     public class IndexHistoryController : Controller, IIndexHistoryApi
     {
         private readonly IIndexHistoryRepository _indexHistoryRepository;
-        private readonly ILCI10Calculator _lci10Calculator;
+        private readonly IFirstStateAfterResetTimeRepository _firstStateAfterResetTimeRepository;
+        private readonly IIndexCalculator _indexCalculator;
 
-        public IndexHistoryController(IIndexHistoryRepository indexHistoryRepository, ILCI10Calculator lci10Calculator)
+        public IndexHistoryController(IIndexHistoryRepository indexHistoryRepository,
+            IFirstStateAfterResetTimeRepository firstStateAfterResetTimeRepository,
+            IIndexCalculator indexCalculator)
         {
             _indexHistoryRepository = indexHistoryRepository;
-            _lci10Calculator = lci10Calculator;
+            _firstStateAfterResetTimeRepository = firstStateAfterResetTimeRepository;
+            _indexCalculator = indexCalculator;
         }
 
         [HttpGet("indexHistories")]
         [ProducesResponseType(typeof(IReadOnlyList<IndexHistory>), (int)HttpStatusCode.OK)]
-        [ResponseCache(Duration = 30, VaryByQueryKeys = new[] { "*" })]
         public async Task<IReadOnlyList<IndexHistory>> GetLastIndexHistoriesAsync(int limit)
         {
-            var domain = await _indexHistoryRepository.TakeLastAsync(limit);
+            var firstStateTime = await _firstStateAfterResetTimeRepository.GetAsync();
+            var domain = await _indexHistoryRepository.TakeLastAsync(limit, firstStateTime);
 
             var result = Mapper.Map<IReadOnlyList<IndexHistory>>(domain);
 
@@ -37,9 +41,13 @@ namespace Lykke.Service.CryptoIndex.Controllers
 
         [HttpGet("timestamps")]
         [ProducesResponseType(typeof(IReadOnlyList<IndexHistory>), (int)HttpStatusCode.OK)]
-        [ResponseCache(Duration = 60 * 60, VaryByQueryKeys = new[] { "*" })]
         public async Task<IReadOnlyList<DateTime>> GetTimestampsAsync(DateTime from, DateTime to)
         {
+            var firstStateAfterResetTime = await _firstStateAfterResetTimeRepository.GetAsync();
+
+            if (firstStateAfterResetTime.HasValue && firstStateAfterResetTime > from)
+                from = firstStateAfterResetTime.Value;
+
             var timestamps = await _indexHistoryRepository.GetTimestampsAsync(from, to);
 
             return timestamps;

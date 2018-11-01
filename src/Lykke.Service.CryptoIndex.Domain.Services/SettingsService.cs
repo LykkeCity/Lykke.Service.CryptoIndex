@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using Lykke.Service.CryptoIndex.Domain.Models;
 using Lykke.Service.CryptoIndex.Domain.Repositories;
@@ -24,7 +25,7 @@ namespace Lykke.Service.CryptoIndex.Domain.Services
 
             if (Settings == null)
             {
-                Settings = new Settings(new List<string>(), new List<string>(), 10, true);
+                Settings = new Settings(new List<string>(), new List<string>(), 10, true, TimeSpan.Zero);
                 await _settingsRepository.InsertOrReplaceAsync(Settings);
             }
 

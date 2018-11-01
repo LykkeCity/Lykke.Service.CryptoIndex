@@ -10,8 +10,6 @@ namespace Lykke.Service.CryptoIndex.Settings
 
         public string IndexName { get; set; }
 
-        public TimeSpan WeightsCalculationInterval { get; set; }
-
         public TimeSpan IndexCalculationInterval { get; set; }
 
         public DbSettings Db { get; set; }

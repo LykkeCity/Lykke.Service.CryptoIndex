@@ -15,9 +15,6 @@ CryptoIndexService:
     CoinMarketCapApiKey:
         settings-key: CryptoIndexService-CoinMarketCapApiKey
 
-    WeightsCalculationInterval:
-        settings-key: CryptoIndexService-WeightsCalculationInterval
-
     IndexCalculationInterval:
         settings-key: CryptoIndexService-IndexCalculationInterval
 
