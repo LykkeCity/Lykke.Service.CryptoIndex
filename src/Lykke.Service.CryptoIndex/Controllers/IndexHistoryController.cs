@@ -33,7 +33,7 @@ namespace Lykke.Service.CryptoIndex.Controllers
         public async Task<IReadOnlyList<IndexHistory>> GetLastIndexHistoriesAsync(int limit)
         {
             var firstStateTime = await _firstStateAfterResetTimeRepository.GetAsync();
-            var domain = await _indexHistoryRepository.TakeLastAsync(firstStateTime, limit);
+            var domain = await _indexHistoryRepository.TakeLastAsync(limit, firstStateTime);
 
             var result = Mapper.Map<IReadOnlyList<IndexHistory>>(domain);
 
