@@ -29,7 +29,7 @@ namespace Lykke.Service.CryptoIndex.Domain.Repositories.Repositories
                 TableQuery.GenerateFilterCondition(nameof(AzureTableEntity.PartitionKey), QueryComparisons.GreaterThan,
                     GetPartitionKey(to)),
                 TableOperators.And,
-                TableQuery.GenerateFilterCondition(nameof(AzureTableEntity.PartitionKey), QueryComparisons.LessThan,
+                TableQuery.GenerateFilterCondition(nameof(AzureTableEntity.PartitionKey), QueryComparisons.LessThanOrEqual,
                     GetPartitionKey(from)));
 
             var query = new TableQuery<IndexHistoryEntity>().Where(filter);
