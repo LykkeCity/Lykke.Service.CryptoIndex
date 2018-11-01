@@ -54,7 +54,7 @@ namespace Lykke.Service.CryptoIndex.Domain.Services
             _topAssetsWeights = new ConcurrentDictionary<string, decimal>();
 
             _indexName = indexName;
-            _trigger = new TimerTrigger(nameof(IndexCalculator), indexCalculationInterval, logFactory, CalculateIndex);
+            _trigger = new TimerTrigger(nameof(IndexCalculator), indexCalculationInterval, logFactory, TimerHandler);
 
             _log = logFactory.CreateLog(this);
         }
@@ -159,7 +159,7 @@ namespace Lykke.Service.CryptoIndex.Domain.Services
             _log.Info($"Finished calculating weights for {wantedAssets.Count} assets.");
         }
 
-        private async Task CalculateIndex(ITimerTrigger timer, TimerTriggeredHandlerArgs args, CancellationToken ct)
+        private async Task TimerHandler(ITimerTrigger timer, TimerTriggeredHandlerArgs args, CancellationToken ct)
         {
             try
             {
