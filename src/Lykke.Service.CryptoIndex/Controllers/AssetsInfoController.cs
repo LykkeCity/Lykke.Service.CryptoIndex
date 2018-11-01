@@ -35,6 +35,9 @@ namespace Lykke.Service.CryptoIndex.Controllers
 
             foreach (var asset in settings.Assets)
             {
+                if (!marketCaps.ContainsKey(asset))
+                    continue;
+
                 var marketCap = marketCaps[asset];
 
                 IDictionary<string, decimal> assetPrices = new Dictionary<string, decimal>();
