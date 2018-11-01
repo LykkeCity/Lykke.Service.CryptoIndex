@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using Lykke.AzureStorage.Tables;
 using Lykke.AzureStorage.Tables.Entity.Annotation;
 
@@ -15,5 +16,7 @@ namespace Lykke.Service.CryptoIndex.Domain.Repositories.Models
         public int TopCount { get; set; }
 
         public bool Enabled { get; set; }
+
+        public TimeSpan RebuildTime { get; set; }
     }
 }

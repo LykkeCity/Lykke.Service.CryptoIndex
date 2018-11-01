@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
 VisualStudioVersion = 15.0.26430.12
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution items", "Solution items", "{7664A776-FBC4-4DB1-BE35-29E9664E24B4}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "0. Solution items", "0. Solution items", "{7664A776-FBC4-4DB1-BE35-29E9664E24B4}"
 	ProjectSection(SolutionItems) = preProject
 		.gitignore = .gitignore
 		LICENSE = LICENSE
@@ -26,6 +26,14 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Lykke.CoinMarketCap.Client", "Lykke.CoinMarketCap.Client\Lykke.CoinMarketCap.Client.csproj", "{09B85851-7923-4D7F-B1CA-482DDE98CB7E}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Lykke.CoinMarketCap.Client.Tests", "Lykke.CoinMarketCap.Client.Tests\Lykke.CoinMarketCap.Client.Tests.csproj", "{7FC7BBC5-6577-4DBD-8FC7-F865B54A21E4}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "2. Domain", "2. Domain", "{95D76F8C-7106-4BE9-87A7-DCE59A877B68}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "1. CoinMarketCap", "1. CoinMarketCap", "{858625FD-DE47-42F2-BBA7-B7AFB84E760A}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "3. CLient", "3. CLient", "{57401FCC-D807-4759-BA45-2710CB742353}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "4. Tests", "4. Tests", "{9343E0A3-F28D-40AB-BD01-CFD1F0AE3308}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -68,6 +76,15 @@ Global
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{F5B2F6B8-A8CC-4612-8F1D-C063EB8C8955} = {95D76F8C-7106-4BE9-87A7-DCE59A877B68}
+		{2D5F52EC-2A27-4045-81ED-72355E2A6325} = {95D76F8C-7106-4BE9-87A7-DCE59A877B68}
+		{4BE49E02-AAAD-460B-8D00-57F412A3D181} = {95D76F8C-7106-4BE9-87A7-DCE59A877B68}
+		{3C300C31-97D3-41E8-A627-C53491BDA28B} = {57401FCC-D807-4759-BA45-2710CB742353}
+		{A61FFDEE-5725-4650-A788-6E55EE5EFD5B} = {9343E0A3-F28D-40AB-BD01-CFD1F0AE3308}
+		{09B85851-7923-4D7F-B1CA-482DDE98CB7E} = {858625FD-DE47-42F2-BBA7-B7AFB84E760A}
+		{7FC7BBC5-6577-4DBD-8FC7-F865B54A21E4} = {858625FD-DE47-42F2-BBA7-B7AFB84E760A}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {EB6C0EF4-AA6A-444D-8603-3669F73A58BC}

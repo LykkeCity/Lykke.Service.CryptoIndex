@@ -84,6 +84,12 @@ namespace Lykke.Service.CryptoIndex.Modules
                 .As<IIndexStateRepository>()
                 .SingleInstance();
 
+            builder.Register(c => new FirstStateAfterResetTimeRepository(
+                    AzureTableStorage<FirstStateAfterResetTimeEntity>.Create(_connectionString,
+                        "FirstStateAfterResetTime", c.Resolve<ILogFactory>())))
+                .As<IFirstStateAfterResetTimeRepository>()
+                .SingleInstance();
+
             builder.Register(c => new WarningRepository(
                     AzureTableStorage<WarningEntity>.Create(_connectionString,
                         nameof(Warning), c.Resolve<ILogFactory>())))
@@ -110,12 +116,11 @@ namespace Lykke.Service.CryptoIndex.Modules
                 .As<ISettingsService>()
                 .SingleInstance();
 
-            builder.RegisterType<LCI10Calculator>()
-                .As<ILCI10Calculator>()
+            builder.RegisterType<IndexCalculator>()
+                .As<IIndexCalculator>()
                 .As<IStartable>()
                 .As<IStopable>()
                 .WithParameter("indexName", _settings.IndexName)
-                .WithParameter("weightsCalculationInterval", _settings.WeightsCalculationInterval)
                 .WithParameter("indexCalculationInterval", _settings.IndexCalculationInterval)
                 .AutoWireNonPublicProperties()
                 .SingleInstance();

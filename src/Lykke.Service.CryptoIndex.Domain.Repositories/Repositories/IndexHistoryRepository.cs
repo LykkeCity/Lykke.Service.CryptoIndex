@@ -60,9 +60,14 @@ namespace Lykke.Service.CryptoIndex.Domain.Repositories.Repositories
             return domain;
         }
 
-        public async Task<IReadOnlyList<IndexHistory>> TakeLastAsync(int count)
+        public async Task<IReadOnlyList<IndexHistory>> TakeLastAsync(DateTime? from, int count)
         {
-            var query = new TableQuery<IndexHistoryEntity>().Take(count);
+            var fromValue = from ?? DateTime.MinValue;
+
+            var filter = TableQuery.GenerateFilterCondition(nameof(AzureTableEntity.PartitionKey), QueryComparisons.LessThan,
+                GetPartitionKey(fromValue));
+
+            var query = new TableQuery<IndexHistoryEntity>().Where(filter).Take(count);
 
             var models = await _storage.WhereAsync(query);
 

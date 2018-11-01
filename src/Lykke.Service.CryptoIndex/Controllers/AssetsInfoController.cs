@@ -12,13 +12,13 @@ namespace Lykke.Service.CryptoIndex.Controllers
     public class AssetsInfoController : Controller, IAssetsInfoApi
     {
         private readonly ISettingsService _settingsService;
-        private readonly ILCI10Calculator _lci10Calculator;
+        private readonly IIndexCalculator _indexCalculator;
         private readonly ITickPricesService _tickPricesService;
 
-        public AssetsInfoController(ISettingsService settingsService, ILCI10Calculator lci10Calculator, ITickPricesService tickPricesService)
+        public AssetsInfoController(ISettingsService settingsService, IIndexCalculator indexCalculator, ITickPricesService tickPricesService)
         {
             _settingsService = settingsService;
-            _lci10Calculator = lci10Calculator;
+            _indexCalculator = indexCalculator;
             _tickPricesService = tickPricesService;
         }
 
@@ -28,7 +28,7 @@ namespace Lykke.Service.CryptoIndex.Controllers
         public async Task<IReadOnlyList<AssetInfo>> GetAllAsync()
         {
             var settings = await _settingsService.GetAsync();
-            var marketCaps = await _lci10Calculator.GetAllAssetsMarketCapsAsync();
+            var marketCaps = await _indexCalculator.GetAllAssetsMarketCapsAsync();
             var prices = await _tickPricesService.GetPricesAsync();
 
             var result = new List<AssetInfo>();

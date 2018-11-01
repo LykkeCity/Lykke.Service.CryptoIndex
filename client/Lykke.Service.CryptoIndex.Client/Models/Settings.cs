@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using JetBrains.Annotations;
 
 namespace Lykke.Service.CryptoIndex.Client.Models
@@ -28,5 +29,10 @@ namespace Lykke.Service.CryptoIndex.Client.Models
         /// Is crypto index calculation enabled
         /// </summary>
         public bool Enabled { get; set; }
+
+        /// <summary>
+        /// The time when CoinMarketCap data should be refreshed and weights recalculated.
+        /// </summary>
+        public TimeSpan RebuildTime { get; set; }
     }
 }

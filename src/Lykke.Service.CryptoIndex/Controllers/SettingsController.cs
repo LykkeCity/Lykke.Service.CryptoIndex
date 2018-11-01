@@ -14,11 +14,13 @@ namespace Lykke.Service.CryptoIndex.Controllers
     {
         private readonly ISettingsService _settingsService;
         private readonly IIndexStateRepository _indexStateRepository;
+        private readonly IIndexCalculator _indexCalculator;
 
-        public SettingsController(ISettingsService settingsService, IIndexStateRepository indexStateRepository)
+        public SettingsController(ISettingsService settingsService, IIndexStateRepository indexStateRepository, IIndexCalculator indexCalculator)
         {
             _settingsService = settingsService;
             _indexStateRepository = indexStateRepository;
+            _indexCalculator = indexCalculator;
         }
 
         [HttpGet]
@@ -49,6 +51,8 @@ namespace Lykke.Service.CryptoIndex.Controllers
         public async Task ResetAsync()
         {
             await _indexStateRepository.Clear();
+
+            await _indexCalculator.Rebuild();
         }
     }
 }
