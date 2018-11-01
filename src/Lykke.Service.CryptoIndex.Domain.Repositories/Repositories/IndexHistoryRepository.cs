@@ -64,7 +64,7 @@ namespace Lykke.Service.CryptoIndex.Domain.Repositories.Repositories
         {
             var fromValue = from ?? DateTime.MinValue;
 
-            var filter = TableQuery.GenerateFilterCondition(nameof(AzureTableEntity.PartitionKey), QueryComparisons.LessThan,
+            var filter = TableQuery.GenerateFilterCondition(nameof(AzureTableEntity.PartitionKey), QueryComparisons.LessThanOrEqual,
                 GetPartitionKey(fromValue));
 
             var query = new TableQuery<IndexHistoryEntity>().Where(filter).Take(count);
