@@ -45,10 +45,10 @@ namespace Lykke.Service.CryptoIndex.Controllers
         [ResponseCache(Duration = 60 * 60, VaryByQueryKeys = new[] { "*" })]
         public async Task<IReadOnlyList<DateTime>> GetTimestampsAsync(DateTime from, DateTime to)
         {
-            var date = await _firstStateAfterResetTimeRepository.GetAsync();
+            var firstStateAfterResetTime = await _firstStateAfterResetTimeRepository.GetAsync();
 
-            if (date.HasValue && from < date)
-                from = date.Value;
+            if (firstStateAfterResetTime.HasValue && firstStateAfterResetTime > from)
+                from = firstStateAfterResetTime.Value;
 
             var timestamps = await _indexHistoryRepository.GetTimestampsAsync(from, to);
 

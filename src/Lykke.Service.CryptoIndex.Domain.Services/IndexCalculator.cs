@@ -59,6 +59,13 @@ namespace Lykke.Service.CryptoIndex.Domain.Services
             _log = logFactory.CreateLog(this);
         }
 
+        public void Start()
+        {
+            Initialize(); // top assets and weights from the last history state
+
+            _trigger.Start();
+        }
+
         public async Task<IReadOnlyDictionary<string, decimal>> GetAllAssetsMarketCapsAsync()
         {
             var result = new Dictionary<string, decimal>();
@@ -168,8 +175,6 @@ namespace Lykke.Service.CryptoIndex.Domain.Services
                     await Rebuild();
                 }
 
-                InitIfJustStarted();
-
                 await CalculateIndex();
             }
             catch (Exception e)
@@ -178,7 +183,7 @@ namespace Lykke.Service.CryptoIndex.Domain.Services
             }
         }
 
-        private void InitIfJustStarted()
+        private void Initialize()
         {
             _log.Info("Initializing last state from history if needed...");
 
@@ -407,11 +412,6 @@ namespace Lykke.Service.CryptoIndex.Domain.Services
             throw new InvalidOperationException(message);
         }
 
-        public void Start()
-        {
-            _trigger.Start();
-        }
-
         public void Stop()
         {
             _trigger.Stop();
@@ -419,11 +419,9 @@ namespace Lykke.Service.CryptoIndex.Domain.Services
 
         public void Dispose()
         {
-            Stop();
+            _trigger?.Dispose();
 
             MarketCapitalizationService?.Dispose();
-
-            _trigger?.Dispose();
         }
     }
 }
