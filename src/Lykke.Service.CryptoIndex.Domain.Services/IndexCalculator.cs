@@ -184,11 +184,18 @@ namespace Lykke.Service.CryptoIndex.Domain.Services
 
             try
             {
+                bool isCoinMarketCapPresent;
+
                 lock (_sync)
                 {
-                    if (!_allMarketCaps.Any())
-                        RefreshCoinMarketCapData().GetAwaiter().GetResult();
+                    isCoinMarketCapPresent = _allMarketCaps.Any();
+                }
 
+                if (!isCoinMarketCapPresent)
+                    RefreshCoinMarketCapData().GetAwaiter().GetResult();
+
+                lock (_sync)
+                {
                     if (_topAssetsWeights.Any() || _topMarketCaps.Any())
                     {
                         _log.Info($"Skipping initializing previous state, top assets weights count is {_topAssetsWeights.Count}, top market caps count is {_topMarketCaps.Count}.");
