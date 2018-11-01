@@ -11,6 +11,7 @@ using Lykke.Common.Log;
 using Lykke.Service.CryptoIndex.Domain.Models;
 using Lykke.Service.CryptoIndex.Domain.Publishers;
 using Lykke.Service.CryptoIndex.Domain.Repositories;
+using MoreLinq;
 
 namespace Lykke.Service.CryptoIndex.Domain.Services
 {
@@ -167,11 +168,32 @@ namespace Lykke.Service.CryptoIndex.Domain.Services
                     await Rebuild();
                 }
 
+                InitLastStateIfJustStarted();
+
                 await CalculateIndex();
             }
             catch (Exception e)
             {
                 _log.Warning("Somethings went wrong while index calculation.", e);
+            }
+        }
+
+        private void InitLastStateIfJustStarted()
+        {
+            lock (_sync)
+            {
+                if (!_allMarketCaps.Any())
+                    RefreshCoinMarketCapData().GetAwaiter().GetResult();
+
+                if (_topMarketCaps.Any() || _topAssetsWeights.Any())
+                    return;
+
+                var lastState = IndexHistoryRepository.TakeLastAsync(1).GetAwaiter().GetResult().SingleOrDefault();
+                if (lastState == null)
+                    return;
+
+                _topMarketCaps.AddRange(lastState.MarketCaps);
+                lastState.Weights.ForEach(x => _topAssetsWeights.Add(x.Key, x.Value));
             }
         }
 

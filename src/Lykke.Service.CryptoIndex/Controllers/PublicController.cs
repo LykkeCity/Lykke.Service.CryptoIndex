@@ -49,7 +49,7 @@ namespace Lykke.Service.CryptoIndex.Controllers
         [ResponseCache(Duration = 10, VaryByQueryKeys = new[] { "*" })]
         public async Task<(DateTime, decimal)> GetCurrentAsync()
         {
-            var result = (await _indexHistoryRepository.TakeLastAsync(null, 1)).SingleOrDefault();
+            var result = (await _indexHistoryRepository.TakeLastAsync(1)).SingleOrDefault();
 
             if (result == null)
                 throw new ValidationApiException(HttpStatusCode.NotFound, "Current index value is not found.");

@@ -60,7 +60,7 @@ namespace Lykke.Service.CryptoIndex.Domain.Repositories.Repositories
             return domain;
         }
 
-        public async Task<IReadOnlyList<IndexHistory>> TakeLastAsync(DateTime? from, int count)
+        public async Task<IReadOnlyList<IndexHistory>> TakeLastAsync(int count, DateTime? from = null)
         {
             var fromValue = from ?? DateTime.MinValue;
 
