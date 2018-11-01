@@ -168,7 +168,7 @@ namespace Lykke.Service.CryptoIndex.Domain.Services
                     await Rebuild();
                 }
 
-                InitLastStateIfJustStarted();
+                InitIfJustStarted();
 
                 await CalculateIndex();
             }
@@ -178,22 +178,39 @@ namespace Lykke.Service.CryptoIndex.Domain.Services
             }
         }
 
-        private void InitLastStateIfJustStarted()
+        private void InitIfJustStarted()
         {
-            lock (_sync)
+            _log.Info("Initializing last state from history if needed...");
+
+            try
             {
-                if (!_allMarketCaps.Any())
-                    RefreshCoinMarketCapData().GetAwaiter().GetResult();
+                lock (_sync)
+                {
+                    if (!_allMarketCaps.Any())
+                        RefreshCoinMarketCapData().GetAwaiter().GetResult();
 
-                if (_topMarketCaps.Any() || _topAssetsWeights.Any())
-                    return;
+                    if (_topAssetsWeights.Any() || _topMarketCaps.Any())
+                    {
+                        _log.Info($"Skipping initializing previous state, top assets weights count is {_topAssetsWeights.Count}, top market caps count is {_topMarketCaps.Count}.");
+                        return;
+                    }    
 
-                var lastState = IndexHistoryRepository.TakeLastAsync(1).GetAwaiter().GetResult().SingleOrDefault();
-                if (lastState == null)
-                    return;
+                    var lastIndexHistory = IndexHistoryRepository.TakeLastAsync(1).GetAwaiter().GetResult().SingleOrDefault();
+                    if (lastIndexHistory == null)
+                    {
+                        _log.Info("Skipping initializing previous state, last index history is empty.");
+                        return;
+                    }
 
-                _topMarketCaps.AddRange(lastState.MarketCaps);
-                lastState.Weights.ForEach(x => _topAssetsWeights.Add(x.Key, x.Value));
+                    _topMarketCaps.AddRange(lastIndexHistory.MarketCaps);
+                    lastIndexHistory.Weights.ForEach(x => _topAssetsWeights.Add(x.Key, x.Value));
+
+                    _log.Info("Initialized previous weights and market caps from history.");
+                }
+            }
+            catch (Exception e)
+            {
+                _log.Warning("Can't initialize last state from history.", e);
             }
         }
 
