@@ -7,6 +7,6 @@ namespace Lykke.Service.CryptoIndex.Domain.Services
     {
         Task<IReadOnlyDictionary<string, decimal>> GetAllAssetsMarketCapsAsync();
 
-        Task Rebuild();
+        Task Reset();
     }
 }

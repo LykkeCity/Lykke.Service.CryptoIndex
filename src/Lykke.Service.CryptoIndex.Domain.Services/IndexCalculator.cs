@@ -26,6 +26,7 @@ namespace Lykke.Service.CryptoIndex.Domain.Services
         private readonly string _indexName;
         private readonly DateTime _startedAt;
         private DateTime _lastRebuild;
+        private bool isReset;
         private readonly object _sync = new object();
         private readonly List<AssetMarketCap> _allMarketCaps;
         private readonly List<AssetMarketCap> _topMarketCaps;
@@ -44,6 +45,8 @@ namespace Lykke.Service.CryptoIndex.Domain.Services
 
         private Settings Settings => SettingsService.GetAsync().GetAwaiter().GetResult();
         private IndexState State => IndexStateRepository.GetAsync().GetAwaiter().GetResult();
+        private IReadOnlyList<AssetMarketCap> TopMarketCaps { get { lock(_sync) { return _topMarketCaps.ToList(); } } }
+        private IDictionary<string, decimal> TopWeights { get { lock (_sync) { return _topAssetsWeights.Clone(); } } }
 
         public IndexCalculator(string indexName, TimeSpan indexCalculationInterval, ILogFactory logFactory)
         {
@@ -79,7 +82,17 @@ namespace Lykke.Service.CryptoIndex.Domain.Services
             return result;
         }
 
-        public async Task Rebuild()
+        public async Task Reset()
+        {
+            await IndexStateRepository.Clear();
+
+            lock (_sync)
+            {
+                isReset = true;
+            }
+        }
+
+        private async Task Rebuild()
         {
             _log.Info("Started rebuilding...");
 
@@ -170,8 +183,13 @@ namespace Lykke.Service.CryptoIndex.Domain.Services
         {
             try
             {
-                if (_lastRebuild.Date < DateTime.UtcNow.Date && DateTime.UtcNow.TimeOfDay > Settings.RebuildTime)
+                if (isReset || _lastRebuild.Date < DateTime.UtcNow.Date && DateTime.UtcNow.TimeOfDay > Settings.RebuildTime)
                 {
+                    lock (_sync)
+                    {
+                        isReset = false;
+                    }
+
                     await Rebuild();
                 }
 
@@ -228,41 +246,30 @@ namespace Lykke.Service.CryptoIndex.Domain.Services
 
         private async Task CalculateSavePublish()
         {
-            lock (_sync)
+            if (!TopWeights.Any())
             {
-                if (!_topAssetsWeights.Any())
-                {
-                    _log.Info("There are no weights for constituents yet, skipped index calculation.");
-                    return;
-                }
+                _log.Info("There are no weights for constituents yet, skipped index calculation.");
+                return;
             }
 
             _log.Info("Started calculating index...");
-
-            List<AssetMarketCap> topMarketCaps;
-            IDictionary<string, decimal> topAssetWeights;
+            
             var allAssetsPrices = await TickPricesService.GetPricesAsync();
 
-            lock (_sync)
-            {
-                topMarketCaps = _topMarketCaps.ToList();
-                topAssetWeights = _topAssetsWeights.Clone();
-            }
-
             // Get raw prices for the top assets
-            var topAssets = topAssetWeights.Keys.ToList();
+            var topAssets = TopWeights.Keys.ToList();
             var topAssetsPrices = GetTopAssetsPrices(allAssetsPrices, topAssets);
 
             // If just started and prices not present yet, then skip.
             // If started more then {_waitForTopAssetsPricesFromStart} ago then write a warning to DB and log.
-            if (!IsWeightsAreCalculatedAndAllPricesArePresented(topAssetWeights, topAssetsPrices))
+            if (!IsWeightsAreCalculatedAndAllPricesArePresented(TopWeights, topAssetsPrices))
             {
                 _log.Info($"Skipped calculating index because some prices are not present yet, waiting for them for {_waitForTopAssetsPricesFromStart.TotalMinutes} minutes since start.");
                 return;
             }
 
             // Get current index state
-            var indexState = await CalculateIndex(topAssetWeights, topAssetsPrices);
+            var indexState = await CalculateIndex(TopWeights, topAssetsPrices);
 
             // if there was a reset then skip until next iteration which will have initial state
             if (indexState.Value != InitialIndexValue && State == null)
@@ -271,7 +278,7 @@ namespace Lykke.Service.CryptoIndex.Domain.Services
                 return;
             }
 
-            var indexHistory = new IndexHistory(indexState.Value, topMarketCaps, topAssetWeights, topAssetsPrices, indexState.MiddlePrices, DateTime.UtcNow);
+            var indexHistory = new IndexHistory(indexState.Value, TopMarketCaps, TopWeights, topAssetsPrices, indexState.MiddlePrices, DateTime.UtcNow);
 
             await SaveAndPublish(indexState, indexHistory);
 
@@ -281,12 +288,20 @@ namespace Lykke.Service.CryptoIndex.Domain.Services
         private async Task<IndexState> CalculateIndex(IDictionary<string, decimal> topAssetWeights,
             IDictionary<string, IDictionary<string, decimal>> topAssetsPrices)
         {
-            var topMiddlePrices = GetMiddlePrices(topAssetsPrices);
-
             var lastIndex = await IndexStateRepository.GetAsync();
 
             if (lastIndex == null)
-                return new IndexState(InitialIndexValue, topMiddlePrices);
+            {
+                await Rebuild();
+
+                var allAssetsPrices = await TickPricesService.GetPricesAsync();
+                var newTopAssetsPrices = GetTopAssetsPrices(allAssetsPrices, TopWeights.Keys.ToList());
+                var newTopMiddlePrices = GetMiddlePrices(newTopAssetsPrices);
+
+                return new IndexState(InitialIndexValue, newTopMiddlePrices);
+            }
+
+            var topMiddlePrices = GetMiddlePrices(topAssetsPrices);
 
             var signal = 0m;
 
