@@ -26,6 +26,7 @@ namespace Lykke.Service.CryptoIndex.Domain.Services
         private readonly string _indexName;
         private readonly DateTime _startedAt;
         private DateTime _lastRebuild;
+        private bool isReset;
         private readonly object _sync = new object();
         private readonly List<AssetMarketCap> _allMarketCaps;
         private readonly List<AssetMarketCap> _topMarketCaps;
@@ -81,7 +82,17 @@ namespace Lykke.Service.CryptoIndex.Domain.Services
             return result;
         }
 
-        public async Task Rebuild()
+        public async Task Reset()
+        {
+            await IndexStateRepository.Clear();
+
+            lock (_sync)
+            {
+                isReset = true;
+            }
+        }
+
+        private async Task Rebuild()
         {
             _log.Info("Started rebuilding...");
 
@@ -172,8 +183,13 @@ namespace Lykke.Service.CryptoIndex.Domain.Services
         {
             try
             {
-                if (_lastRebuild.Date < DateTime.UtcNow.Date && DateTime.UtcNow.TimeOfDay > Settings.RebuildTime)
+                if (isReset || _lastRebuild.Date < DateTime.UtcNow.Date && DateTime.UtcNow.TimeOfDay > Settings.RebuildTime)
                 {
+                    lock (_sync)
+                    {
+                        isReset = false;
+                    }
+
                     await Rebuild();
                 }
 
