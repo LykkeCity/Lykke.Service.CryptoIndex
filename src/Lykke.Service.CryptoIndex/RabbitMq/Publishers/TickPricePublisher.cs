@@ -16,7 +16,7 @@ namespace Lykke.Service.CryptoIndex.RabbitMq.Publishers
     {
         private readonly ILogFactory _logFactory;
         private readonly RabbitMqSettings _settings;
-        private RabbitMqPublisher<IndexTickPrice> _publisher;
+        private RabbitMqPublisher<Contract.IndexTickPrice> _publisher;
         private readonly ILog _log;
 
         public TickPricePublisher(RabbitMqSettings settings, ILogFactory logFactory)
@@ -33,7 +33,16 @@ namespace Lykke.Service.CryptoIndex.RabbitMq.Publishers
 
         public void Publish(IndexTickPrice tickPrice)
         {
-            _publisher.ProduceAsync(tickPrice);
+            _publisher.ProduceAsync(new Contract.IndexTickPrice
+            {
+                Source = tickPrice.Source,
+                AssetPair = tickPrice.AssetPair,
+                Ask = tickPrice.Ask ?? 0,
+                Bid = tickPrice.Bid ?? 0,
+                Timestamp = tickPrice.Timestamp,
+                Weights = tickPrice.Weights
+            });
+
             _log.Info($"Published tick price: {tickPrice.ToJson()}.");
         }
 
@@ -42,8 +51,8 @@ namespace Lykke.Service.CryptoIndex.RabbitMq.Publishers
             var settings = RabbitMqSubscriptionSettings
                 .ForPublisher(_settings.ConnectionString, _settings.PublishingExchange);
 
-            _publisher = new RabbitMqPublisher<IndexTickPrice>(_logFactory, settings)
-                .SetSerializer(new JsonMessageSerializer<IndexTickPrice>())
+            _publisher = new RabbitMqPublisher<Contract.IndexTickPrice>(_logFactory, settings)
+                .SetSerializer(new JsonMessageSerializer<Contract.IndexTickPrice>())
                 .DisableInMemoryQueuePersistence()
                 .Start();
         }
