@@ -1,10 +1,12 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
 using Lykke.Common.ApiLibrary.Exceptions;
 using Lykke.Service.CryptoIndex.Client.Api;
+using Lykke.Service.CryptoIndex.Domain.Models;
 using Lykke.Service.CryptoIndex.Domain.Repositories;
 using Microsoft.AspNetCore.Mvc;
 
@@ -16,6 +18,8 @@ namespace Lykke.Service.CryptoIndex.Controllers
         private readonly IIndexHistoryRepository _indexHistoryRepository;
         private readonly IIndexStateRepository _indexStateRepository;
         private readonly IFirstStateAfterResetTimeRepository _firstStateAfterResetTimeRepository;
+
+        private static readonly ConcurrentDictionary<DateTime, decimal> Cache = new ConcurrentDictionary<DateTime, decimal>();
 
         public PublicController(IIndexHistoryRepository indexHistoryRepository, IIndexStateRepository indexStateRepository,
             IFirstStateAfterResetTimeRepository firstStateAfterResetTimeRepository)
@@ -35,9 +39,33 @@ namespace Lykke.Service.CryptoIndex.Controllers
             if (firstStateAfterResetTime.HasValue && firstStateAfterResetTime > from)
                 from = firstStateAfterResetTime.Value;
 
-            var domain = await _indexHistoryRepository.GetAsync(from, to);
+            if (firstStateAfterResetTime.HasValue && firstStateAfterResetTime > to)
+                to = firstStateAfterResetTime.Value;
 
-            var result = domain.Select(x => (x.Time, x.Value)).ToList();
+            if (!Cache.Keys.Contains(from))
+            {
+                var fromValues = await _indexHistoryRepository.GetAsync(from, to);
+                var fromValue = fromValues.FirstOrDefault();
+
+                if (fromValue != null)
+                    Cache[from] = fromValue.Value;
+            }
+
+            var pointFrom = Cache.ContainsKey(from)
+                ? new IndexHistory(Cache[from], new List<AssetMarketCap>(), new Dictionary<string, decimal>(),
+                    new Dictionary<string, IDictionary<string, decimal>>(), new Dictionary<string, decimal>(),
+                    from)
+                : null;
+
+            var current = await GetCurrentAsync();
+            var pointTo = new IndexHistory(current.Item2, new List<AssetMarketCap>(), new Dictionary<string, decimal>(), new Dictionary<string, IDictionary<string, decimal>>(), new Dictionary<string, decimal>(), current.Item1);
+
+            var resultPoints = new List<IndexHistory>();
+            if (pointFrom != null)
+                resultPoints.Add(pointFrom);
+            resultPoints.Add(pointTo);
+
+            var result = resultPoints.Select(x => (x.Time, x.Value)).ToList();
 
             return result;
         }
