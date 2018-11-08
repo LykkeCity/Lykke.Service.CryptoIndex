@@ -15,11 +15,14 @@ namespace Lykke.Service.CryptoIndex.Controllers
     {
         private readonly IIndexHistoryRepository _indexHistoryRepository;
         private readonly IIndexStateRepository _indexStateRepository;
+        private readonly IFirstStateAfterResetTimeRepository _firstStateAfterResetTimeRepository;
 
-        public PublicController(IIndexHistoryRepository indexHistoryRepository, IIndexStateRepository indexStateRepository)
+        public PublicController(IIndexHistoryRepository indexHistoryRepository, IIndexStateRepository indexStateRepository,
+            IFirstStateAfterResetTimeRepository firstStateAfterResetTimeRepository)
         {
             _indexHistoryRepository = indexHistoryRepository;
             _indexStateRepository = indexStateRepository;
+            _firstStateAfterResetTimeRepository = firstStateAfterResetTimeRepository;
         }
 
         [HttpGet("indices")]
@@ -27,6 +30,11 @@ namespace Lykke.Service.CryptoIndex.Controllers
         [ResponseCache(Duration = 3, VaryByQueryKeys = new[] { "*" })]
         public async Task<IReadOnlyList<(DateTime, decimal)>> GetIndexHistoriesAsync(DateTime from, DateTime to)
         {
+            var firstStateAfterResetTime = await _firstStateAfterResetTimeRepository.GetAsync();
+
+            if (firstStateAfterResetTime.HasValue && firstStateAfterResetTime > from)
+                from = firstStateAfterResetTime.Value;
+
             var domain = await _indexHistoryRepository.GetAsync(from, to);
 
             var result = domain.Select(x => (x.Time, x.Value)).ToList();
