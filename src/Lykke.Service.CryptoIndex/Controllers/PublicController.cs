@@ -4,11 +4,14 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
+using AutoMapper;
 using Lykke.Common.ApiLibrary.Exceptions;
 using Lykke.Service.CryptoIndex.Client.Api;
-using Lykke.Service.CryptoIndex.Domain.Models;
+using Lykke.Service.CryptoIndex.Client.Models;
 using Lykke.Service.CryptoIndex.Domain.Repositories;
 using Microsoft.AspNetCore.Mvc;
+using AssetMarketCap = Lykke.Service.CryptoIndex.Domain.Models.AssetMarketCap;
+using IndexHistory = Lykke.Service.CryptoIndex.Domain.Models.IndexHistory;
 
 namespace Lykke.Service.CryptoIndex.Controllers
 {
@@ -38,9 +41,6 @@ namespace Lykke.Service.CryptoIndex.Controllers
 
             if (firstStateAfterResetTime.HasValue && firstStateAfterResetTime > from)
                 from = firstStateAfterResetTime.Value;
-
-            if (firstStateAfterResetTime.HasValue && firstStateAfterResetTime > to)
-                to = firstStateAfterResetTime.Value;
 
             if (!Cache.Keys.Contains(from))
             {
@@ -83,6 +83,7 @@ namespace Lykke.Service.CryptoIndex.Controllers
         [HttpGet("index/current")]
         [ProducesResponseType(typeof((DateTime, decimal)), (int)HttpStatusCode.OK)]
         [ResponseCache(Duration = 3, VaryByQueryKeys = new[] { "*" })]
+        [Obsolete]
         public async Task<(DateTime, decimal)> GetCurrentAsync()
         {
             var result = (await _indexHistoryRepository.TakeLastAsync(1)).SingleOrDefault();
@@ -91,6 +92,21 @@ namespace Lykke.Service.CryptoIndex.Controllers
                 throw new ValidationApiException(HttpStatusCode.NotFound, "Current index value is not found.");
 
             return (result.Time, result.Value);
+        }
+
+        [HttpGet("index/last")]
+        [ProducesResponseType(typeof(PublicIndexHistory), (int)HttpStatusCode.OK)]
+        [ResponseCache(Duration = 3, VaryByQueryKeys = new[] { "*" })]
+        public async Task<PublicIndexHistory> GetLastAsync()
+        {
+            var domain = (await _indexHistoryRepository.TakeLastAsync(1)).SingleOrDefault();
+
+            if (domain == null)
+                throw new ValidationApiException(HttpStatusCode.NotFound, "Last index value is not found.");
+
+            var result = Mapper.Map<PublicIndexHistory>(domain);
+
+            return result;
         }
     }
 }

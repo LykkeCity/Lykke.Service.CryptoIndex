@@ -11,6 +11,7 @@ namespace Lykke.Service.CryptoIndex
             CreateMap<Domain.Models.Settings, Client.Models.Settings>();
 
             CreateMap<IndexHistory, Client.Models.IndexHistory>();
+            CreateMap<IndexHistory, Client.Models.PublicIndexHistory>();
         }
     }
 }
