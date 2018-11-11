@@ -20,7 +20,7 @@
     <DocumentationFile>$(OutputPath)$(AssemblyName).xml</DocumentationFile>
   </PropertyGroup>
   <ItemGroup>
-    <None Remove="Lykke.Service.CryptoIndex.Client.xml" />
+    <None Remove="$(AssemblyName).xml" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Lykke.HttpClientGenerator" Version="2.3.0" />
