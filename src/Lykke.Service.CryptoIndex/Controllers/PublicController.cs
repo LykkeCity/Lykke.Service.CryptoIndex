@@ -35,6 +35,7 @@ namespace Lykke.Service.CryptoIndex.Controllers
         [HttpGet("indices")]
         [ProducesResponseType(typeof(IReadOnlyList<(DateTime, decimal)>), (int)HttpStatusCode.OK)]
         [ResponseCache(Duration = 3, VaryByQueryKeys = new[] { "*" })]
+        [Obsolete]
         public async Task<IReadOnlyList<(DateTime, decimal)>> GetIndexHistoriesAsync(DateTime from, DateTime to)
         {
             var firstStateAfterResetTime = await _firstStateAfterResetTimeRepository.GetAsync();
@@ -105,6 +106,26 @@ namespace Lykke.Service.CryptoIndex.Controllers
                 throw new ValidationApiException(HttpStatusCode.NotFound, "Last index value is not found.");
 
             var result = Mapper.Map<PublicIndexHistory>(domain);
+
+            return result;
+        }
+
+        [HttpGet("change")]
+        [ProducesResponseType(typeof(IReadOnlyList<(DateTime, decimal)>), (int)HttpStatusCode.OK)]
+        [ResponseCache(Duration = 3, VaryByQueryKeys = new[] { "*" })]
+        public async Task<IReadOnlyList<(DateTime, decimal)>> GetChangeAsync()
+        {
+            var fromMidnight = await _indexHistoryRepository.GetAsync(DateTime.UtcNow.Date, DateTime.UtcNow.Date.AddMinutes(2));
+            var midnight = fromMidnight.FirstOrDefault();
+
+            var last = (await _indexHistoryRepository.TakeLastAsync(1)).SingleOrDefault();
+
+            var resultPoints = new List<IndexHistory>();
+            if (midnight != null)
+                resultPoints.Add(midnight);
+            resultPoints.Add(last);
+
+            var result = resultPoints.Select(x => (x.Time, x.Value)).OrderBy(x => x.Time).ToList();
 
             return result;
         }
