@@ -343,20 +343,6 @@ namespace Lykke.Service.CryptoIndex.Domain.Services
                 return;
             }
 
-            // Save original middle prices
-            var originalMiddlePrices = indexState.MiddlePrices.Clone();
-
-            // Change middle prices for frozen assets to 0
-            foreach (var asset in indexState.MiddlePrices.Keys.ToList())
-            {
-                var isFrozen = frozenAssets.Contains(asset);
-                if (isFrozen)
-                {
-                    indexState.MiddlePrices[asset] = 0;
-                    indexHistory.MiddlePrices[asset] = 0;
-                }
-            }
-
             // Save index state for the next execution
             await IndexStateRepository.SetAsync(indexState);
 
@@ -366,13 +352,6 @@ namespace Lykke.Service.CryptoIndex.Domain.Services
 
             // Save all index info to history
             await IndexHistoryRepository.InsertAsync(indexHistory);
-
-            // Restore original middle prices
-            foreach (var asset in originalMiddlePrices.Keys.ToList())
-            {
-                indexState.MiddlePrices[asset] = originalMiddlePrices[asset];
-                indexHistory.MiddlePrices[asset] = originalMiddlePrices[asset];
-            }
         }
 
         private async Task Publish(IndexHistory indexHistory, IReadOnlyCollection<string> frozenAssets)
