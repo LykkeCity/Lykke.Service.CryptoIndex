@@ -1,5 +1,8 @@
 ﻿namespace Lykke.Service.CryptoIndex.Contract
 {
+    /// <summary>
+    /// Asset information.
+    /// </summary>
     public class AssetInfo
     {
         /// <summary>
@@ -18,17 +21,13 @@
         public decimal Price { get; }
 
         /// <summary>
-        /// Middle price of the asset.
+        /// True if the asset was 'frozen'.
         /// </summary>
         public bool IsDisabled { get; }
 
         /// <summary>
         /// Initializes a new instance of <see cref="AssetInfo"/>.
         /// </summary>
-        /// <param name="assetId"></param>
-        /// <param name="weight"></param>
-        /// <param name="price"></param>
-        /// <param name="isDisabled"></param>
         public AssetInfo(string assetId, decimal weight, decimal price, bool isDisabled)
         {
             AssetId = assetId;
