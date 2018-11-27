@@ -55,11 +55,11 @@ namespace Lykke.Service.CryptoIndex.Controllers
             var pointFrom = Cache.ContainsKey(from)
                 ? new IndexHistory(Cache[from], new List<AssetMarketCap>(), new Dictionary<string, decimal>(),
                     new Dictionary<string, IDictionary<string, decimal>>(), new Dictionary<string, decimal>(),
-                    from)
+                    from, new List<string>())
                 : null;
 
             var current = await GetCurrentAsync();
-            var pointTo = new IndexHistory(current.Item2, new List<AssetMarketCap>(), new Dictionary<string, decimal>(), new Dictionary<string, IDictionary<string, decimal>>(), new Dictionary<string, decimal>(), current.Item1);
+            var pointTo = new IndexHistory(current.Item2, new List<AssetMarketCap>(), new Dictionary<string, decimal>(), new Dictionary<string, IDictionary<string, decimal>>(), new Dictionary<string, decimal>(), current.Item1, new List<string>());
 
             var resultPoints = new List<IndexHistory>();
             if (pointFrom != null)

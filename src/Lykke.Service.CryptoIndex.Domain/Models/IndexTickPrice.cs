@@ -15,16 +15,16 @@ namespace Lykke.Service.CryptoIndex.Domain.Models
 
         public DateTime Timestamp { get; }
 
-        public IDictionary<string, decimal> Weights { get; }
+        public IReadOnlyCollection<AssetInfo> AssetsInfo { get; }
 
-        public IndexTickPrice(string source, string assetPair, decimal? bid, decimal? ask, DateTime timestamp, IDictionary<string, decimal> weights)
+        public IndexTickPrice(string source, string assetPair, decimal? bid, decimal? ask, DateTime timestamp, IReadOnlyCollection<AssetInfo> assetsInfo)
         {
             Source = source;
             AssetPair = assetPair;
             Bid = bid;
             Ask = ask;
             Timestamp = timestamp;
-            Weights = weights;
+            AssetsInfo = assetsInfo;
         }
     }
 }

@@ -25,7 +25,7 @@ namespace Lykke.Service.CryptoIndex.Domain.Services
 
             if (Settings == null)
             {
-                Settings = new Settings(new List<string>(), new List<string>(), 10, true, TimeSpan.Zero);
+                Settings = new Settings(new List<string>(), new List<string>(), 10, true, TimeSpan.Zero, new List<string>());
                 await _settingsRepository.InsertOrReplaceAsync(Settings);
             }
 

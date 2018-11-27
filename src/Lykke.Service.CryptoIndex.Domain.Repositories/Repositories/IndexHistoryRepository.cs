@@ -40,7 +40,7 @@ namespace Lykke.Service.CryptoIndex.Domain.Repositories.Repositories
             var domain = models.OrderBy(x => x.Time)
                                .Select(x => 
                                     new IndexHistory(x.Value, Mapper.Map<IReadOnlyList<AssetMarketCap>>(x.MarketCaps),
-                                        x.Weights, emptyPrices, x.MiddlePrices, x.Time))
+                                        x.Weights, emptyPrices, x.MiddlePrices, x.Time, x.FrozenAssets))
                                .ToList();
             
             return domain;
@@ -73,7 +73,7 @@ namespace Lykke.Service.CryptoIndex.Domain.Repositories.Repositories
 
             var emptyPrices = new Dictionary<string, IDictionary<string, decimal>>();
             var domain = models.Select(x => new IndexHistory(x.Value, Mapper.Map<IReadOnlyList<AssetMarketCap>>(x.MarketCaps),
-                x.Weights, emptyPrices, x.MiddlePrices, x.Time)).ToList();
+                x.Weights, emptyPrices, x.MiddlePrices, x.Time, x.FrozenAssets)).ToList();
 
             return domain;
         }
@@ -113,7 +113,7 @@ namespace Lykke.Service.CryptoIndex.Domain.Repositories.Repositories
                 return null;
 
             var domain = new IndexHistory(model.Value, Mapper.Map<IReadOnlyList<AssetMarketCap>>(model.MarketCaps), model.Weights, 
-                blob.Prices, model.MiddlePrices, model.Time);
+                blob.Prices, model.MiddlePrices, model.Time, model.FrozenAssets);
 
             return domain;
         }

@@ -12,7 +12,10 @@ namespace Lykke.Service.CryptoIndex.Domain.Repositories.Models
 
         [JsonValueSerializer]
         public IReadOnlyList<string> Assets { get; set; }
-        
+
+        [JsonValueSerializer]
+        public IReadOnlyList<string> FrozenAssets { get; set; }
+
         public int TopCount { get; set; }
 
         public bool Enabled { get; set; }

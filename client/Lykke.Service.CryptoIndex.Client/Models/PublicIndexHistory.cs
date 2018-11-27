@@ -31,6 +31,11 @@ namespace Lykke.Service.CryptoIndex.Client.Models
         public IDictionary<string, decimal> Weights { get; set; }
 
         /// <summary>
+        /// Frozen assets
+        /// </summary>
+        public IReadOnlyCollection<string> FrozenAssets { get; set; }
+
+        /// <summary>
         /// Timestamp
         /// </summary>
         public DateTime Time { get; set; }

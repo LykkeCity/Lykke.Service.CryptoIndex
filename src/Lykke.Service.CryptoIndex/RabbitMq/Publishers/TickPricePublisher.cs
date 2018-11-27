@@ -1,4 +1,5 @@
-﻿using Autofac;
+﻿using System.Linq;
+using Autofac;
 using Common;
 using Common.Log;
 using JetBrains.Annotations;
@@ -40,7 +41,7 @@ namespace Lykke.Service.CryptoIndex.RabbitMq.Publishers
                 Ask = tickPrice.Ask ?? 0,
                 Bid = tickPrice.Bid ?? 0,
                 Timestamp = tickPrice.Timestamp,
-                Weights = tickPrice.Weights
+                AssetsInfo = tickPrice.AssetsInfo.Select(x => new Contract.AssetInfo(x.AssetId, x.Weight, x.Price, x.IsDisabled)).ToList()
             });
 
             _log.Info($"Published tick price: {tickPrice.ToJson()}.");
