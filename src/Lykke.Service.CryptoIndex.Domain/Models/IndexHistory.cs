@@ -15,10 +15,13 @@ namespace Lykke.Service.CryptoIndex.Domain.Models
 
         public IDictionary<string, decimal> MiddlePrices { get; }
 
+        public IReadOnlyCollection<string> FrozenAssets { get; }
+
         public DateTime Time { get; }
 
         public IndexHistory(decimal value, IReadOnlyList<AssetMarketCap> marketCaps, IDictionary<string, decimal> weights,
-            IDictionary<string, IDictionary<string, decimal>> prices, IDictionary<string, decimal> middlePrices, DateTime time)
+            IDictionary<string, IDictionary<string, decimal>> prices, IDictionary<string, decimal> middlePrices, DateTime time,
+            IReadOnlyCollection<string> frozenAssets)
         {
             Value = value == default(decimal) ? throw new ArgumentOutOfRangeException(nameof(value)) : value;
             MarketCaps = marketCaps ?? throw new ArgumentNullException(nameof(marketCaps));
@@ -26,6 +29,7 @@ namespace Lykke.Service.CryptoIndex.Domain.Models
             Prices = prices ?? throw new ArgumentNullException(nameof(prices));
             MiddlePrices = middlePrices ?? throw new ArgumentNullException(nameof(middlePrices));
             Time = time == default(DateTime) ? throw new ArgumentOutOfRangeException(nameof(time)) : time.WoMilliseconds();
+            FrozenAssets = frozenAssets;
         }
 
         public override string ToString()

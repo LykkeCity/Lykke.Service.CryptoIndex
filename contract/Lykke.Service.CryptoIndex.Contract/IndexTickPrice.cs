@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using JetBrains.Annotations;
 
@@ -11,33 +11,33 @@ namespace Lykke.Service.CryptoIndex.Contract
     public class IndexTickPrice
     {
         /// <summary>
-        /// The name of the index source.
+        /// Name of the index source.
         /// </summary>
         public string Source { get; set; }
 
         /// <summary>
-        /// The name of the index.
+        /// Name of the index.
         /// </summary>
         public string AssetPair { get; set; }
 
         /// <summary>
-        /// The price of the index (equals to <see cref="Ask"/>).
+        /// Price of the index (equals to <see cref="Ask"/>).
         /// </summary>
         public decimal Bid { get; set; }
 
         /// <summary>
-        /// The price of the index (equals to <see cref="Bid"/>).
+        /// Price of the index (equals to <see cref="Bid"/>).
         /// </summary>
         public decimal Ask { get; set; }
 
         /// <summary>
-        /// The timestamp of the index price. 
+        /// Timestamp of the index price. 
         /// </summary>
         public DateTime Timestamp { get; set; }
 
         /// <summary>
-        /// A collection of weights of assets in the current index.
+        /// Collection of assets information.
         /// </summary>
-        public IDictionary<string, decimal> Weights { get; set; }
+        public IList<AssetInfo> AssetsInfo { get; set; }
     }
 }
