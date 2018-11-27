@@ -268,8 +268,10 @@ namespace Lykke.Service.CryptoIndex.Domain.Services
                 return;
             }
 
+            var frozenAssets = Settings.FrozenAssets;
+
             // Get current index state
-            var indexState = await CalculateIndex(TopWeights, topAssetsPrices);
+            var indexState = await CalculateIndex(TopWeights, topAssetsPrices, frozenAssets);
 
             // if there was a reset then skip until next iteration which will have initial state
             if (indexState.Value != InitialIndexValue && State == null)
@@ -278,15 +280,17 @@ namespace Lykke.Service.CryptoIndex.Domain.Services
                 return;
             }
 
-            var indexHistory = new IndexHistory(indexState.Value, TopMarketCaps, TopWeights, topAssetsPrices, indexState.MiddlePrices, DateTime.UtcNow);
+            var indexHistory = new IndexHistory(indexState.Value, TopMarketCaps, TopWeights, topAssetsPrices, indexState.MiddlePrices, DateTime.UtcNow, frozenAssets);
 
-            await SaveAndPublish(indexState, indexHistory);
+            await Save(indexState, indexHistory, frozenAssets);
+
+            await Publish(indexHistory, frozenAssets);
 
             _log.Info($"Finished calculating index for {topAssets.Count} assets, value: {indexState.Value}.");
         }
 
         private async Task<IndexState> CalculateIndex(IDictionary<string, decimal> topAssetWeights,
-            IDictionary<string, IDictionary<string, decimal>> topAssetsPrices)
+            IDictionary<string, IDictionary<string, decimal>> topAssetsPrices, IReadOnlyCollection<string> frozenAssets)
         {
             var lastIndex = await IndexStateRepository.GetAsync();
 
@@ -296,12 +300,12 @@ namespace Lykke.Service.CryptoIndex.Domain.Services
 
                 var allAssetsPrices = await TickPricesService.GetPricesAsync();
                 var newTopAssetsPrices = GetTopAssetsPrices(allAssetsPrices, TopWeights.Keys.ToList());
-                var newTopMiddlePrices = GetMiddlePrices(newTopAssetsPrices);
+                var newTopAssetsMiddlePrices = GetMiddlePrices(newTopAssetsPrices);
 
-                return new IndexState(InitialIndexValue, newTopMiddlePrices);
+                return new IndexState(InitialIndexValue, newTopAssetsMiddlePrices, frozenAssets);
             }
 
-            var topMiddlePrices = GetMiddlePrices(topAssetsPrices);
+            var topAssetsMiddlePrices = GetMiddlePrices(topAssetsPrices);
 
             var signal = 0m;
 
@@ -312,7 +316,11 @@ namespace Lykke.Service.CryptoIndex.Domain.Services
 
                 var weight = topAssetWeights[asset];
 
-                var r = middlePrice / previousMiddlePrice;
+                decimal r;
+                if (frozenAssets.Contains(asset))
+                    r = 1;
+                else
+                    r = middlePrice / previousMiddlePrice;
 
                 signal += weight * r;
             }
@@ -321,18 +329,32 @@ namespace Lykke.Service.CryptoIndex.Domain.Services
 
             ValidateIndexValue(indexValue, topAssetWeights, topAssetsPrices, lastIndex);
 
-            var indexState = new IndexState(indexValue, topMiddlePrices);
+            var indexState = new IndexState(indexValue, topAssetsMiddlePrices, frozenAssets);
 
             return indexState;
         }
 
-        private async Task SaveAndPublish(IndexState indexState, IndexHistory indexHistory)
+        private async Task Save(IndexState indexState, IndexHistory indexHistory, IReadOnlyCollection<string> frozenAssets)
         {
             // Skip if changed to 'disabled'
             if (!Settings.Enabled)
             {
-                _log.Info($"Skipped saving and publishing index because {nameof(Settings)}.{nameof(Settings.Enabled)} = {Settings.Enabled}.");
+                _log.Info($"Skipped saving index because {nameof(Settings)}.{nameof(Settings.Enabled)} = {Settings.Enabled}.");
                 return;
+            }
+
+            // Save original middle prices
+            var originalMiddlePrices = indexState.MiddlePrices.Clone();
+
+            // Change middle prices for frozen assets to 0
+            foreach (var asset in indexState.MiddlePrices.Keys.ToList())
+            {
+                var isFrozen = frozenAssets.Contains(asset);
+                if (isFrozen)
+                {
+                    indexState.MiddlePrices[asset] = 0;
+                    indexHistory.MiddlePrices[asset] = 0;
+                }
             }
 
             // Save index state for the next execution
@@ -345,8 +367,32 @@ namespace Lykke.Service.CryptoIndex.Domain.Services
             // Save all index info to history
             await IndexHistoryRepository.InsertAsync(indexHistory);
 
+            // Restore original middle prices
+            foreach (var asset in originalMiddlePrices.Keys.ToList())
+            {
+                indexState.MiddlePrices[asset] = originalMiddlePrices[asset];
+                indexHistory.MiddlePrices[asset] = originalMiddlePrices[asset];
+            }
+        }
+
+        private async Task Publish(IndexHistory indexHistory, IReadOnlyCollection<string> frozenAssets)
+        {
+            // Skip if changed to 'disabled'
+            if (!Settings.Enabled)
+            {
+                _log.Info($"Skipped publishing index because {nameof(Settings)}.{nameof(Settings.Enabled)} = {Settings.Enabled}.");
+                return;
+            }
+
+            var assetsInfo = new List<AssetInfo>();
+            foreach (var asset in indexHistory.Weights.Keys.ToList())
+            {
+                var isFrozen = frozenAssets.Contains(asset);
+                assetsInfo.Add(new AssetInfo(asset, indexHistory.Weights[asset], indexHistory.MiddlePrices[asset], isFrozen));
+            }
+
             // Publish index to RabbitMq
-            var tickPrice = new IndexTickPrice(RabbitMqSource, _indexName.ToUpper(), indexHistory.Value, indexHistory.Value, indexHistory.Time, indexHistory.Weights);
+            var tickPrice = new IndexTickPrice(RabbitMqSource, _indexName.ToUpper(), indexHistory.Value, indexHistory.Value, indexHistory.Time, assetsInfo);
             TickPricePublisher.Publish(tickPrice);
         }
 

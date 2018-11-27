@@ -1,4 +1,4 @@
-﻿namespace Lykke.Service.CryptoIndex.Contract
+﻿namespace Lykke.Service.CryptoIndex.Domain.Models
 {
     public class AssetInfo
     {
