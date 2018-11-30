@@ -52,5 +52,12 @@ namespace Lykke.Service.CryptoIndex.Controllers
         {
             await _indexCalculator.Reset();
         }
+
+        [HttpGet("rebuild")]
+        [ProducesResponseType((int)HttpStatusCode.NoContent)]
+        public async Task RebuildAsync()
+        {
+            await _indexCalculator.Rebuild();
+        }
     }
 }

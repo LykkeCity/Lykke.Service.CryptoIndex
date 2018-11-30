@@ -92,7 +92,7 @@ namespace Lykke.Service.CryptoIndex.Domain.Services
             }
         }
 
-        private async Task Rebuild()
+        public async Task Rebuild()
         {
             _log.Info("Started rebuilding...");
 

@@ -28,5 +28,11 @@ namespace Lykke.Service.CryptoIndex.Client.Api
         /// </summary>
         [Get("/api/settings/reset")]
         Task ResetAsync();
+
+        /// <summary>
+        /// Rebuild constituents
+        /// </summary>
+        [Get("/api/settings/rebuild")]
+        Task RebuildAsync();
     }
 }
