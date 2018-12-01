@@ -34,46 +34,16 @@ namespace Lykke.Service.CryptoIndex.Controllers
 
         [HttpGet("indices")]
         [ProducesResponseType(typeof(IReadOnlyList<(DateTime, decimal)>), (int)HttpStatusCode.OK)]
-        [ResponseCache(Duration = 3, VaryByQueryKeys = new[] { "*" })]
+        [ResponseCache(Duration = 10)]
         [Obsolete]
         public async Task<IReadOnlyList<(DateTime, decimal)>> GetIndexHistoriesAsync(DateTime from, DateTime to)
         {
-            var firstStateAfterResetTime = await _firstStateAfterResetTimeRepository.GetAsync();
-
-            if (firstStateAfterResetTime.HasValue && firstStateAfterResetTime > from)
-                from = firstStateAfterResetTime.Value;
-
-            if (!Cache.Keys.Contains(from))
-            {
-                var fromValues = await _indexHistoryRepository.GetAsync(from, to);
-                var fromValue = fromValues.FirstOrDefault();
-
-                if (fromValue != null)
-                    Cache[from] = fromValue.Value;
-            }
-
-            var pointFrom = Cache.ContainsKey(from)
-                ? new IndexHistory(Cache[from], new List<AssetMarketCap>(), new Dictionary<string, decimal>(),
-                    new Dictionary<string, IDictionary<string, decimal>>(), new Dictionary<string, decimal>(),
-                    from, new List<string>())
-                : null;
-
-            var current = await GetCurrentAsync();
-            var pointTo = new IndexHistory(current.Item2, new List<AssetMarketCap>(), new Dictionary<string, decimal>(), new Dictionary<string, IDictionary<string, decimal>>(), new Dictionary<string, decimal>(), current.Item1, new List<string>());
-
-            var resultPoints = new List<IndexHistory>();
-            if (pointFrom != null)
-                resultPoints.Add(pointFrom);
-            resultPoints.Add(pointTo);
-
-            var result = resultPoints.Select(x => (x.Time, x.Value)).ToList();
-
-            return result;
+            return await GetChangeAsync();
         }
 
         [HttpGet("indices/upToDate")]
         [ProducesResponseType(typeof(IReadOnlyList<(DateTime, decimal)>), (int)HttpStatusCode.OK)]
-        [ResponseCache(Duration = 3, VaryByQueryKeys = new[] { "*" })]
+        [ResponseCache(Duration = 10, VaryByQueryKeys = new[] { "*" })]
         public async Task<IReadOnlyList<(DateTime, decimal)>> GetIndexHistoriesAsync(DateTime to, int limit)
         {
             var result = await _indexHistoryRepository.GetUpToDateAsync(to, limit);
@@ -83,7 +53,7 @@ namespace Lykke.Service.CryptoIndex.Controllers
 
         [HttpGet("index/current")]
         [ProducesResponseType(typeof((DateTime, decimal)), (int)HttpStatusCode.OK)]
-        [ResponseCache(Duration = 3, VaryByQueryKeys = new[] { "*" })]
+        [ResponseCache(Duration = 10, VaryByQueryKeys = new[] { "*" })]
         [Obsolete]
         public async Task<(DateTime, decimal)> GetCurrentAsync()
         {
@@ -97,7 +67,7 @@ namespace Lykke.Service.CryptoIndex.Controllers
 
         [HttpGet("index/last")]
         [ProducesResponseType(typeof(PublicIndexHistory), (int)HttpStatusCode.OK)]
-        [ResponseCache(Duration = 3, VaryByQueryKeys = new[] { "*" })]
+        [ResponseCache(Duration = 10, VaryByQueryKeys = new[] { "*" })]
         public async Task<PublicIndexHistory> GetLastAsync()
         {
             var domain = (await _indexHistoryRepository.TakeLastAsync(1)).SingleOrDefault();
@@ -112,7 +82,7 @@ namespace Lykke.Service.CryptoIndex.Controllers
 
         [HttpGet("change")]
         [ProducesResponseType(typeof(IReadOnlyList<(DateTime, decimal)>), (int)HttpStatusCode.OK)]
-        [ResponseCache(Duration = 3, VaryByQueryKeys = new[] { "*" })]
+        [ResponseCache(Duration = 10, VaryByQueryKeys = new[] { "*" })]
         public async Task<IReadOnlyList<(DateTime, decimal)>> GetChangeAsync()
         {
             var fromMidnight = await _indexHistoryRepository.GetAsync(DateTime.UtcNow.Date, DateTime.UtcNow.Date.AddMinutes(2));

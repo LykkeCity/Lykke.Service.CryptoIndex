@@ -400,7 +400,8 @@ namespace Lykke.Service.CryptoIndex.Domain.Services
             return true;
         }
 
-        private static IDictionary<string, IDictionary<string, decimal>> GetTopAssetsPrices(IDictionary<string, IDictionary<string, decimal>> allAssetsPrices, IReadOnlyList<string> topAssets)
+        private static IDictionary<string, IDictionary<string, decimal>> GetTopAssetsPrices(
+            IDictionary<string, IDictionary<string, decimal>> allAssetsPrices, IReadOnlyList<string> topAssets)
         {
             var result = new Dictionary<string, IDictionary<string, decimal>>();
             foreach (var asset in topAssets)
