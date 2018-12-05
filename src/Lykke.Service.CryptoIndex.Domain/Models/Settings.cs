@@ -18,7 +18,7 @@ namespace Lykke.Service.CryptoIndex.Domain.Models
         /// <summary>
         /// List of frozen assets
         /// </summary>
-        public IReadOnlyList<string> FrozenAssets { get; }
+        public IReadOnlyList<AssetSettings> AssetsSettings { get; }
 
         /// <summary>
         /// Count of the top assets
@@ -36,14 +36,15 @@ namespace Lykke.Service.CryptoIndex.Domain.Models
         public TimeSpan RebuildTime { get; }
 
         /// <inheritdoc />
-        public Settings(IReadOnlyList<string> sources, IReadOnlyList<string> assets, int topCount, bool enabled, TimeSpan rebuildTime, IReadOnlyList<string> frozenAssets)
+        public Settings(IReadOnlyList<string> sources, IReadOnlyList<string> assets, int topCount, bool enabled, TimeSpan rebuildTime,
+            IReadOnlyList<AssetSettings> assetsSettings)
         {
             Sources = sources;
             Assets = assets;
             TopCount = topCount;
             Enabled = enabled;
             RebuildTime = rebuildTime;
-            FrozenAssets = frozenAssets;
+            AssetsSettings = assetsSettings;
         }
     }
 }
