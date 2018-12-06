@@ -263,7 +263,7 @@ namespace Lykke.Service.CryptoIndex.Domain.Services
             var assetsSettings = settings.AssetsSettings;
             var whiteListAssets = settings.Assets;
             
-            var allAssetsMiddlePrices = GetAllAssetsMiddlePricesAccordingToSettings(lastIndex, allAssetsPrices, assetsSettings);
+            var allAssetsMiddlePrices = GetAllAssetsMiddlePricesAccordingToSettings(allAssetsPrices, assetsSettings);
             var whiteListAssetsMiddlePrices = GetWhiteListAssetsMiddlePrices(allAssetsMiddlePrices, whiteListAssets);
 
             // If just started and prices are not present yet, then skip.
@@ -295,7 +295,6 @@ namespace Lykke.Service.CryptoIndex.Domain.Services
         }
 
         private IDictionary<string, decimal> GetAllAssetsMiddlePricesAccordingToSettings(
-            IndexState lastIndex,
             IDictionary<string, IDictionary<string, decimal>> allAssetsPrices,
             IReadOnlyCollection<AssetSettings> assetsSettings)
         {
@@ -303,7 +302,6 @@ namespace Lykke.Service.CryptoIndex.Domain.Services
             foreach (var asset in allAssetsPrices.Keys.ToList())
             {
                 var currentMiddlePrice = GetMiddlePrice(asset, allAssetsPrices);
-                var previousMiddlePrice = GetPreviousMiddlePrice(asset, lastIndex, currentMiddlePrice);
 
                 var assetSettings = assetsSettings.FirstOrDefault(x => x.AssetId == asset);
 
