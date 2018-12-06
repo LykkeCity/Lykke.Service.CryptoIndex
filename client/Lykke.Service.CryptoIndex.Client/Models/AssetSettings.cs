@@ -13,7 +13,7 @@
         /// <summary>
         /// Middle price of the asset.
         /// </summary>
-        public decimal? Price { get; set; }
+        public decimal Price { get; set; }
 
         /// <summary>
         /// True if the asset was 'frozen'.
