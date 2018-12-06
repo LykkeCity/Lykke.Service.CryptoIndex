@@ -10,7 +10,7 @@
         /// <summary>
         /// Middle price of the asset.
         /// </summary>
-        public decimal? Price { get; }
+        public decimal Price { get; }
 
         /// <summary>
         /// True if the asset was 'frozen'.
@@ -18,7 +18,7 @@
         public bool IsDisabled { get; }
 
         /// <inheritdoc />
-        public AssetSettingsEntity(string assetId, decimal? price, bool isDisabled)
+        public AssetSettingsEntity(string assetId, decimal price, bool isDisabled)
         {
             AssetId = assetId;
             Price = price;
