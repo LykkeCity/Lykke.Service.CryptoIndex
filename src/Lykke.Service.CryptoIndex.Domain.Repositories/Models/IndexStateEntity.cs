@@ -15,6 +15,6 @@ namespace Lykke.Service.CryptoIndex.Domain.Repositories.Models
         public IDictionary<string, decimal> MiddlePrices { get; set; }
 
         [JsonValueSerializer]
-        public IReadOnlyCollection<string> FrozenAssets { get; set; }
+        public IReadOnlyList<AssetSettingsEntity> AssetsSettings { get; set; }
     }
 }

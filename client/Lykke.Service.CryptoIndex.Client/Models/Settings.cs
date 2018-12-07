@@ -23,7 +23,13 @@ namespace Lykke.Service.CryptoIndex.Client.Models
         /// <summary>
         /// List of frozen assets
         /// </summary>
+        [Obsolete]
         public IReadOnlyList<string> FrozenAssets { get; set; } = new List<string>();
+
+        /// <summary>
+        /// List of frozen assets
+        /// </summary>
+        public IReadOnlyList<AssetSettings> AssetsSettings { get; set; } = new List<AssetSettings>();
 
         /// <summary>
         /// Count of the top assets
