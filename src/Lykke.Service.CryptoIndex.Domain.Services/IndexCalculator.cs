@@ -254,12 +254,6 @@ namespace Lykke.Service.CryptoIndex.Domain.Services
                 return;
             }
 
-            if (!topWeights.Any())
-            {
-                _log.Info("There are no weights for constituents yet, skipped index calculation.");
-                return;
-            }
-
             _log.Info("Started calculating index...");
 
             var settings = Settings;
