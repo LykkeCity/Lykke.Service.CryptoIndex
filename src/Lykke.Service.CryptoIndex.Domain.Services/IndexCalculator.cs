@@ -250,6 +250,12 @@ namespace Lykke.Service.CryptoIndex.Domain.Services
 
             if (!topWeights.Any())
             {
+                _log.Info("There are no assets in the white list.");
+                return;
+            }
+
+            if (!topWeights.Any())
+            {
                 _log.Info("There are no weights for constituents yet, skipped index calculation.");
                 return;
             }
@@ -442,7 +448,13 @@ namespace Lykke.Service.CryptoIndex.Domain.Services
             if (!assetsPrices.ContainsKey(asset))
                 throw new InvalidOperationException($"Asset '{asset}' is not found in prices: {assetsPrices.ToJson()}.");
 
-            var prices = assetsPrices[asset].Values.ToList();
+            var prices = assetsPrices[asset].Values.OrderBy(x => x).ToList();
+
+            if (prices.Count > 2)
+            {
+                prices.RemoveAt(0);
+                prices.RemoveAt(prices.Count - 1);
+            }
 
             var middlePrice = prices.Sum() / prices.Count;
 
