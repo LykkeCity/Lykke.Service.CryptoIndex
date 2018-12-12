@@ -250,7 +250,7 @@ namespace Lykke.Service.CryptoIndex.Domain.Services
 
             if (!topWeights.Any())
             {
-                _log.Info("There are no assets in the white list.");
+                _log.Info("There are no assets in the white list or weights for constituents yet, skipped index calculation.");
                 return;
             }
 
