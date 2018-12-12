@@ -246,22 +246,27 @@ namespace Lykke.Service.CryptoIndex.Domain.Services
 
         private async Task CalculateThenSaveAndPublish()
         {
-            var topWeights = TopWeights;
+            _log.Info("Started calculating index...");
 
+            var settings = Settings;
+            var whiteListAssets = settings.Assets;
+            if (!whiteListAssets.Any())
+            {
+                _log.Info("There are no assets in the white list, skipped index calculation.");
+                return;
+            }
+
+            var topWeights = TopWeights;
             if (!topWeights.Any())
             {
                 _log.Info("There are no weights for constituents yet, skipped index calculation.");
                 return;
             }
-
-            _log.Info("Started calculating index...");
-
-            var settings = Settings;
+            
             var topAssets = topWeights.Keys.ToList();
             var lastIndex = await IndexStateRepository.GetAsync();
             var allAssetsPrices = await TickPricesService.GetPricesAsync();
             var assetsSettings = settings.AssetsSettings;
-            var whiteListAssets = settings.Assets;
             
             var allAssetsMiddlePrices = GetAllAssetsMiddlePricesAccordingToSettings(allAssetsPrices, assetsSettings);
             var whiteListAssetsMiddlePrices = GetWhiteListAssetsMiddlePrices(allAssetsMiddlePrices, whiteListAssets);
@@ -442,7 +447,13 @@ namespace Lykke.Service.CryptoIndex.Domain.Services
             if (!assetsPrices.ContainsKey(asset))
                 throw new InvalidOperationException($"Asset '{asset}' is not found in prices: {assetsPrices.ToJson()}.");
 
-            var prices = assetsPrices[asset].Values.ToList();
+            var prices = assetsPrices[asset].Values.OrderBy(x => x).ToList();
+
+            if (prices.Count > 2)
+            {
+                prices.RemoveAt(0);
+                prices.RemoveAt(prices.Count - 1);
+            }
 
             var middlePrice = prices.Sum() / prices.Count;
 
