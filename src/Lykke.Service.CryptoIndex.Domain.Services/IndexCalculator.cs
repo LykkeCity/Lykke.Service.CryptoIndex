@@ -246,22 +246,27 @@ namespace Lykke.Service.CryptoIndex.Domain.Services
 
         private async Task CalculateThenSaveAndPublish()
         {
-            var topWeights = TopWeights;
-
-            if (!topWeights.Any())
-            {
-                _log.Info("There are no assets in the white list or weights for constituents yet, skipped index calculation.");
-                return;
-            }
-
             _log.Info("Started calculating index...");
 
             var settings = Settings;
+            var whiteListAssets = settings.Assets;
+            if (!whiteListAssets.Any())
+            {
+                _log.Info("There are no assets in the white list, skipped index calculation.");
+                return;
+            }
+
+            var topWeights = TopWeights;
+            if (!topWeights.Any())
+            {
+                _log.Info("There are no weights for constituents yet, skipped index calculation.");
+                return;
+            }
+            
             var topAssets = topWeights.Keys.ToList();
             var lastIndex = await IndexStateRepository.GetAsync();
             var allAssetsPrices = await TickPricesService.GetPricesAsync();
             var assetsSettings = settings.AssetsSettings;
-            var whiteListAssets = settings.Assets;
             
             var allAssetsMiddlePrices = GetAllAssetsMiddlePricesAccordingToSettings(allAssetsPrices, assetsSettings);
             var whiteListAssetsMiddlePrices = GetWhiteListAssetsMiddlePrices(allAssetsMiddlePrices, whiteListAssets);
