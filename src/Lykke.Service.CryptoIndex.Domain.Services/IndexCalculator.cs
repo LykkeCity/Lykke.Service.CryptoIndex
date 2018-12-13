@@ -269,16 +269,16 @@ namespace Lykke.Service.CryptoIndex.Domain.Services
             var allAssetsPrices = await TickPricesService.GetPricesAsync(sources);
             var assetsSettings = settings.AssetsSettings;
 
-            var allAssetsMiddlePrices = GetAllAssetsMiddlePricesAccordingToSettings(allAssetsPrices, assetsSettings);
-            var whiteListAssetsMiddlePrices = GetWhiteListAssetsMiddlePrices(allAssetsMiddlePrices, whiteListAssets);
-
             // If just started and prices are not present yet, then skip.
             // If started more then {_waitForTopAssetsPricesFromStart} ago then write warning to DB and log.
-            if (!IsWeightsAreCalculatedAndAllPricesArePresented(topAssets, whiteListAssetsMiddlePrices))
+            if (!IsWeightsAreCalculatedAndAllPricesArePresented(topAssets, allAssetsPrices))
             {
                 _log.Info($"Skipped calculating index because some prices are not present yet, waiting for them for {_waitForTopAssetsPricesFromStart.TotalMinutes} minutes since start.");
                 return;
             }
+
+            var allAssetsMiddlePrices = GetAllAssetsMiddlePricesAccordingToSettings(allAssetsPrices, assetsSettings);
+            var whiteListAssetsMiddlePrices = GetWhiteListAssetsMiddlePrices(allAssetsMiddlePrices, whiteListAssets);
 
             // Get current index state
             var indexState = await CalculateIndex(lastIndex, topWeights, whiteListAssetsMiddlePrices);
@@ -397,16 +397,30 @@ namespace Lykke.Service.CryptoIndex.Domain.Services
         }
 
         private bool IsWeightsAreCalculatedAndAllPricesArePresented(ICollection<string> topAssets,
-            IDictionary<string, decimal> whiteListAssetsMiddlePrices)
+            IDictionary<string, IDictionary<string, decimal>> allAssetsPrices)
         {
             if (!topAssets.Any())
                 return false;
 
-            var assetsWoPrices = topAssets.Where(x => !whiteListAssetsMiddlePrices.Keys.Contains(x)).ToList();
+            if (!allAssetsPrices.Any())
+                return false;
 
-            if (assetsWoPrices.Any())
+            var topAssetsWoPrices = new List<string>();
+            foreach (var topAsset in topAssets)
             {
-                var message = $"Some assets don't have prices: {assetsWoPrices.ToJson()}.";
+                var keyExists = allAssetsPrices.ContainsKey(topAsset);
+                var topAssetHasPrices = false;
+
+                if (keyExists)
+                    topAssetHasPrices = allAssetsPrices[topAsset].Values.Count != 0;
+
+                if (!keyExists || !topAssetHasPrices)
+                    topAssetsWoPrices.Add(topAsset);
+            }
+
+            if (topAssetsWoPrices.Any())
+            {
+                var message = $"Some top assets in index don't have prices: {topAssetsWoPrices.ToJson()}.";
 
                 // If just started then skip current iteration
                 if (DateTime.UtcNow - _startedAt > _waitForTopAssetsPricesFromStart)
