@@ -54,10 +54,10 @@ namespace Lykke.Service.CryptoIndex.Domain.Services
             if (sources == null || !sources.Any())
                 return result;
 
-            var assets = _assetsSourcesPricesCache.Keys.ToList();
+            var assets = result.Keys.ToList();
             foreach (var asset in assets)
             {
-                var sourcesPrices = _assetsSourcesPricesCache[asset];
+                var sourcesPrices = result[asset];
                 var existedSources = sourcesPrices.Keys.ToList();
                 var sourcesToRemove = existedSources.Except(sources);
                 foreach (var sourceToRemove in sourcesToRemove)
