@@ -13,11 +13,13 @@ namespace Lykke.Service.CryptoIndex.Controllers
     {
         private readonly ITickPricesService _tickPricesService;
         private readonly IIndexCalculator _indexCalculator;
+        private readonly ISettingsService _settingsService;
 
-        public TickPricesController(ITickPricesService tickPricesService, IIndexCalculator indexCalculator)
+        public TickPricesController(ITickPricesService tickPricesService, IIndexCalculator indexCalculator, ISettingsService settingsService)
         {
             _tickPricesService = tickPricesService;
             _indexCalculator = indexCalculator;
+            _settingsService = settingsService;
         }
 
         [HttpGet("sources")]
@@ -35,8 +37,9 @@ namespace Lykke.Service.CryptoIndex.Controllers
         [ProducesResponseType(typeof(IReadOnlyList<string>), (int)HttpStatusCode.OK)]
         public async Task<IReadOnlyList<string>> GetAssetsAsync()
         {
+            var settings = await _settingsService.GetAsync();
             var marketCapsAssets = (await _indexCalculator.GetAllAssetsMarketCapsAsync()).Keys.ToList();
-            var prices = await _tickPricesService.GetPricesAsync();
+            var prices = await _tickPricesService.GetPricesAsync(settings.Sources.ToList());
 
             if (marketCapsAssets.Any())
             {
