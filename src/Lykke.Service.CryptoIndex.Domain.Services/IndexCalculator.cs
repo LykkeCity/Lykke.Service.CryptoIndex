@@ -268,7 +268,7 @@ namespace Lykke.Service.CryptoIndex.Domain.Services
             var lastIndex = await IndexStateRepository.GetAsync();
             var allAssetsPrices = await TickPricesService.GetPricesAsync(sources);
             var assetsSettings = settings.AssetsSettings;
-            
+
             var allAssetsMiddlePrices = GetAllAssetsMiddlePricesAccordingToSettings(allAssetsPrices, assetsSettings);
             var whiteListAssetsMiddlePrices = GetWhiteListAssetsMiddlePrices(allAssetsMiddlePrices, whiteListAssets);
 
