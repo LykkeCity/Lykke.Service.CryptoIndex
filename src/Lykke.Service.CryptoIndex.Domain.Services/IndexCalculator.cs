@@ -264,24 +264,23 @@ namespace Lykke.Service.CryptoIndex.Domain.Services
             }
 
             var sources = settings.Sources.ToList();
-            var topAssets = topWeights.Keys.ToList();
+            var topAssets = topWeights.Keys.OrderBy(x => x).ToList();
             var lastIndex = await IndexStateRepository.GetAsync();
             var allAssetsPrices = await TickPricesService.GetPricesAsync(sources);
             var assetsSettings = settings.AssetsSettings;
 
+            var topAssetsUsingPrices = GetTopAssetsUsingPrices(topAssets, allAssetsPrices, assetsSettings);
+
             // If just started and prices are not present yet, then skip.
             // If started more then {_waitForTopAssetsPricesFromStart} ago then write warning to DB and log.
-            if (!IsWeightsAreCalculatedAndAllPricesArePresented(topAssets, allAssetsPrices))
+            if (!IsAllPricesArePresent(topAssets, topAssetsUsingPrices))
             {
                 _log.Info($"Skipped calculating index because some prices are not present yet, waiting for them for {_waitForTopAssetsPricesFromStart.TotalMinutes} minutes since start.");
                 return;
             }
 
-            var allAssetsMiddlePrices = GetAllAssetsMiddlePricesAccordingToSettings(allAssetsPrices, assetsSettings);
-            var whiteListAssetsMiddlePrices = GetWhiteListAssetsMiddlePrices(allAssetsMiddlePrices, whiteListAssets);
-
             // Get current index state
-            var indexState = await CalculateIndex(lastIndex, topWeights, whiteListAssetsMiddlePrices);
+            var indexState = await CalculateIndex(lastIndex, topWeights, topAssetsUsingPrices);
 
             // if there was a reset then skip until next iteration which will have initial state
             if (indexState.Value != InitialIndexValue && State == null)
@@ -289,9 +288,8 @@ namespace Lykke.Service.CryptoIndex.Domain.Services
                 _log.Info($"Skipped saving and publishing index because of reset - previous state is null and current index not equals {InitialIndexValue}.");
                 return;
             }
-
-            var topAssetsMiddlePrices = GetTopAssetsMiddlePrices(whiteListAssetsMiddlePrices, topAssets);
-            var indexHistory = new IndexHistory(indexState.Value, TopMarketCaps, topWeights, allAssetsPrices, topAssetsMiddlePrices, DateTime.UtcNow, assetsSettings);
+            
+            var indexHistory = new IndexHistory(indexState.Value, TopMarketCaps, topWeights, allAssetsPrices, topAssetsUsingPrices, DateTime.UtcNow, assetsSettings);
 
             await Save(indexState, indexHistory);
 
@@ -300,24 +298,31 @@ namespace Lykke.Service.CryptoIndex.Domain.Services
             _log.Info($"Finished calculating index for {topWeights.Count} assets, value: {indexState.Value}.");
         }
 
-        private IDictionary<string, decimal> GetAllAssetsMiddlePricesAccordingToSettings(
+        private IDictionary<string, decimal> GetTopAssetsUsingPrices(
+            ICollection<string> topAssets,
             IDictionary<string, IDictionary<string, decimal>> allAssetsPrices,
             IReadOnlyCollection<AssetSettings> assetsSettings)
         {
-            var allAssetsMiddlePrices = GetMiddlePrices(allAssetsPrices);
-            foreach (var asset in allAssetsPrices.Keys.ToList())
+            var topAssetsUsedPrices = new Dictionary<string, decimal>();
+
+            foreach (var asset in topAssets.ToList())
             {
-                var currentMiddlePrice = GetMiddlePrice(asset, allAssetsPrices);
+                if (!allAssetsPrices.ContainsKey(asset) || allAssetsPrices[asset].Count == 0)
+                    continue;
+
+                var assetPrices = allAssetsPrices[asset];
+
+                var currentMiddlePrice = GetMiddlePrice(asset, assetPrices);
 
                 var assetSettings = assetsSettings.FirstOrDefault(x => x.AssetId == asset);
 
                 if (assetSettings != null && assetSettings.IsDisabled)
                         currentMiddlePrice = assetSettings.Price;
 
-                allAssetsMiddlePrices[asset] = currentMiddlePrice;
+                topAssetsUsedPrices[asset] = currentMiddlePrice;
             }
 
-            return allAssetsMiddlePrices;
+            return topAssetsUsedPrices;
         }
 
         private async Task<IndexState> CalculateIndex(IndexState lastIndex, IDictionary<string, decimal> topAssetsWeights,
@@ -396,25 +401,19 @@ namespace Lykke.Service.CryptoIndex.Domain.Services
             TickPricePublisher.Publish(tickPrice);
         }
 
-        private bool IsWeightsAreCalculatedAndAllPricesArePresented(ICollection<string> topAssets,
-            IDictionary<string, IDictionary<string, decimal>> allAssetsPrices)
+        private bool IsAllPricesArePresent(ICollection<string> topAssets,
+            IDictionary<string, decimal> topAssetsUsingPrices)
         {
             if (!topAssets.Any())
                 return false;
 
-            if (!allAssetsPrices.Any())
+            if (!topAssetsUsingPrices.Any())
                 return false;
 
             var topAssetsWoPrices = new List<string>();
             foreach (var topAsset in topAssets)
             {
-                var keyExists = allAssetsPrices.ContainsKey(topAsset);
-                var topAssetHasPrices = false;
-
-                if (keyExists)
-                    topAssetHasPrices = allAssetsPrices[topAsset].Values.Count != 0;
-
-                if (!keyExists || !topAssetHasPrices)
+                if (!topAssetsUsingPrices.ContainsKey(topAsset))
                     topAssetsWoPrices.Add(topAsset);
             }
 
@@ -435,39 +434,12 @@ namespace Lykke.Service.CryptoIndex.Domain.Services
             return true;
         }
 
-        private static IDictionary<string, decimal> GetWhiteListAssetsMiddlePrices(
-            IDictionary<string, decimal> allAssetsMiddlePrices, IReadOnlyList<string> whiteListAssets)
+        private static decimal GetMiddlePrice(string asset, IDictionary<string, decimal> assetExchangesPrices)
         {
-            var result = new Dictionary<string, decimal>();
-            foreach (var asset in whiteListAssets)
-                if (allAssetsMiddlePrices.ContainsKey(asset))
-                    result[asset] = allAssetsMiddlePrices[asset];
+            if (assetExchangesPrices == null || assetExchangesPrices.Count == 0)
+                throw new InvalidOperationException($"Asset '{asset}' doesn't have prices: {assetExchangesPrices.ToJson()}.");
 
-            return result;
-        }
-
-        private static IDictionary<string, decimal> GetTopAssetsMiddlePrices(
-            IDictionary<string, decimal> allAssetsMiddlePrices, IReadOnlyList<string> topAssets)
-        {
-            var result = new Dictionary<string, decimal>();
-            foreach (var asset in topAssets)
-                if (allAssetsMiddlePrices.ContainsKey(asset))
-                    result[asset] = allAssetsMiddlePrices[asset];
-
-            return result;
-        }
-
-        private static decimal GetMiddlePrice(string asset, IDictionary<string, IDictionary<string, decimal>> assetsPrices)
-        {
-            if (!assetsPrices.ContainsKey(asset))
-                throw new InvalidOperationException($"Asset '{asset}' is not found in prices: {assetsPrices.ToJson()}.");
-
-            var prices = assetsPrices[asset]?.Values.OrderBy(x => x).ToList();
-
-            if (prices == null || prices.Count == 0)
-            {
-                throw new InvalidOperationException($"Asset [{asset}] doesn't have prices.");
-            }
+            var prices = assetExchangesPrices.Values.OrderBy(x => x).ToList();
 
             if (prices.Count > 2)
             {
@@ -478,18 +450,6 @@ namespace Lykke.Service.CryptoIndex.Domain.Services
             var middlePrice = prices.Sum() / prices.Count;
 
             return middlePrice;
-        }
-
-        private static IDictionary<string, decimal> GetMiddlePrices(IDictionary<string, IDictionary<string, decimal>> assetsPrices)
-        {
-            var result = new Dictionary<string, decimal>();
-
-            foreach (var asset in assetsPrices.Keys)
-            {
-                result.Add(asset, GetMiddlePrice(asset, assetsPrices));
-            }
-
-            return result;
         }
 
         private static decimal GetPreviousMiddlePrice(string asset, IndexState lastIndex, decimal currentMiddlePrice)
