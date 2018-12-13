@@ -262,10 +262,11 @@ namespace Lykke.Service.CryptoIndex.Domain.Services
                 _log.Info("There are no weights for constituents yet, skipped index calculation.");
                 return;
             }
-            
+
+            var sources = settings.Sources.ToList();
             var topAssets = topWeights.Keys.ToList();
             var lastIndex = await IndexStateRepository.GetAsync();
-            var allAssetsPrices = await TickPricesService.GetPricesAsync();
+            var allAssetsPrices = await TickPricesService.GetPricesAsync(sources);
             var assetsSettings = settings.AssetsSettings;
             
             var allAssetsMiddlePrices = GetAllAssetsMiddlePricesAccordingToSettings(allAssetsPrices, assetsSettings);

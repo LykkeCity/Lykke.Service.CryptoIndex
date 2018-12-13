@@ -5,6 +5,6 @@ namespace Lykke.Service.CryptoIndex.Domain.Services
 {
     public interface ITickPricesService
     {
-        Task<IDictionary<string, IDictionary<string, decimal>>> GetPricesAsync();
+        Task<IDictionary<string, IDictionary<string, decimal>>> GetPricesAsync(ICollection<string> sources = null);
     }
 }
