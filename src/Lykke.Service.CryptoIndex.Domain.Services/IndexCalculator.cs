@@ -462,7 +462,12 @@ namespace Lykke.Service.CryptoIndex.Domain.Services
             if (!assetsPrices.ContainsKey(asset))
                 throw new InvalidOperationException($"Asset '{asset}' is not found in prices: {assetsPrices.ToJson()}.");
 
-            var prices = assetsPrices[asset].Values.OrderBy(x => x).ToList();
+            var prices = assetsPrices[asset]?.Values.OrderBy(x => x).ToList();
+
+            if (prices == null || prices.Count == 0)
+            {
+                throw new InvalidOperationException($"Asset [{asset}] doesn't have prices.");
+            }
 
             if (prices.Count > 2)
             {
