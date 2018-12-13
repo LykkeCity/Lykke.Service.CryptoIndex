@@ -317,7 +317,7 @@ namespace Lykke.Service.CryptoIndex.Domain.Services
                 var assetSettings = assetsSettings.FirstOrDefault(x => x.AssetId == asset);
 
                 if (assetSettings != null && assetSettings.IsDisabled)
-                        currentMiddlePrice = assetSettings.Price;
+                    currentMiddlePrice = assetSettings.Price;
 
                 topAssetsUsedPrices[asset] = currentMiddlePrice;
             }
