@@ -1,5 +1,6 @@
 ﻿using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using Common.Log;
 using Lykke.Common.Log;
@@ -10,12 +11,12 @@ namespace Lykke.Service.CryptoIndex.Domain.Services
     public class TickPricesService : ITickPricesService, ITickPriceHandler
     {
         private const string Usd = "USD";
-        private readonly IDictionary<string, IDictionary<string, decimal>> _pricesCache;
+        private readonly IDictionary<string, IDictionary<string, decimal>> _assetsSourcesPricesCache;
         private readonly ILog _log;
 
         public TickPricesService(ILogFactory logFactory)
         {
-            _pricesCache = new ConcurrentDictionary<string, IDictionary<string, decimal>>();
+            _assetsSourcesPricesCache = new ConcurrentDictionary<string, IDictionary<string, decimal>>();
 
             _log = logFactory.CreateLog(this);
         }
@@ -31,24 +32,39 @@ namespace Lykke.Service.CryptoIndex.Domain.Services
                 ? (tickPrice.Ask.Value + tickPrice.Bid.Value) / 2
                 : tickPrice.Ask ?? tickPrice.Bid.Value;
 
-            if (!_pricesCache.ContainsKey(asset))
+            if (!_assetsSourcesPricesCache.ContainsKey(asset))
             {
                 var newDictionary = new ConcurrentDictionary<string, decimal>
                 {
                     [tickPrice.Source] = price
                 };
-                _pricesCache[asset] = newDictionary;
+                _assetsSourcesPricesCache[asset] = newDictionary;
             }
             else
             {
-                var exchangesPrices = _pricesCache[asset];
+                var exchangesPrices = _assetsSourcesPricesCache[asset];
                 exchangesPrices[tickPrice.Source] = price;
             }
         }
 
-        public async Task<IDictionary<string, IDictionary<string, decimal>>> GetPricesAsync()
+        public async Task<IDictionary<string, IDictionary<string, decimal>>> GetPricesAsync(ICollection<string> sources)
         {
-            return _pricesCache.Clone();
+            var result = _assetsSourcesPricesCache.Clone();
+
+            if (sources == null || !sources.Any())
+                return result;
+
+            var assets = _assetsSourcesPricesCache.Keys.ToList();
+            foreach (var asset in assets)
+            {
+                var sourcesPrices = _assetsSourcesPricesCache[asset];
+                var existedSources = sourcesPrices.Keys.ToList();
+                var sourcesToRemove = existedSources.Except(sources);
+                foreach (var sourceToRemove in sourcesToRemove)
+                    sourcesPrices.Remove(sourceToRemove);
+            }
+
+            return result;
         }
     }
 }

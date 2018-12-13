@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
 using Lykke.Service.CryptoIndex.Client.Api;
@@ -28,7 +29,7 @@ namespace Lykke.Service.CryptoIndex.Controllers
         {
             var settings = await _settingsService.GetAsync();
             var marketCaps = await _indexCalculator.GetAllAssetsMarketCapsAsync();
-            var prices = await _tickPricesService.GetPricesAsync();
+            var prices = await _tickPricesService.GetPricesAsync(settings.Sources.ToList());
 
             var result = new List<AssetInfo>();
 
