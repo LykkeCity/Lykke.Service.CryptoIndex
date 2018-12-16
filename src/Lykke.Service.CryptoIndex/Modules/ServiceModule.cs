@@ -108,8 +108,8 @@ namespace Lykke.Service.CryptoIndex.Modules
                 .WithParameter(TypedParameter.From(new CoinMarketCap.Client.Settings(_settings.CoinMarketCapApiKey)))
                 .SingleInstance();
 
-            builder.RegisterType<MarketCapitalizationService>()
-                .As<IMarketCapitalizationService>()
+            builder.RegisterType<CoinMarketCapService>()
+                .As<ICoinMarketCapService>()
                 .SingleInstance();
 
             builder.RegisterType<SettingsService>()

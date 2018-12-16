@@ -18,6 +18,7 @@ namespace Lykke.CoinMarketCap.Client.Tests
             Assert.NotEmpty(result.Data);
             Assert.True(result.Data.Count() > 10);
             Assert.NotEmpty(result.Data.First().Quotes);
+            Assert.NotEqual(default(decimal), result.Data.First().CirculatingSupply);
         }
     }
 }

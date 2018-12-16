@@ -10,7 +10,6 @@ using Lykke.Service.CryptoIndex.Client.Api;
 using Lykke.Service.CryptoIndex.Client.Models;
 using Lykke.Service.CryptoIndex.Domain.Repositories;
 using Microsoft.AspNetCore.Mvc;
-using AssetMarketCap = Lykke.Service.CryptoIndex.Domain.Models.AssetMarketCap;
 using IndexHistory = Lykke.Service.CryptoIndex.Domain.Models.IndexHistory;
 
 namespace Lykke.Service.CryptoIndex.Controllers

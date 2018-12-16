@@ -5,7 +5,7 @@ using Lykke.Service.CryptoIndex.Domain.Models;
 
 namespace Lykke.Service.CryptoIndex.Domain.Services
 {
-    public interface IMarketCapitalizationService : IDisposable
+    public interface ICoinMarketCapService : IDisposable
     {
         Task<IReadOnlyList<AssetMarketCap>> GetAllAsync();
     }

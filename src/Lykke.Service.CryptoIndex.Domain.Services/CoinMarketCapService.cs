@@ -8,12 +8,12 @@ using Lykke.Service.CryptoIndex.Domain.Models;
 
 namespace Lykke.Service.CryptoIndex.Domain.Services
 {
-    public class MarketCapitalizationService : IMarketCapitalizationService
+    public class CoinMarketCapService : ICoinMarketCapService
     {
         private readonly ICoinMarketCapClient _coinMarketCapClient;
         private readonly ILog _log;
 
-        public MarketCapitalizationService(ICoinMarketCapClient coinMarketCapClient, ILogFactory logFactory)
+        public CoinMarketCapService(ICoinMarketCapClient coinMarketCapClient, ILogFactory logFactory)
         {
             _coinMarketCapClient = coinMarketCapClient;
             _log = logFactory.CreateLog(this);
@@ -26,7 +26,10 @@ namespace Lykke.Service.CryptoIndex.Domain.Services
             if (result.Status.ErrorCode != 0 || result.Status.ErrorMessage != null)
                 _log.Warning($"Get an error while receiving to CoinMarketCap: {result.Status.ErrorCode} - {result.Status.ErrorMessage}.");
 
-            return result.Data.Select(x => new AssetMarketCap(MapSymbol(x.Symbol), new MarketCap(x.Quotes.First().Value.MarketCap, "USD"))).ToList();
+            return result.Data.Select(x =>new AssetMarketCap(
+                MapSymbol(x.Symbol),
+                new MarketCap(x.Quotes.First().Value.MarketCap, "USD"),
+                x.CirculatingSupply)).ToList();
         }
 
         public void Dispose()
