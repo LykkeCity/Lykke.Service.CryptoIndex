@@ -41,7 +41,7 @@ namespace Lykke.Service.CryptoIndex.Domain.Services
         private ISettingsService SettingsService { get; set; }
         private ITickPricesService TickPricesService { get; set; }
         private ITickPricePublisher TickPricePublisher { get; set; }
-        private IMarketCapitalizationService MarketCapitalizationService { get; set; }
+        private ICoinMarketCapService CoinMarketCapService { get; set; }
 
         private Settings Settings => SettingsService.GetAsync().GetAwaiter().GetResult();
         private IndexState State => IndexStateRepository.GetAsync().GetAwaiter().GetResult();
@@ -113,7 +113,7 @@ namespace Lykke.Service.CryptoIndex.Domain.Services
             try
             {
                 // Get top 100 market caps
-                allMarketCaps = await MarketCapitalizationService.GetAllAsync();
+                allMarketCaps = await CoinMarketCapService.GetAllAsync();
             }
             catch (Exception e)
             {
@@ -207,14 +207,14 @@ namespace Lykke.Service.CryptoIndex.Domain.Services
 
             try
             {
-                bool isCoinMarketCapPresent;
+                bool isCoinMarketCapDataPresent;
 
                 lock (_sync)
                 {
-                    isCoinMarketCapPresent = _allMarketCaps.Any();
+                    isCoinMarketCapDataPresent = _allMarketCaps.Any();
                 }
 
-                if (!isCoinMarketCapPresent)
+                if (!isCoinMarketCapDataPresent)
                     RefreshCoinMarketCapData().GetAwaiter().GetResult();
 
                 lock (_sync)
@@ -232,7 +232,16 @@ namespace Lykke.Service.CryptoIndex.Domain.Services
                         return;
                     }
 
-                    _topMarketCaps.AddRange(lastIndexHistory.MarketCaps);
+                    // Combined - weights are from previous index, supplies are from actual CoinMarketCap data.
+                    var topMarketCapsCombined = new List<AssetMarketCap>();
+                    foreach (var marketCap in lastIndexHistory.MarketCaps)
+                    {
+                        var circulatingSupply = _allMarketCaps.Single(x => x.Asset == marketCap.Asset).CirculatingSupply;
+                        var combined = new AssetMarketCap(marketCap.Asset, marketCap.MarketCap, circulatingSupply);
+                        topMarketCapsCombined.Add(combined);
+                    }
+
+                    _topMarketCaps.AddRange(topMarketCapsCombined);
                     lastIndexHistory.Weights.ForEach(x => _topAssetsWeights.Add(x.Key, x.Value));
 
                     _log.Info("Initialized previous weights and market caps from history.");
@@ -483,7 +492,7 @@ namespace Lykke.Service.CryptoIndex.Domain.Services
         {
             _trigger?.Dispose();
 
-            MarketCapitalizationService?.Dispose();
+            CoinMarketCapService?.Dispose();
         }
     }
 }
