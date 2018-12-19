@@ -33,17 +33,10 @@ namespace Lykke.Service.CryptoIndex.Domain.Services
         private DateTime _lastRebuild;
         private bool _isRebuild;
 
-        private readonly object _lastValueSync = new object();
-        private decimal _lastValue;
-
-        private readonly object _lastResetSync = new object();
-        private DateTime? _lastReset;
-
         private readonly TimerTrigger _trigger;
         private readonly ILog _log;
 
         private IIndexStateRepository IndexStateRepository { get; set; }
-        private IFirstStateAfterResetTimeRepository FirstStateAfterResetTimeRepository { get; set; }
         private IIndexHistoryRepository IndexHistoryRepository { get; set; }
         private IWarningRepository WarningRepository { get; set; }
         private ISettingsService SettingsService { get; set; }
@@ -106,23 +99,7 @@ namespace Lykke.Service.CryptoIndex.Domain.Services
                 _isRebuild = true;
             }
         }
-
-        public decimal GetLastValue()
-        {
-            lock (_lastValueSync)
-            {
-                return _lastValue;
-            }
-        }
-
-        public DateTime? GetLastResetTimestamp()
-        {
-            lock (_lastResetSync)
-            {
-                return _lastReset;
-            }
-        }
-
+        
 
         private void Initialize()
         {
@@ -142,12 +119,6 @@ namespace Lykke.Service.CryptoIndex.Domain.Services
                         _log.Info("Skipping initializing previous state, last index history is empty.");
                         return;
                     }
-
-                    lock (_lastValueSync)
-                        _lastValue = lastIndexHistory.Value;
-
-                    lock (_lastResetSync)
-                        _lastReset = FirstStateAfterResetTimeRepository.GetAsync().GetAwaiter().GetResult();
 
                     // Initialize _topAssets
                     _topAssets.AddRange(lastIndexHistory.Weights.Keys);
@@ -373,24 +344,8 @@ namespace Lykke.Service.CryptoIndex.Domain.Services
             // Save index state for the next execution
             await IndexStateRepository.SetAsync(indexState);
 
-            // Save reset time if there was no state
-            if (indexState.Value == InitialIndexValue)
-            {
-                await FirstStateAfterResetTimeRepository.SetAsync(indexHistory.Time);
-                lock (_lastResetSync)
-                {
-                    _lastReset = indexHistory.Time;
-                }
-            }
-
             // Save index history
             await IndexHistoryRepository.InsertAsync(indexHistory);
-
-            // Save last value
-            lock (_lastValueSync)
-            {
-                _lastValue = indexHistory.Value;
-            }
         }
 
         private void Publish(IndexHistory indexHistory, IReadOnlyList<AssetSettings> assetsSettings)

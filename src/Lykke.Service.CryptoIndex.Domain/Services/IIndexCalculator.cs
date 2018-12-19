@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace Lykke.Service.CryptoIndex.Domain.Services
@@ -11,9 +10,5 @@ namespace Lykke.Service.CryptoIndex.Domain.Services
         Task Reset();
 
         Task Rebuild();
-
-        decimal GetLastValue();
-
-        DateTime? GetLastResetTimestamp();
     }
 }
