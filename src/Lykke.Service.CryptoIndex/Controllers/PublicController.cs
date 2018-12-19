@@ -84,7 +84,12 @@ namespace Lykke.Service.CryptoIndex.Controllers
         [ResponseCache(Duration = 10, VaryByQueryKeys = new[] { "*" })]
         public async Task<IReadOnlyList<(DateTime, decimal)>> GetChangeAsync()
         {
-            var fromMidnight = await _indexHistoryRepository.GetAsync(DateTime.UtcNow.Date, DateTime.UtcNow.Date.AddMinutes(2));
+            var lastResetTime = await _firstStateAfterResetTimeRepository.GetAsync();
+
+            var from = DateTime.UtcNow.Date;
+            from = lastResetTime.HasValue && lastResetTime.Value > from ? lastResetTime.Value : from;
+
+            var fromMidnight = await _indexHistoryRepository.GetAsync(from, DateTime.UtcNow.Date.AddMinutes(10));
             var midnight = fromMidnight.FirstOrDefault();
 
             var last = (await _indexHistoryRepository.TakeLastAsync(1)).SingleOrDefault();
