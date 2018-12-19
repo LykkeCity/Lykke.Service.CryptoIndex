@@ -28,7 +28,7 @@ namespace Lykke.Service.CryptoIndex.Controllers
         public async Task<IReadOnlyList<AssetInfo>> GetAllAsync()
         {
             var settings = await _settingsService.GetAsync();
-            var marketCaps = await _indexCalculator.GetAllAssetsMarketCapsAsync();
+            var marketCaps = _indexCalculator.GetAllAssetsMarketCaps();
             var prices = await _tickPricesService.GetPricesAsync(settings.Sources.ToList());
 
             var result = new List<AssetInfo>();
