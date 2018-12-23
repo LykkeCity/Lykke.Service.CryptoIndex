@@ -450,7 +450,7 @@ namespace Lykke.Service.CryptoIndex.Domain.Services
 
                 var assetPrices = allPrices[asset];
 
-                var currentMiddlePrice = Utils.GetMiddlePrice(asset, assetPrices);
+                var currentMiddlePrice = Utils.GetMiddlePrice(asset, assetPrices.Values.ToList());
 
                 var assetSettings = assetsSettings.FirstOrDefault(x => x.AssetId == asset);
 
