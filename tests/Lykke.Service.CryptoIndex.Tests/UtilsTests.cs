@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using Lykke.Service.CryptoIndex.Domain.Models;
 using Lykke.Service.CryptoIndex.Domain.Services;
 using Xunit;
@@ -20,7 +21,7 @@ namespace Lykke.Service.CryptoIndex.Tests
 
             // act
 
-            var middlePrice = Utils.GetMiddlePrice(asset, assetExchangesPrices);
+            var middlePrice = Utils.GetMiddlePrice(asset, assetExchangesPrices.Values.ToList());
 
             // assert
 
@@ -40,7 +41,7 @@ namespace Lykke.Service.CryptoIndex.Tests
 
             // act
 
-            var middlePrice = Utils.GetMiddlePrice(asset, assetExchangesPrices);
+            var middlePrice = Utils.GetMiddlePrice(asset, assetExchangesPrices.Values.ToList());
 
             // assert
 
@@ -62,7 +63,7 @@ namespace Lykke.Service.CryptoIndex.Tests
 
             // act
 
-            var middlePrice = Utils.GetMiddlePrice(asset, assetExchangesPrices);
+            var middlePrice = Utils.GetMiddlePrice(asset, assetExchangesPrices.Values.ToList());
 
             // assert
 
@@ -80,8 +81,8 @@ namespace Lykke.Service.CryptoIndex.Tests
 
             // act
 
-            var ex1 = Assert.Throws<ArgumentOutOfRangeException>(() => Utils.GetMiddlePrice(null, assetExchangesPrices));
-            var ex2 = Assert.Throws<ArgumentOutOfRangeException>(() => Utils.GetMiddlePrice(asset, assetExchangesPrices));
+            var ex1 = Assert.Throws<ArgumentOutOfRangeException>(() => Utils.GetMiddlePrice(null, assetExchangesPrices.Values.ToList()));
+            var ex2 = Assert.Throws<ArgumentOutOfRangeException>(() => Utils.GetMiddlePrice(asset, assetExchangesPrices.Values.ToList()));
 
             // assert
 
@@ -100,7 +101,7 @@ namespace Lykke.Service.CryptoIndex.Tests
             // act
 
             var ex1 = Assert.Throws<ArgumentOutOfRangeException>(() => Utils.GetMiddlePrice(asset, null));
-            var ex2 = Assert.Throws<ArgumentOutOfRangeException>(() => Utils.GetMiddlePrice(asset, assetExchangesPrices));
+            var ex2 = Assert.Throws<ArgumentOutOfRangeException>(() => Utils.GetMiddlePrice(asset, assetExchangesPrices.Values.ToList()));
 
             // assert
 
