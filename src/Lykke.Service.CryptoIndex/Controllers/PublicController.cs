@@ -40,30 +40,6 @@ namespace Lykke.Service.CryptoIndex.Controllers
             return await GetChangeAsync();
         }
 
-        [HttpGet("indices/upToDate")]
-        [ProducesResponseType(typeof(IReadOnlyList<(DateTime, decimal)>), (int)HttpStatusCode.OK)]
-        [ResponseCache(Duration = 10, VaryByQueryKeys = new[] { "*" })]
-        public async Task<IReadOnlyList<(DateTime, decimal)>> GetIndexHistoriesAsync(DateTime to, int limit)
-        {
-            var result = await _indexHistoryRepository.GetUpToDateAsync(to, limit);
-            
-            return result;
-        }
-
-        [HttpGet("index/current")]
-        [ProducesResponseType(typeof((DateTime, decimal)), (int)HttpStatusCode.OK)]
-        [ResponseCache(Duration = 10, VaryByQueryKeys = new[] { "*" })]
-        [Obsolete]
-        public async Task<(DateTime, decimal)> GetCurrentAsync()
-        {
-            var result = (await _indexHistoryRepository.TakeLastAsync(1)).SingleOrDefault();
-
-            if (result == null)
-                throw new ValidationApiException(HttpStatusCode.NotFound, "Current index value is not found.");
-
-            return (result.Time, result.Value);
-        }
-
         [HttpGet("index/last")]
         [ProducesResponseType(typeof(PublicIndexHistory), (int)HttpStatusCode.OK)]
         [ResponseCache(Duration = 10, VaryByQueryKeys = new[] { "*" })]
