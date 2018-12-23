@@ -9,9 +9,6 @@ namespace Lykke.Service.CryptoIndex.Domain.Services
     {
         public static decimal GetMiddlePrice(string asset, IReadOnlyCollection<decimal> assetPrices)
         {
-            if (string.IsNullOrWhiteSpace(asset))
-                throw new ArgumentException("Empty asset.");
-
             if (assetPrices == null || assetPrices.Count == 0)
                 throw new ArgumentOutOfRangeException($"Asset '{asset}' doesn't have any prices.");
 
