@@ -4,7 +4,6 @@ using Lykke.AzureStorage.Tables;
 
 namespace Lykke.Service.CryptoIndex.Domain.Repositories.Models
 {
-    // TODO: remove and use history
     [UsedImplicitly(ImplicitUseTargetFlags.WithMembers)]
     public class FirstStateAfterResetTimeEntity : AzureTableEntity
     {

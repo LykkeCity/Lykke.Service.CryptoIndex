@@ -18,14 +18,20 @@ namespace Lykke.Service.CryptoIndex.Client.Models
         public MarketCap MarketCap { get; }
 
         /// <summary>
+        /// Circulating Supply of asset
+        /// </summary>
+        public decimal CirculatingSupply { get; }
+
+        /// <summary>
         /// Constructor
         /// </summary>
-        public AssetMarketCap(string asset, MarketCap marketCap)
+        public AssetMarketCap(string asset, MarketCap marketCap, decimal circulatingSupply)
         {
             if (string.IsNullOrWhiteSpace(asset)) throw new ArgumentOutOfRangeException(nameof(asset));
 
             Asset = asset;
             MarketCap = marketCap ?? throw new ArgumentNullException(nameof(MarketCap));
+            CirculatingSupply = circulatingSupply;
         }
     }
 }

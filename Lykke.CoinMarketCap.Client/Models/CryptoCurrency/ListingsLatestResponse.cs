@@ -25,10 +25,10 @@ namespace Lykke.CoinMarketCap.Client.Models.CryptoCurrency
         public long NumMarketPairs { get; set; }
 
         [JsonProperty("circulating_supply")]
-        public double CirculatingSupply { get; set; }
+        public decimal CirculatingSupply { get; set; }
 
         [JsonProperty("total_supply")]
-        public double TotalSupply { get; set; }
+        public decimal TotalSupply { get; set; }
 
         [JsonProperty("max_supply")]
         public long? MaxSupply { get; set; }

@@ -19,20 +19,7 @@ namespace Lykke.Service.CryptoIndex.Client.Api
         [Get("/api/public/indices")]
         [Obsolete]
         Task<IReadOnlyList<(DateTime, decimal)>> GetIndexHistoriesAsync(DateTime from, DateTime to);
-
-        /// <summary>
-        /// Returns indices up to date
-        /// </summary>
-        [Get("/api/public/indices/upToDate")]
-        Task<IReadOnlyList<(DateTime, decimal)>> GetIndexHistoriesAsync(DateTime to, int limit);
-
-        /// <summary>
-        /// Returns current index value
-        /// </summary>
-        [Get("/api/public/index/current")]
-        [Obsolete]
-        Task<(DateTime, decimal)> GetCurrentAsync();
-
+        
         /// <summary>
         /// Returns last index
         /// </summary>

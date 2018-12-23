@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -25,39 +24,55 @@ namespace Lykke.Service.CryptoIndex.Domain.Services
         private readonly TimeSpan _waitForTopAssetsPricesFromStart = TimeSpan.FromMinutes(2);
         private readonly string _indexName;
         private readonly DateTime _startedAt;
-        private DateTime _lastRebuild;
-        private bool isReset;
+
         private readonly object _sync = new object();
         private readonly List<AssetMarketCap> _allMarketCaps;
-        private readonly List<AssetMarketCap> _topMarketCaps;
-        private readonly IDictionary<string, decimal> _topAssetsWeights;
+        private readonly List<string> _topAssets;
+        private IList<string> TopAssets { get { lock (_sync) { return _topAssets.ToList(); } } }
+
+        private DateTime _lastRebuild;
+        private bool _isRebuild;
+
         private readonly TimerTrigger _trigger;
         private readonly ILog _log;
 
-        private IIndexStateRepository IndexStateRepository { get; set; }
-        private IFirstStateAfterResetTimeRepository FirstStateAfterResetTimeRepository { get; set; }
-        private IIndexHistoryRepository IndexHistoryRepository { get; set; }
-        private IWarningRepository WarningRepository { get; set; }
-        private ISettingsService SettingsService { get; set; }
-        private ITickPricesService TickPricesService { get; set; }
-        private ITickPricePublisher TickPricePublisher { get; set; }
-        private IMarketCapitalizationService MarketCapitalizationService { get; set; }
+        private readonly ISettingsService _settingsService;
+        private readonly IIndexStateRepository _indexStateRepository;
+        private readonly IIndexHistoryRepository _indexHistoryRepository;
+        private readonly ITickPricesService _tickPricesService;
+        private readonly ICoinMarketCapService _coinMarketCapService;
+        private readonly ITickPricePublisher _tickPricePublisher;
+        private readonly IWarningRepository _warningRepository;
 
-        private Settings Settings => SettingsService.GetAsync().GetAwaiter().GetResult();
-        private IndexState State => IndexStateRepository.GetAsync().GetAwaiter().GetResult();
-        private IReadOnlyList<AssetMarketCap> TopMarketCaps { get { lock(_sync) { return _topMarketCaps.ToList(); } } }
-        private IDictionary<string, decimal> TopWeights { get { lock (_sync) { return _topAssetsWeights.Clone(); } } }
+        private Settings Settings => _settingsService.GetAsync().GetAwaiter().GetResult();
+        private IndexState State => _indexStateRepository.GetAsync().GetAwaiter().GetResult();
 
-        public IndexCalculator(string indexName, TimeSpan indexCalculationInterval, ILogFactory logFactory)
+        public IndexCalculator(string indexName, 
+            TimeSpan indexCalculationInterval,
+            ISettingsService settingsService,
+            IIndexStateRepository indexStateRepository,
+            IIndexHistoryRepository indexHistoryRepository,
+            ITickPricesService tickPricesService,
+            ICoinMarketCapService coinMarketCapService,
+            ITickPricePublisher tickPricePublisher,
+            IWarningRepository warningRepository,
+            ILogFactory logFactory)
         {
             _startedAt = DateTime.UtcNow;
             _lastRebuild = DateTime.UtcNow.Date;
             _allMarketCaps = new List<AssetMarketCap>();
-            _topMarketCaps = new List<AssetMarketCap>();
-            _topAssetsWeights = new ConcurrentDictionary<string, decimal>();
+            _topAssets = new List<string>();
 
             _indexName = indexName;
             _trigger = new TimerTrigger(nameof(IndexCalculator), indexCalculationInterval, logFactory, TimerHandler);
+
+            _settingsService = settingsService;
+            _indexStateRepository = indexStateRepository;
+            _indexHistoryRepository = indexHistoryRepository;
+            _tickPricesService = tickPricesService;
+            _coinMarketCapService = coinMarketCapService;
+            _tickPricePublisher = tickPricePublisher;
+            _warningRepository = warningRepository;
 
             _log = logFactory.CreateLog(this);
         }
@@ -69,7 +84,7 @@ namespace Lykke.Service.CryptoIndex.Domain.Services
             _trigger.Start();
         }
 
-        public async Task<IReadOnlyDictionary<string, decimal>> GetAllAssetsMarketCapsAsync()
+        public IReadOnlyDictionary<string, decimal> GetAllAssetsMarketCaps()
         {
             var result = new Dictionary<string, decimal>();
 
@@ -84,28 +99,60 @@ namespace Lykke.Service.CryptoIndex.Domain.Services
 
         public async Task Reset()
         {
-            await IndexStateRepository.Clear();
+            await _indexStateRepository.Clear();
 
             lock (_sync)
             {
-                isReset = true;
+                _isRebuild = true;
             }
         }
 
         public async Task Rebuild()
         {
-            _log.Info("Started rebuilding...");
+            await RefreshCoinMarketCapDataAsync();
 
-            _lastRebuild = DateTime.UtcNow.Date;
+            lock (_sync)
+            {
+                _isRebuild = true;
+            }
+        }
+        
 
-            await RefreshCoinMarketCapData();
+        private void Initialize()
+        {
+            _log.Info("Initializing last state from history if needed...");
 
-            await CalculateWeights();
+            try
+            {
+                // Initialize _allMarketCaps
+                RefreshCoinMarketCapDataAsync().GetAwaiter().GetResult();
 
-            _log.Info("Finished rebuilding.");
+                lock (_sync)
+                {
+                    // Get latest index history element
+                    var lastIndexHistory = _indexHistoryRepository.TakeLastAsync(1).GetAwaiter().GetResult().SingleOrDefault();
+                    if (lastIndexHistory == null)
+                    {
+                        if (Settings.Assets.Any())
+                            RebuildTopAssetsAsync().GetAwaiter().GetResult();
+
+                        _log.Info("Skipping initializing previous state, last index history is empty.");
+                        return;
+                    }
+
+                    // Initialize _topAssets
+                    _topAssets.AddRange(lastIndexHistory.Weights.Keys);
+
+                    _log.Info("Initialized previous weights and market caps from history.");
+                }
+            }
+            catch (Exception e)
+            {
+                _log.Warning("Can't initialize last state from history.", e);
+            }
         }
 
-        private async Task RefreshCoinMarketCapData()
+        private async Task RefreshCoinMarketCapDataAsync()
         {
             _log.Info("Requesting CoinMarketCap data....");
 
@@ -113,7 +160,7 @@ namespace Lykke.Service.CryptoIndex.Domain.Services
             try
             {
                 // Get top 100 market caps
-                allMarketCaps = await MarketCapitalizationService.GetAllAsync();
+                allMarketCaps = await _coinMarketCapService.GetAllAsync();
             }
             catch (Exception e)
             {
@@ -131,116 +178,82 @@ namespace Lykke.Service.CryptoIndex.Domain.Services
             _log.Info("Finished requesting CoinMarketCap data....");
         }
 
-        private async Task CalculateWeights()
+        private async Task RebuildTopAssetsAsync()
         {
-            if (!_allMarketCaps.Any())
-                return;
+            _log.Info("Recalculating top asset....");
 
-            _log.Info("Calculating weights...");
+            if (!_allMarketCaps.Any())
+            {
+                _log.Warning("Coin Market Cap data is empty while calculating top assets. Skipped.");
+                return;
+            }
+
+            var settings = Settings;
 
             // Get top 100 market caps
-            List<AssetMarketCap> allMarketCaps;
+            List<AssetMarketCap> coinMarketCapData;
             lock (_sync)
             {
-                allMarketCaps = _allMarketCaps.ToList();
+                coinMarketCapData = _allMarketCaps.ToList();
             }
 
-            // Top wanted market caps
-            var topMarketCaps = allMarketCaps.Where(x => Settings.Assets.Contains(x.Asset))
-                .OrderByDescending(x => x.MarketCap.Value)
+            // Get white list supplies
+            var whiteListSupplies = new Dictionary<string, decimal>();
+            settings.Assets.ForEach(x => whiteListSupplies.Add(x, coinMarketCapData.Single(mk => mk.Asset == x).CirculatingSupply));
+
+            // Get white list prices
+            var sources = settings.Sources.ToList();
+            var whiteListAssets = whiteListSupplies.Select(x => x.Key).ToList();
+            var allAssetsPrices = await _tickPricesService.GetPricesAsync(sources);
+            var assetsSettings = settings.AssetsSettings;
+            var whiteListUsingPrices = GetAssetsUsingPrices(whiteListAssets, allAssetsPrices, assetsSettings);
+
+            if (!IsAllPricesArePresent(whiteListAssets, whiteListUsingPrices))
+            {
+                _log.Info($"Skipped calculating top assets because some prices are not present yet, waiting for them for {_waitForTopAssetsPricesFromStart.TotalMinutes} minutes since start.");
+                return;
+            }
+
+            // Calculate white list market caps
+            var whiteListMarketCaps = CalculateMarketCaps(whiteListAssets, whiteListSupplies, whiteListUsingPrices);
+
+            // Calculate white list weights
+            var whiteListWeights = CalculateWeightsOrderedByDesc(whiteListMarketCaps);
+
+            // Set top N assets weights
+            var topWeights = whiteListWeights
                 .Take(Settings.TopCount)
-                .ToList();
-
-            // Sum of top market caps
-            var totalMarketCap = topMarketCaps.Select(x => x.MarketCap.Value).Sum();
-
-            // Calculate weights
-            var wantedAssets = topMarketCaps.Select(x => x.Asset).ToList();
-            var topAssetsWeights = new Dictionary<string, decimal>();
-            foreach (var asset in wantedAssets)
-            {
-                var assetMarketCap = topMarketCaps.Single(x => x.Asset == asset).MarketCap.Value;
-                var assetWeight = assetMarketCap / totalMarketCap;
-                topAssetsWeights[asset] = assetWeight;
-            }
+                .ToDictionary();
 
             lock (_sync)
             {
-                // Refresh market caps
-                _topMarketCaps.Clear();
-                _topMarketCaps.AddRange(topMarketCaps);
-
                 // Refresh weights
-                _topAssetsWeights.Clear();
-                foreach (var assetWeight in topAssetsWeights)
-                    _topAssetsWeights.Add(assetWeight);
+                _topAssets.Clear();
+                _topAssets.AddRange(topWeights.Keys);
+
+                _lastRebuild = DateTime.UtcNow.Date;
+
+                _isRebuild = false;
             }
 
-            _log.Info($"Finished calculating weights for {wantedAssets.Count} assets.");
+            _log.Info($"Finished calculating top assets, count - {_topAssets.Count}.");
         }
 
         private async Task TimerHandler(ITimerTrigger timer, TimerTriggeredHandlerArgs args, CancellationToken ct)
         {
             try
             {
-                if (isReset || _lastRebuild.Date < DateTime.UtcNow.Date && DateTime.UtcNow.TimeOfDay > Settings.RebuildTime)
-                {
-                    lock (_sync)
-                    {
-                        isReset = false;
-                    }
-
-                    await Rebuild();
-                }
+                var rebuildNeeded = _isRebuild
+                                    || (_lastRebuild.Date < DateTime.UtcNow.Date // last rebuild was yesterday
+                                        && DateTime.UtcNow.TimeOfDay > Settings.RebuildTime); // now > rebuild time
+                if (rebuildNeeded)
+                    await RebuildTopAssetsAsync();
 
                 await CalculateThenSaveAndPublish();
             }
             catch (Exception e)
             {
-                _log.Warning("Somethings went wrong while index calculation.", e);
-            }
-        }
-
-        private void Initialize()
-        {
-            _log.Info("Initializing last state from history if needed...");
-
-            try
-            {
-                bool isCoinMarketCapPresent;
-
-                lock (_sync)
-                {
-                    isCoinMarketCapPresent = _allMarketCaps.Any();
-                }
-
-                if (!isCoinMarketCapPresent)
-                    RefreshCoinMarketCapData().GetAwaiter().GetResult();
-
-                lock (_sync)
-                {
-                    if (_topAssetsWeights.Any() || _topMarketCaps.Any())
-                    {
-                        _log.Info($"Skipping initializing previous state, top assets weights count is {_topAssetsWeights.Count}, top market caps count is {_topMarketCaps.Count}.");
-                        return;
-                    }    
-
-                    var lastIndexHistory = IndexHistoryRepository.TakeLastAsync(1).GetAwaiter().GetResult().SingleOrDefault();
-                    if (lastIndexHistory == null)
-                    {
-                        _log.Info("Skipping initializing previous state, last index history is empty.");
-                        return;
-                    }
-
-                    _topMarketCaps.AddRange(lastIndexHistory.MarketCaps);
-                    lastIndexHistory.Weights.ForEach(x => _topAssetsWeights.Add(x.Key, x.Value));
-
-                    _log.Info("Initialized previous weights and market caps from history.");
-                }
-            }
-            catch (Exception e)
-            {
-                _log.Warning("Can't initialize last state from history.", e);
+                _log.Warning("Somethings went wrong in timer handler.", e);
             }
         }
 
@@ -256,31 +269,38 @@ namespace Lykke.Service.CryptoIndex.Domain.Services
                 return;
             }
 
-            var topWeights = TopWeights;
-            if (!topWeights.Any())
+            var topAssets = TopAssets; // Must be obtained from _topAssets (daily rebuild changes it)
+            if (!topAssets.Any())
             {
-                _log.Info("There are no weights for constituents yet, skipped index calculation.");
+                _log.Info("There are no top assets yet, skipped index calculation.");
                 return;
             }
 
             var sources = settings.Sources.ToList();
-            var topAssets = topWeights.Keys.OrderBy(x => x).ToList();
-            var lastIndex = await IndexStateRepository.GetAsync();
-            var allAssetsPrices = await TickPricesService.GetPricesAsync(sources);
+            var allPrices = await _tickPricesService.GetPricesAsync(sources);
             var assetsSettings = settings.AssetsSettings;
-
-            var topAssetsUsingPrices = GetTopAssetsUsingPrices(topAssets, allAssetsPrices, assetsSettings);
+            var topUsingPrices = GetAssetsUsingPrices(topAssets, allPrices, assetsSettings);
 
             // If just started and prices are not present yet, then skip.
             // If started more then {_waitForTopAssetsPricesFromStart} ago then write warning to DB and log.
-            if (!IsAllPricesArePresent(topAssets, topAssetsUsingPrices))
+            if (!IsAllPricesArePresent(topAssets, topUsingPrices))
             {
                 _log.Info($"Skipped calculating index because some prices are not present yet, waiting for them for {_waitForTopAssetsPricesFromStart.TotalMinutes} minutes since start.");
                 return;
             }
 
+            // Recalculate top market caps with supplies and current using prices for previous index assets
+            var topSupplies = new Dictionary<string, decimal>();
+            _allMarketCaps.Where(x => topAssets.Contains(x.Asset))
+                .ForEach(x => topSupplies.Add(x.Asset, x.CirculatingSupply));
+
+            var calculatedTopMarketCaps = CalculateMarketCaps(topAssets, topSupplies, topUsingPrices);
+
+            var calculatedTopWeights = CalculateWeightsOrderedByDesc(calculatedTopMarketCaps);
+
             // Get current index state
-            var indexState = await CalculateIndex(lastIndex, topWeights, topAssetsUsingPrices);
+            var lastIndex = await _indexStateRepository.GetAsync();
+            var indexState = await CalculateIndex(lastIndex, calculatedTopWeights, topUsingPrices);
 
             // if there was a reset then skip until next iteration which will have initial state
             if (indexState.Value != InitialIndexValue && State == null)
@@ -289,40 +309,13 @@ namespace Lykke.Service.CryptoIndex.Domain.Services
                 return;
             }
             
-            var indexHistory = new IndexHistory(indexState.Value, TopMarketCaps, topWeights, allAssetsPrices, topAssetsUsingPrices, DateTime.UtcNow, assetsSettings);
+            var indexHistory = new IndexHistory(indexState.Value, calculatedTopMarketCaps, calculatedTopWeights, allPrices, topUsingPrices, DateTime.UtcNow, assetsSettings);
 
             await Save(indexState, indexHistory);
 
-            await Publish(indexHistory, assetsSettings);
+            Publish(indexHistory, assetsSettings);
 
-            _log.Info($"Finished calculating index for {topWeights.Count} assets, value: {indexState.Value}.");
-        }
-
-        private IDictionary<string, decimal> GetTopAssetsUsingPrices(
-            ICollection<string> topAssets,
-            IDictionary<string, IDictionary<string, decimal>> allAssetsPrices,
-            IReadOnlyCollection<AssetSettings> assetsSettings)
-        {
-            var topAssetsUsedPrices = new Dictionary<string, decimal>();
-
-            foreach (var asset in topAssets.ToList())
-            {
-                if (!allAssetsPrices.ContainsKey(asset) || allAssetsPrices[asset].Count == 0)
-                    continue;
-
-                var assetPrices = allAssetsPrices[asset];
-
-                var currentMiddlePrice = GetMiddlePrice(asset, assetPrices);
-
-                var assetSettings = assetsSettings.FirstOrDefault(x => x.AssetId == asset);
-
-                if (assetSettings != null && assetSettings.IsDisabled)
-                    currentMiddlePrice = assetSettings.Price;
-
-                topAssetsUsedPrices[asset] = currentMiddlePrice;
-            }
-
-            return topAssetsUsedPrices;
+            _log.Info($"Finished calculating index for {calculatedTopMarketCaps.Count} assets, value: {indexState.Value}.");
         }
 
         private async Task<IndexState> CalculateIndex(IndexState lastIndex, IDictionary<string, decimal> topAssetsWeights,
@@ -330,8 +323,6 @@ namespace Lykke.Service.CryptoIndex.Domain.Services
         {
             if (lastIndex == null)
             {
-                await Rebuild();
-                
                 return new IndexState(InitialIndexValue, whiteListAssetsMiddlePrices);
             }
 
@@ -341,7 +332,7 @@ namespace Lykke.Service.CryptoIndex.Domain.Services
             foreach (var asset in topAssets)
             {
                 var middlePrice = whiteListAssetsMiddlePrices[asset];
-                var previousMiddlePrice = GetPreviousMiddlePrice(asset, lastIndex, middlePrice);
+                var previousMiddlePrice = Utils.GetPreviousMiddlePrice(asset, lastIndex, middlePrice);
 
                 var weight = topAssetsWeights[asset];
 
@@ -369,17 +360,13 @@ namespace Lykke.Service.CryptoIndex.Domain.Services
             }
 
             // Save index state for the next execution
-            await IndexStateRepository.SetAsync(indexState);
+            await _indexStateRepository.SetAsync(indexState);
 
-            // Save first index after reset time
-            if (indexState.Value == InitialIndexValue)
-                await FirstStateAfterResetTimeRepository.SetAsync(indexHistory.Time);
-
-            // Save all index info to history
-            await IndexHistoryRepository.InsertAsync(indexHistory);
+            // Save index history
+            await _indexHistoryRepository.InsertAsync(indexHistory);
         }
 
-        private async Task Publish(IndexHistory indexHistory, IReadOnlyList<AssetSettings> assetsSettings)
+        private void Publish(IndexHistory indexHistory, IReadOnlyList<AssetSettings> assetsSettings)
         {
             // Skip if changed to 'disabled'
             if (!Settings.Enabled)
@@ -398,33 +385,107 @@ namespace Lykke.Service.CryptoIndex.Domain.Services
 
             // Publish index to RabbitMq
             var tickPrice = new IndexTickPrice(RabbitMqSource, _indexName.ToUpper(), indexHistory.Value, indexHistory.Value, indexHistory.Time, assetsInfo);
-            TickPricePublisher.Publish(tickPrice);
+            _tickPricePublisher.Publish(tickPrice);
         }
 
-        private bool IsAllPricesArePresent(ICollection<string> topAssets,
-            IDictionary<string, decimal> topAssetsUsingPrices)
+        private IReadOnlyList<AssetMarketCap> CalculateMarketCaps(ICollection<string> assets,
+            IDictionary<string, decimal> supplies, IDictionary<string, decimal> usingPrices)
         {
-            if (!topAssets.Any())
+            if (assets.Count != supplies.Count || assets.Count != usingPrices.Count)
+            {
+                throw new InvalidOperationException("Can't calculate weights, some data are missed." +
+                                                    $"Assets: {assets.ToJson()}." +
+                                                    $"Supplies: {supplies.Select(x => x.Key).ToList().ToJson()}." +
+                                                    $"Prices: {usingPrices.Select(x => x.Key).ToList().ToJson()}.");
+            }
+
+            var marketCaps = new Dictionary<string, decimal>();
+
+            foreach (var asset in assets)
+            {
+                var supply = supplies[asset];
+                var price = usingPrices[asset];
+                marketCaps.Add(asset, price * supply);
+            }
+
+            var result = new List<AssetMarketCap>();
+
+            foreach (var marketCap in marketCaps)
+                result.Add(new AssetMarketCap(marketCap.Key, new MarketCap(marketCap.Value, "USD"), supplies[marketCap.Key]));
+
+            return result;
+        }
+
+        private IDictionary<string, decimal> CalculateWeightsOrderedByDesc(IReadOnlyList<AssetMarketCap> marketCaps)
+        {
+            var weights = new List<(string Asset, decimal Weight)>();
+
+            // Sum of top market caps
+            var totalMarketCap = marketCaps.Select(x => x.MarketCap.Value).Sum();
+
+            // Calculate weights
+            foreach (var marketCap in marketCaps)
+            {
+                var assetWeight = marketCap.MarketCap.Value / totalMarketCap;
+                weights.Add((marketCap.Asset, assetWeight));
+            }
+
+            weights = weights.OrderByDescending(x => x.Weight).ToList();
+
+            var result = new Dictionary<string, decimal>();
+            weights.ForEach(x => result.Add(x.Asset, x.Weight));
+
+            return result;
+        }
+
+        private IDictionary<string, decimal> GetAssetsUsingPrices(ICollection<string> assets,
+            IDictionary<string, IDictionary<string, decimal>> allPrices, IReadOnlyCollection<AssetSettings> assetsSettings)
+        {
+            var topAssetsUsedPrices = new Dictionary<string, decimal>();
+
+            foreach (var asset in assets.ToList())
+            {
+                if (!allPrices.ContainsKey(asset) || allPrices[asset].Count == 0)
+                    continue;
+
+                var assetPrices = allPrices[asset];
+
+                var currentMiddlePrice = Utils.GetMiddlePrice(asset, assetPrices.Values.ToList());
+
+                var assetSettings = assetsSettings.FirstOrDefault(x => x.AssetId == asset);
+
+                if (assetSettings != null && assetSettings.IsDisabled)
+                    currentMiddlePrice = assetSettings.Price;
+
+                topAssetsUsedPrices[asset] = currentMiddlePrice;
+            }
+
+            return topAssetsUsedPrices;
+        }
+
+        private bool IsAllPricesArePresent(ICollection<string> assets, IDictionary<string, decimal> assetsUsingPrices)
+        {
+            if (!assets.Any())
                 return false;
 
-            if (!topAssetsUsingPrices.Any())
+            if (!assetsUsingPrices.Any())
                 return false;
 
             var topAssetsWoPrices = new List<string>();
-            foreach (var topAsset in topAssets)
+            foreach (var topAsset in assets)
             {
-                if (!topAssetsUsingPrices.ContainsKey(topAsset))
+                if (!assetsUsingPrices.ContainsKey(topAsset))
                     topAssetsWoPrices.Add(topAsset);
             }
 
             if (topAssetsWoPrices.Any())
             {
-                var message = $"Some top assets in index don't have prices: {topAssetsWoPrices.ToJson()}.";
+                var message = $"Some assets don't have prices: {topAssetsWoPrices.ToJson()}.";
 
                 // If just started then skip current iteration
                 if (DateTime.UtcNow - _startedAt > _waitForTopAssetsPricesFromStart)
                 {
-                    WarningRepository.SaveAsync(new Warning(message, DateTime.UtcNow));
+                    _warningRepository.SaveAsync(new Warning(message, DateTime.UtcNow));
                     throw new InvalidOperationException(message);
                 }
                 
@@ -434,35 +495,6 @@ namespace Lykke.Service.CryptoIndex.Domain.Services
             return true;
         }
 
-        private static decimal GetMiddlePrice(string asset, IDictionary<string, decimal> assetExchangesPrices)
-        {
-            if (assetExchangesPrices == null || assetExchangesPrices.Count == 0)
-                throw new InvalidOperationException($"Asset '{asset}' doesn't have prices: {assetExchangesPrices.ToJson()}.");
-
-            var prices = assetExchangesPrices.Values.OrderBy(x => x).ToList();
-
-            if (prices.Count > 2)
-            {
-                prices.RemoveAt(0);
-                prices.RemoveAt(prices.Count - 1);
-            }
-
-            var middlePrice = prices.Sum() / prices.Count;
-
-            return middlePrice;
-        }
-
-        private static decimal GetPreviousMiddlePrice(string asset, IndexState lastIndex, decimal currentMiddlePrice)
-        {
-            if (lastIndex == null)
-                return currentMiddlePrice;
-
-            var previousPrices = lastIndex.MiddlePrices;
-            return previousPrices.ContainsKey(asset)  // previous prices found in DB?
-                ? previousPrices[asset]               // yes, use them
-                : currentMiddlePrice;                 // no, use current
-        }
-
         private void ValidateIndexValue(decimal indexValue, IDictionary<string, decimal> topAssetWeights,
             IDictionary<string, decimal> allAssetsMiddlePrices, IndexState lastIndex)
         {
@@ -470,7 +502,7 @@ namespace Lykke.Service.CryptoIndex.Domain.Services
                 return;
 
             var message = $"Index value less or equals to 0: topAssetWeights = {topAssetWeights.ToJson()}, allAssetsPrices: {allAssetsMiddlePrices.ToJson()}, lastIndex: {lastIndex.ToJson()}.";
-            WarningRepository.SaveAsync(new Warning(message, DateTime.UtcNow));
+            _warningRepository.SaveAsync(new Warning(message, DateTime.UtcNow));
             throw new InvalidOperationException(message);
         }
 
@@ -483,7 +515,7 @@ namespace Lykke.Service.CryptoIndex.Domain.Services
         {
             _trigger?.Dispose();
 
-            MarketCapitalizationService?.Dispose();
+            _coinMarketCapService?.Dispose();
         }
     }
 }
