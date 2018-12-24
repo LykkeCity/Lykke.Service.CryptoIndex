@@ -65,7 +65,7 @@ namespace Lykke.Service.CryptoIndex.Controllers
             var from = DateTime.UtcNow.Date;
             from = lastResetTime.HasValue && lastResetTime.Value > from ? lastResetTime.Value : from;
 
-            var fromMidnight = await _indexHistoryRepository.GetAsync(from, DateTime.UtcNow.Date.AddMinutes(10));
+            var fromMidnight = await _indexHistoryRepository.GetAsync(from, DateTime.UtcNow);
             var midnight = fromMidnight.FirstOrDefault();
 
             var last = (await _indexHistoryRepository.TakeLastAsync(1)).SingleOrDefault();
