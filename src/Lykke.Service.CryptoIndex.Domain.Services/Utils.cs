@@ -7,15 +7,12 @@ namespace Lykke.Service.CryptoIndex.Domain.Services
 {
     public static class Utils
     {
-        public static decimal GetMiddlePrice(string asset, IDictionary<string, decimal> assetExchangesPrices)
+        public static decimal GetMiddlePrice(string asset, IReadOnlyCollection<decimal> assetPrices)
         {
-            if (string.IsNullOrWhiteSpace(asset))
-                throw new ArgumentOutOfRangeException("Empty asset.");
-
-            if (assetExchangesPrices == null || assetExchangesPrices.Count == 0)
+            if (assetPrices == null || assetPrices.Count == 0)
                 throw new ArgumentOutOfRangeException($"Asset '{asset}' doesn't have any prices.");
 
-            var prices = assetExchangesPrices.Values.OrderBy(x => x).ToList();
+            var prices = assetPrices.OrderBy(x => x).ToList();
 
             if (prices.Count > 2)
             {
@@ -34,6 +31,7 @@ namespace Lykke.Service.CryptoIndex.Domain.Services
                 return currentMiddlePrice;
 
             var previousPrices = lastIndex.MiddlePrices;
+
             return previousPrices.ContainsKey(asset)  // previous prices found in DB in previous IndexState?
                 ? previousPrices[asset]               // yes, use them
                 : currentMiddlePrice;                 // no, use current

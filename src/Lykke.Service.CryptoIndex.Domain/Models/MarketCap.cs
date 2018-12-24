@@ -11,7 +11,7 @@ namespace Lykke.Service.CryptoIndex.Domain.Models
         public MarketCap(decimal value, string asset)
         {
             if (value < 0) throw new ArgumentOutOfRangeException(nameof(value));
-            if (string.IsNullOrWhiteSpace(asset)) throw new ArgumentOutOfRangeException(nameof(asset));
+            if (string.IsNullOrWhiteSpace(asset)) throw new ArgumentException(nameof(asset));
 
             Value = value;
             Asset = asset;

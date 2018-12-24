@@ -21,5 +21,7 @@ namespace Lykke.Service.CryptoIndex.Domain.Repositories.Models
         public bool Enabled { get; set; }
 
         public TimeSpan RebuildTime { get; set; }
+        
+        public decimal AutoFreezeChangePercents { get; set; }
     }
 }

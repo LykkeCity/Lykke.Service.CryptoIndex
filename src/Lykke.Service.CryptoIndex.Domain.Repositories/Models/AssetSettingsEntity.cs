@@ -17,12 +17,18 @@
         /// </summary>
         public bool IsDisabled { get; }
 
+        /// <summary>
+        /// True if the asset is automatically 'frozen'.
+        /// </summary>
+        public bool IsAutoDisabled { get; }
+
         /// <inheritdoc />
-        public AssetSettingsEntity(string assetId, decimal price, bool isDisabled)
+        public AssetSettingsEntity(string assetId, decimal price, bool isDisabled, bool isAutoDisabled)
         {
             AssetId = assetId;
             Price = price;
             IsDisabled = isDisabled;
+            IsAutoDisabled = isAutoDisabled;
         }
     }
 }
