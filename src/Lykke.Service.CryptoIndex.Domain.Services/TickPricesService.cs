@@ -51,8 +51,11 @@ namespace Lykke.Service.CryptoIndex.Domain.Services
         {
             var result = _assetsSourcesPricesCache.Clone();
 
-            if (sources == null || !sources.Any())
+            if (sources == null)
                 return result;
+
+            if (!sources.Any())
+                return new Dictionary<string, IDictionary<string, decimal>>();
 
             var assets = result.Keys.ToList();
             foreach (var asset in assets)
