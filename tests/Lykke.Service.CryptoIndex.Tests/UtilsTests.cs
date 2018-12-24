@@ -71,26 +71,6 @@ namespace Lykke.Service.CryptoIndex.Tests
         }
 
         [Fact]
-        public void Middle_Prices_Throw_If_Empty_Asset()
-        {
-            // arrange
-
-            const string asset = "   ";
-            var assetExchangesPrices = new Dictionary<string, decimal>();
-            assetExchangesPrices.Add("exchange1", 1);
-
-            // act
-
-            var ex1 = Assert.Throws<ArgumentOutOfRangeException>(() => Utils.GetMiddlePrice(null, assetExchangesPrices.Values.ToList()));
-            var ex2 = Assert.Throws<ArgumentOutOfRangeException>(() => Utils.GetMiddlePrice(asset, assetExchangesPrices.Values.ToList()));
-
-            // assert
-
-            Assert.Equal(ex1.Message, ex2.Message);
-            Assert.Contains("Empty asset.", ex1.Message);
-        }
-
-        [Fact]
         public void Middle_Prices_Throw_If_No_Prices()
         {
             // arrange
