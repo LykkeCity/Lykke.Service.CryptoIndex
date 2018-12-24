@@ -44,6 +44,7 @@ namespace Lykke.Service.CryptoIndex.Tests
         private ISettingsService _settingsService;
         private IIndexStateRepository _indexStateRepository;
         private IIndexHistoryRepository _indexHistoryRepository;
+        private IFirstStateAfterResetTimeRepository _firstStateAfterResetTimeRepository;
         private ITickPricesService _tickPricesService;
         private ICoinMarketCapService _coinMarketCapService;
         private ITickPricePublisher _tickPricePublisher;
@@ -128,6 +129,24 @@ namespace Lykke.Service.CryptoIndex.Tests
             _indexHistoryRepository = indexHistoryRepository.Object;
         }
 
+        private DateTime? _resetTimestamp;
+        private void InitializeFirstStateAfterResetTimeRepository()
+        {
+            var indexFirstStateAfterResetTimeRepository = new Mock<IFirstStateAfterResetTimeRepository>();
+
+            indexFirstStateAfterResetTimeRepository.Setup(o => o.GetAsync())
+                .Returns(() => Task.FromResult(_resetTimestamp));
+
+            indexFirstStateAfterResetTimeRepository.Setup(o => o.SetAsync(It.IsAny<DateTime>()))
+                .Returns((DateTime timestamp) =>
+                {
+                    _resetTimestamp = timestamp;
+                    return Task.CompletedTask;
+                });
+
+            _firstStateAfterResetTimeRepository = indexFirstStateAfterResetTimeRepository.Object;
+        }
+
         private void InitializeTickPricesService()
         {
             var tickPricesService = new Mock<ITickPricesService>();
@@ -205,6 +224,8 @@ namespace Lykke.Service.CryptoIndex.Tests
 
             InitializeIndexHistoryRepository();
 
+            InitializeFirstStateAfterResetTimeRepository();
+
             InitializeTickPricesService();
 
             InitializeCoinMarketCapService();
@@ -231,6 +252,7 @@ namespace Lykke.Service.CryptoIndex.Tests
                 _coinMarketCapService,
                 _tickPricePublisher,
                 _warningRepository,
+                _firstStateAfterResetTimeRepository,
                 LogFactory.Create());
 
             _indexCalculator.Start();
