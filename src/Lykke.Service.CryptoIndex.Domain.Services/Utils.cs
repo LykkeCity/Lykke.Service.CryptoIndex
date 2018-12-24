@@ -31,6 +31,7 @@ namespace Lykke.Service.CryptoIndex.Domain.Services
                 return currentMiddlePrice;
 
             var previousPrices = lastIndex.MiddlePrices;
+
             return previousPrices.ContainsKey(asset)  // previous prices found in DB in previous IndexState?
                 ? previousPrices[asset]               // yes, use them
                 : currentMiddlePrice;                 // no, use current

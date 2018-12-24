@@ -45,5 +45,10 @@ namespace Lykke.Service.CryptoIndex.Client.Models
         /// The time when CoinMarketCap data should be refreshed and weights recalculated.
         /// </summary>
         public TimeSpan RebuildTime { get; set; }
+
+        /// <summary>
+        /// Percent when asset will become frozen automatically.
+        /// </summary>
+        public decimal AutoFreezeChangePercents { get; set; }
     }
 }
