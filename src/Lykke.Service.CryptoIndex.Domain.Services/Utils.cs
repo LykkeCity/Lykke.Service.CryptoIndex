@@ -22,6 +22,8 @@ namespace Lykke.Service.CryptoIndex.Domain.Services
 
             var middlePrice = prices.Sum() / prices.Count;
 
+            middlePrice = Math.Round(middlePrice, 8);
+
             return middlePrice;
         }
 
@@ -36,5 +38,7 @@ namespace Lykke.Service.CryptoIndex.Domain.Services
                 ? previousPrices[asset]               // yes, use them
                 : currentMiddlePrice;                 // no, use current
         }
+
+
     }
 }
