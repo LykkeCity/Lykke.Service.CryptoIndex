@@ -67,7 +67,16 @@ namespace Lykke.Service.CryptoIndex.Tests
 
             var settingsServiceMock = new Mock<ISettingsService>();
             settingsServiceMock.Setup(o => o.GetAsync())
-                .Returns(() => Task.FromResult(new Settings(sources, assets, topCount, enabled, TimeSpan.Zero, assetsSettings)));
+                .Returns(() => Task.FromResult(new Settings
+                {
+                    Sources = sources,
+                    Assets = assets,
+                    TopCount = topCount,
+                    Enabled = enabled,
+                    RebuildTime = TimeSpan.Zero,
+                    AssetsSettings = assetsSettings,
+                    AutoFreezeChangePercents = 0
+                }));
 
             _settingsService = settingsServiceMock.Object;
         }
