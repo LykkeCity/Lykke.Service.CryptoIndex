@@ -43,6 +43,7 @@ namespace Lykke.Service.CryptoIndex.Domain.Services
         private readonly ICoinMarketCapService _coinMarketCapService;
         private readonly ITickPricePublisher _tickPricePublisher;
         private readonly IWarningRepository _warningRepository;
+        private readonly IFirstStateAfterResetTimeRepository _firstStateAfterResetTimeRepository;
 
         private Settings Settings => _settingsService.GetAsync().GetAwaiter().GetResult();
         private IndexState State => _indexStateRepository.GetAsync().GetAwaiter().GetResult();
@@ -56,6 +57,7 @@ namespace Lykke.Service.CryptoIndex.Domain.Services
             ICoinMarketCapService coinMarketCapService,
             ITickPricePublisher tickPricePublisher,
             IWarningRepository warningRepository,
+            IFirstStateAfterResetTimeRepository firstStateAfterResetTimeRepository,
             ILogFactory logFactory)
         {
             _startedAt = DateTime.UtcNow;
@@ -73,6 +75,7 @@ namespace Lykke.Service.CryptoIndex.Domain.Services
             _coinMarketCapService = coinMarketCapService;
             _tickPricePublisher = tickPricePublisher;
             _warningRepository = warningRepository;
+            _firstStateAfterResetTimeRepository = firstStateAfterResetTimeRepository;
 
             _log = logFactory.CreateLog(this);
         }
@@ -306,14 +309,20 @@ namespace Lykke.Service.CryptoIndex.Domain.Services
             // Get current index state
             var indexState = CalculateIndex(lastIndex, calculatedTopWeights, topUsingPrices);
 
-            // if there was a reset then skip until next iteration which will have initial state
-            if (indexState.Value != InitialIndexValue && State == null)
-            {
-                _log.Info($"Skipped saving and publishing index because of reset - previous state is null and current index not equals {InitialIndexValue}.");
-                return;
-            }
-            
             var indexHistory = new IndexHistory(indexState.Value, calculatedTopMarketCaps, calculatedTopWeights, allPrices, topUsingPrices, DateTime.UtcNow, assetsSettings);
+
+            // if there was a reset then skip until next iteration which will have initial state
+            if (State == null)
+            {
+                if (indexState.Value != InitialIndexValue)
+                {
+                    _log.Info($"Skipped saving and publishing index because of reset - previous state is null and current index not equals {InitialIndexValue}.");
+                    return;
+                }
+                
+                await _firstStateAfterResetTimeRepository.SetAsync(indexHistory.Time);
+                _log.Info($"Reset with time: {indexHistory.Time.ToIsoDateTime()}.");
+            }
 
             await Save(indexState, indexHistory);
 
