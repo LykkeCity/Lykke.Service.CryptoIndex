@@ -212,6 +212,8 @@ namespace Lykke.Service.CryptoIndex.Domain.Services
 
         private async Task TimerHandlerAsync(ITimerTrigger timer, TimerTriggeredHandlerArgs args, CancellationToken ct)
         {
+            _log.Info("Timer handler started...");
+
             try
             {
                 // Refresh CoinMarketCap data and rebuild constituents if needed
@@ -236,6 +238,8 @@ namespace Lykke.Service.CryptoIndex.Domain.Services
             {
                 _log.Warning("Somethings went wrong in timer handler.", e);
             }
+
+            _log.Info("Timer handler finished.");
         }
 
         private async Task CalculateThenSaveAndPublishAsync()
