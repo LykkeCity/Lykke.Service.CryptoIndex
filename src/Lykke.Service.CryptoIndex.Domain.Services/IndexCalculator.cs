@@ -132,12 +132,6 @@ namespace Lykke.Service.CryptoIndex.Domain.Services
 
                 _log.Info("Initialized previous weights and market caps from history.");
             }
-            // if fresh start then force to rebuild to recalculate market caps and weights and get top assets
-            else
-            {
-                lock (_sync)
-                    _rebuildNeeded = true;
-            }
         }
 
         private async Task RefreshCoinMarketCapDataAsync()
