@@ -235,8 +235,8 @@ namespace Lykke.Service.CryptoIndex.Tests
             InitializeWarningRepository();
         }
 
-
         // act
+
         [Fact]
         public void Simple_Test()
         {
@@ -257,12 +257,16 @@ namespace Lykke.Service.CryptoIndex.Tests
 
             _indexCalculator.Start();
 
+            _indexCalculator.Rebuild();
+
             var stepsCount = GetPrices(0).Count - 1; // without header
 
-            while (_step != stepsCount - 1)
+            while (_step != stepsCount)
             {
                 Thread.Sleep(1000);
             }
+
+            _indexCalculator.Stop();
         }
 
         private IDictionary<string, decimal> GetSupply(int step)
@@ -339,11 +343,6 @@ namespace Lykke.Service.CryptoIndex.Tests
 
             Assert.Equal(indexValue, indexTickPrice.Ask);
             Assert.Equal(indexTickPrice.Ask, indexTickPrice.Bid);
-
-            if (_step == stepsCount - 1)
-            {
-                _indexCalculator.Stop();
-            }
         }
     }
 }
