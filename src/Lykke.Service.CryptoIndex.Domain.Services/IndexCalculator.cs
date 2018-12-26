@@ -482,11 +482,11 @@ namespace Lykke.Service.CryptoIndex.Domain.Services
                 // if change is not big enough then skip
                 if (changePercents < settings.AutoFreezeChangePercents)
                 {
-                    // just write a warning w/o auto freeze if change is more then half of AutoFreezeChangePercents
+                    // just write a warning w/o auto freeze if change is more than half of AutoFreezeChangePercents
                     var halfAutoFreezeChangePercents = settings.AutoFreezeChangePercents / 2;
                     if (changePercents > halfAutoFreezeChangePercents)
                     {
-                        var warningMsg = $"One time change more then {Math.Round(halfAutoFreezeChangePercents, 1)} percents for {asset}.";
+                        var warningMsg = $"One time change more than {Math.Round(halfAutoFreezeChangePercents, 2)} percents for {asset}.";
                         _log.Warning(warningMsg);
                         _warningRepository.SaveAsync(new Warning(warningMsg, DateTime.UtcNow));
                     }
