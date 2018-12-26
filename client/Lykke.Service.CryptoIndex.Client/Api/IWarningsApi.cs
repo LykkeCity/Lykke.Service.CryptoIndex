@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using JetBrains.Annotations;
 using Lykke.Service.CryptoIndex.Client.Models;
@@ -17,5 +18,11 @@ namespace Lykke.Service.CryptoIndex.Client.Api
         /// </summary>
         [Get("/api/warnings/last")]
         Task<IReadOnlyList<Warning>> GetLastWarningsAsync(int limit);
+
+        /// <summary>
+        /// Returns history of warnings
+        /// </summary>
+        [Get("/api/warnings/history")]
+        Task<IReadOnlyList<Warning>> GetHistoryAsync(DateTime from, DateTime to);
     }
 }
