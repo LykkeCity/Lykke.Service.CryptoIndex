@@ -481,21 +481,36 @@ namespace Lykke.Service.CryptoIndex.Domain.Services
 
                 // if change is not big enough then skip
                 if (changePercents < settings.AutoFreezeChangePercents)
+                {
+                    // just write a warning w/o auto freeze if change is more than half of AutoFreezeChangePercents
+                    var halfAutoFreezeChangePercents = settings.AutoFreezeChangePercents / 2;
+                    if (changePercents > halfAutoFreezeChangePercents)
+                    {
+                        var warningMsg = $"One time change more than {Math.Round(halfAutoFreezeChangePercents, 2)} percents for {asset}.";
+                        _log.Warning(warningMsg);
+                        _warningRepository.SaveAsync(new Warning(warningMsg, DateTime.UtcNow));
+                    }
+
                     continue;
+                }
 
                 topUsingPrices[asset] = previousPrice;
 
-                // if there was settings for current asset already then remove it
+                // if there was setting for current asset already then remove it
                 if (assetSettings != null)
                     newAssetsSettings.Remove(newAssetsSettings.Single(x => x.AssetId == asset));
 
-                // create new asset settings
+                // create new asset setting
                 assetSettings = new AssetSettings(asset, previousPrice, true, true);
                 newAssetsSettings.Add(assetSettings);
 
                 // save new asset settings
                 settings.AssetsSettings = newAssetsSettings;
                 _settingsService.SetAsync(settings).GetAwaiter().GetResult();
+
+                var message = $"Asset became frozen: {asset}.";
+                _log.Warning(message);
+                _warningRepository.SaveAsync(new Warning(message, DateTime.UtcNow));
             }
         }
 
