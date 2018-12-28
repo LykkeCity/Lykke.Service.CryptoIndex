@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
@@ -9,6 +8,7 @@ using Lykke.Common.ApiLibrary.Exceptions;
 using Lykke.Service.CryptoIndex.Client.Api;
 using Lykke.Service.CryptoIndex.Client.Models;
 using Lykke.Service.CryptoIndex.Domain.Repositories;
+using Lykke.Service.CryptoIndex.Domain.Services;
 using Microsoft.AspNetCore.Mvc;
 using IndexHistory = Lykke.Service.CryptoIndex.Domain.Models.IndexHistory;
 
@@ -19,16 +19,18 @@ namespace Lykke.Service.CryptoIndex.Controllers
     {
         private readonly IIndexHistoryRepository _indexHistoryRepository;
         private readonly IIndexStateRepository _indexStateRepository;
-        private readonly IFirstStateAfterResetTimeRepository _firstStateAfterResetTimeRepository;
+        private readonly IIndexCalculator _indexCalculator;
 
-        private static readonly ConcurrentDictionary<DateTime, decimal> Cache = new ConcurrentDictionary<DateTime, decimal>();
+        private readonly object _sync = new object();
+        private static DateTime? _lastReset;
+        private static IndexHistory _midnight;
 
         public PublicController(IIndexHistoryRepository indexHistoryRepository, IIndexStateRepository indexStateRepository,
-            IFirstStateAfterResetTimeRepository firstStateAfterResetTimeRepository)
+            IIndexCalculator indexCalculator)
         {
             _indexHistoryRepository = indexHistoryRepository;
             _indexStateRepository = indexStateRepository;
-            _firstStateAfterResetTimeRepository = firstStateAfterResetTimeRepository;
+            _indexCalculator = indexCalculator;
         }
 
         [HttpGet("indices")]
@@ -60,19 +62,26 @@ namespace Lykke.Service.CryptoIndex.Controllers
         [ResponseCache(Duration = 10, VaryByQueryKeys = new[] { "*" })]
         public async Task<IReadOnlyList<(DateTime, decimal)>> GetChangeAsync()
         {
-            var lastResetTime = await _firstStateAfterResetTimeRepository.GetAsync();
+            var resultPoints = new List<IndexHistory>();
 
             var from = DateTime.UtcNow.Date;
-            from = lastResetTime.HasValue && lastResetTime.Value > from ? lastResetTime.Value : from;
 
-            var fromMidnight = await _indexHistoryRepository.GetAsync(from, DateTime.UtcNow);
-            var midnight = fromMidnight.FirstOrDefault();
+            lock (_sync)
+            {
+                var lastReset = _indexCalculator.GetLastReset();
+                if (_midnight == null || lastReset != _lastReset)
+                {
+                    _lastReset = lastReset;
+                    from = _lastReset.HasValue && _lastReset.Value > from ? _lastReset.Value : from;
+                    _midnight = _indexHistoryRepository.GetAsync(from, DateTime.UtcNow).GetAwaiter().GetResult().FirstOrDefault();
+                }
 
-            var last = (await _indexHistoryRepository.TakeLastAsync(1)).SingleOrDefault();
+                if (_midnight != null)
+                    resultPoints.Add(_midnight);
+            }       
 
-            var resultPoints = new List<IndexHistory>();
-            if (midnight != null)
-                resultPoints.Add(midnight);
+            var last = _indexCalculator.GetLastIndexHistory();
+
             resultPoints.Add(last);
 
             var result = resultPoints.Select(x => (x.Time, x.Value)).OrderBy(x => x.Time).ToList();
