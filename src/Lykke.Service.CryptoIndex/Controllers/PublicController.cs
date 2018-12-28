@@ -33,15 +33,6 @@ namespace Lykke.Service.CryptoIndex.Controllers
             _indexCalculator = indexCalculator;
         }
 
-        [HttpGet("indices")]
-        [ProducesResponseType(typeof(IReadOnlyList<(DateTime, decimal)>), (int)HttpStatusCode.OK)]
-        [ResponseCache(Duration = 10)]
-        [Obsolete]
-        public async Task<IReadOnlyList<(DateTime, decimal)>> GetIndexHistoriesAsync(DateTime from, DateTime to)
-        {
-            return await GetChangeAsync();
-        }
-
         [HttpGet("index/last")]
         [ProducesResponseType(typeof(PublicIndexHistory), (int)HttpStatusCode.OK)]
         [ResponseCache(Duration = 10, VaryByQueryKeys = new[] { "*" })]
@@ -88,6 +79,38 @@ namespace Lykke.Service.CryptoIndex.Controllers
             var result = resultPoints.Select(x => (x.Time, x.Value)).OrderBy(x => x.Time).ToList();
 
             return result;
+        }
+
+        [HttpGet("indexHistory24h")]
+        [ProducesResponseType(typeof(IDictionary<DateTime, decimal>), (int)HttpStatusCode.OK)]
+        [ResponseCache(Duration = 10, VaryByQueryKeys = new[] { "*" })]
+        public async Task<IDictionary<DateTime, decimal>> GetIndexHistory24h()
+        {
+            throw new NotImplementedException();
+        }
+
+        [HttpGet("indexHistory5d")]
+        [ProducesResponseType(typeof(IDictionary<DateTime, decimal>), (int)HttpStatusCode.OK)]
+        [ResponseCache(Duration = 10, VaryByQueryKeys = new[] { "*" })]
+        public async Task<IDictionary<DateTime, decimal>> GetIndexHistory5d()
+        {
+            throw new NotImplementedException();
+        }
+
+        [HttpGet("indexHistory30d")]
+        [ProducesResponseType(typeof(IDictionary<DateTime, decimal>), (int)HttpStatusCode.OK)]
+        [ResponseCache(Duration = 2*60, VaryByQueryKeys = new[] { "*" })]
+        public async Task<IDictionary<DateTime, decimal>> GetIndexHistory30d()
+        {
+            throw new NotImplementedException();
+        }
+
+        [HttpGet("keyNumbers")]
+        [ProducesResponseType(typeof(KeyNumbers), (int)HttpStatusCode.OK)]
+        [ResponseCache(Duration = 25*60, VaryByQueryKeys = new[] { "*" })]
+        public async Task<KeyNumbers> GetKeyNumbers()
+        {
+            throw new NotImplementedException();
         }
     }
 }
