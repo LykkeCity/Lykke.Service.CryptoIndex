@@ -1,5 +1,7 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
+using Lykke.Service.CryptoIndex.Domain.Models;
 
 namespace Lykke.Service.CryptoIndex.Domain.Services
 {
@@ -10,5 +12,9 @@ namespace Lykke.Service.CryptoIndex.Domain.Services
         Task ResetAsync();
 
         void Rebuild();
+
+        DateTime? GetLastReset();
+
+        IndexHistory GetLastIndexHistory();
     }
 }

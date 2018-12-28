@@ -29,6 +29,11 @@ namespace Lykke.Service.CryptoIndex.Domain.Services
         private DateTime _lastRebuild;
         private bool _rebuildNeeded;
 
+        private readonly object _syncLastReset = new object();
+        private DateTime? _lastReset;
+        private readonly object _syncLastIndexHistory = new object();
+        private IndexHistory _lastIndexHistory;
+
         private readonly TimerTrigger _trigger;
         private readonly ILog _log;
 
@@ -113,11 +118,26 @@ namespace Lykke.Service.CryptoIndex.Domain.Services
                 _rebuildNeeded = true;
             }
         }
-        
+
+        public DateTime? GetLastReset()
+        {
+            lock (_syncLastReset)
+                return _lastReset;
+        }
+
+        public IndexHistory GetLastIndexHistory()
+        {
+            lock (_syncLastIndexHistory)
+                return _lastIndexHistory;
+        }
+
 
         private void Initialize()
         {
             _log.Info("Initializing last state from history if needed...");
+
+            lock(_syncLastReset)
+                _lastReset = _firstStateAfterResetTimeRepository.GetAsync().GetAwaiter().GetResult();
 
             // Initialize _allMarketCaps
             RefreshCoinMarketCapDataAsync().GetAwaiter().GetResult();
@@ -127,6 +147,9 @@ namespace Lykke.Service.CryptoIndex.Domain.Services
             // if found then restore _topAssets (constituents)
             if (lastIndexHistory != null)
             {
+                lock (_syncLastIndexHistory)
+                    _lastIndexHistory = lastIndexHistory;
+
                 lock (_sync)
                     _topAssets.AddRange(lastIndexHistory.Weights.Keys);
 
@@ -308,6 +331,10 @@ namespace Lykke.Service.CryptoIndex.Domain.Services
                 }
                 
                 await _firstStateAfterResetTimeRepository.SetAsync(indexHistory.Time);
+
+                lock (_syncLastReset)
+                    _lastReset = indexHistory.Time;
+
                 _log.Info($"Reset at: {indexHistory.Time.ToIsoDateTime()}.");
             }
 
@@ -317,6 +344,9 @@ namespace Lykke.Service.CryptoIndex.Domain.Services
                 _log.Info($"Skipped saving and publishing index because {nameof(Settings)}.{nameof(Settings.Enabled)} = {Settings.Enabled}.");
                 return;
             }
+
+            lock (_syncLastIndexHistory)
+                _lastIndexHistory = indexHistory;
 
             await SaveAsync(indexState, indexHistory);
 
