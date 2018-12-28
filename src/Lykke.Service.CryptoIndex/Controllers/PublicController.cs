@@ -82,7 +82,8 @@ namespace Lykke.Service.CryptoIndex.Controllers
 
             var last = _indexCalculator.GetLastIndexHistory();
 
-            resultPoints.Add(last);
+            if (last != null)
+                resultPoints.Add(last);
 
             var result = resultPoints.Select(x => (x.Time, x.Value)).OrderBy(x => x.Time).ToList();
 
