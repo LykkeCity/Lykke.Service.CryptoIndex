@@ -69,7 +69,7 @@ namespace Lykke.Service.CryptoIndex.Controllers
             lock (_sync)
             {
                 var lastReset = _indexCalculator.GetLastReset();
-                if (_midnight == null || lastReset != _lastReset)
+                if (_midnight == null || _midnight.Time.Date != DateTime.UtcNow.Date || lastReset != _lastReset)
                 {
                     _lastReset = lastReset;
                     from = _lastReset.HasValue && _lastReset.Value > from ? _lastReset.Value : from;
