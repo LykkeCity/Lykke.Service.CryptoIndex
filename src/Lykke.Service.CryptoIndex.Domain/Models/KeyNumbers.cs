@@ -1,4 +1,4 @@
-﻿namespace Lykke.Service.CryptoIndex.Domain.Services.Models
+﻿namespace Lykke.Service.CryptoIndex.Domain.Models
 {
     /// <summary>
     /// Key Numbers statistics
@@ -13,36 +13,36 @@
         /// <summary>
         /// Return for the last 24 hours
         /// </summary>
-        public decimal Return24h { get; set; }
+        public decimal Return24H { get; set; }
 
         /// <summary>
         /// Return for the last 5 days
         /// </summary>
-        public decimal Return5d { get; set; }
+        public decimal Return5D { get; set; }
 
         /// <summary>
         /// Return for the last 30 days
         /// </summary>
-        public decimal Return30d { get; set; }
+        public decimal Return30D { get; set; }
 
         /// <summary>
         /// Maximum value for the last 24 hours
         /// </summary>
-        public decimal Max24h { get; set; }
+        public decimal Max24H { get; set; }
 
         /// <summary>
         /// Minimum value for the last 24 hours
         /// </summary>
-        public decimal Min24h { get; set; }
+        public decimal Min24H { get; set; }
 
         /// <summary>
         /// Volatility for the last 24 hours
         /// </summary>
-        public decimal Volatility24h { get; set; }
+        public decimal Volatility24H { get; set; }
 
         /// <summary>
         /// Volatility for the last 30 days
         /// </summary>
-        public decimal Volatility30d { get; set; }
+        public decimal Volatility30D { get; set; }
     }
 }

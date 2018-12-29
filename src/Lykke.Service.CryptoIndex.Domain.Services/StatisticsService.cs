@@ -6,18 +6,18 @@ using Common.Log;
 using Lykke.Common.Log;
 using Lykke.Service.CryptoIndex.Domain.Handlers;
 using Lykke.Service.CryptoIndex.Domain.Models;
-using Lykke.Service.CryptoIndex.Domain.Services.Models;
+using Lykke.Service.CryptoIndex.Domain.Repositories;
 
 namespace Lykke.Service.CryptoIndex.Domain.Services
 {
-    public class StatisticsService : IIndexHandler
+    public class StatisticsService : IStatisticsService, IIndexHandler
     {
         private readonly object _sync24H = new object();
         // add each value
         private readonly SortedDictionary<DateTime, decimal> _history24H = new SortedDictionary<DateTime, decimal>();
         private decimal _currentValue;
-        private decimal _max24H;
-        private decimal _min24H;
+        private decimal _max24H = decimal.MinValue;
+        private decimal _min24H = decimal.MaxValue;
         private decimal _volatility24H;
         private decimal _return24H;
 
@@ -32,11 +32,23 @@ namespace Lykke.Service.CryptoIndex.Domain.Services
         private decimal _volatility30D;
         private decimal _return30D;
 
+        private readonly IIndexHistoryRepository _indexHistoryRepository;
+        private readonly IChartHistory5DRepository _chartHistory5DRepository;
+        private readonly IChartHistory30DRepository _chartHistory30DRepository;
+
         private readonly ILog _log;
 
-        public StatisticsService(ILogFactory logFactory)
+        public StatisticsService(IIndexHistoryRepository indexHistoryRepository,
+            IChartHistory5DRepository chartHistory5DRepository,
+            IChartHistory30DRepository chartHistory30DRepository,
+            ILogFactory logFactory)
         {
+            _indexHistoryRepository = indexHistoryRepository;
+            _chartHistory5DRepository = chartHistory5DRepository;
+            _chartHistory30DRepository = chartHistory30DRepository;
             _log = logFactory.CreateLog(this);
+
+            Initialize();
         }
 
         public Task HandleAsync(IndexHistory indexHistory)
@@ -53,22 +65,9 @@ namespace Lykke.Service.CryptoIndex.Domain.Services
                     if (oldest != default(DateTime)) // not empty
                         _history24H.Remove(oldest);
 
-
                     _history24H[indexHistory.Time] = indexHistory.Value;
 
-                    if (indexHistory.Value > _max24H)
-                        _max24H = indexHistory.Value;
-
-                    if (indexHistory.Value < _min24H)
-                        _min24H = indexHistory.Value;
-
-                    _volatility24H = Volatility24H();
-
-                    oldest = _history24H.Keys.FirstOrDefault();
-                    var newest = _history24H.Keys.LastOrDefault();
-                    var oldestValue = _history24H[oldest];
-                    var newestValue = _history24H[newest];
-                    _return24H = (oldestValue - newestValue) / oldestValue * 100;
+                    CalculateKeyNumbers24H();
                 }
 
                 lock (_sync5D)
@@ -80,11 +79,10 @@ namespace Lykke.Service.CryptoIndex.Domain.Services
                     {
                         var oldest = _history5D.Keys.FirstOrDefault();
                         _history5D.Remove(oldest);
+                        _chartHistory5DRepository.InsertOrReplaceAsync(indexHistory.Time, indexHistory.Value).GetAwaiter().GetResult();
                         _history5D[indexHistory.Time] = indexHistory.Value;
 
-                        var oldestValue = _history5D[oldest];
-                        var newestValue = _history5D[newest];
-                        _return5D = (oldestValue - newestValue) / oldestValue * 100;
+                        CalculateKeyNumbers5D();
                     }
                 }
 
@@ -97,13 +95,10 @@ namespace Lykke.Service.CryptoIndex.Domain.Services
                     {
                         var oldest = _history30D.Keys.FirstOrDefault();
                         _history30D.Remove(oldest);
+                        _chartHistory30DRepository.InsertOrReplaceAsync(indexHistory.Time, indexHistory.Value).GetAwaiter().GetResult();
                         _history30D[indexHistory.Time] = indexHistory.Value;
 
-                        var oldestValue = _history30D[oldest];
-                        var newestValue = _history30D[newest];
-                        _return30D = (oldestValue - newestValue) / oldestValue * 100;
-
-                        _volatility30D = Volatility30D();
+                        CalculateKeyNumbers30D();
                     }
                 }
 
@@ -116,19 +111,67 @@ namespace Lykke.Service.CryptoIndex.Domain.Services
             return Task.CompletedTask;
         }
 
-        public IDictionary<DateTime, decimal> GetIndexHistory24h()
+        private void CalculateKeyNumbers24H()
+        {
+            _max24H = _history24H.Values.Max();
+
+            _min24H = _history24H.Values.Min();
+
+            _volatility24H = Volatility24H();
+            _volatility24H = Math.Round(_volatility24H, 2);
+
+            var oldest = _history24H.Keys.FirstOrDefault();
+            var newest = _history24H.Keys.LastOrDefault();
+            var oldestValue = _history24H[oldest];
+            var newestValue = _history24H[newest];
+            _return24H = (oldestValue - newestValue) / oldestValue * 100;
+            _return24H = Math.Round(_return24H, 2);
+        }
+
+        private void CalculateKeyNumbers5D()
+        {
+            var oldest = _history5D.Keys.FirstOrDefault();
+            var newest = _history5D.Keys.LastOrDefault();
+
+            if (oldest == default(DateTime))
+                return;
+
+            var oldestValue = _history5D[oldest];
+            var newestValue = _history5D[newest];
+            _return5D = (oldestValue - newestValue) / oldestValue * 100;
+            _return5D = Math.Round(_return5D, 2);
+        }
+
+        private void CalculateKeyNumbers30D()
+        {
+            var oldest = _history30D.Keys.FirstOrDefault();
+            var newest = _history30D.Keys.LastOrDefault();
+
+            if (oldest == default(DateTime))
+                return;
+
+            var oldestValue = _history30D[oldest];
+            var newestValue = _history30D[newest];
+            _return30D = (oldestValue - newestValue) / oldestValue * 100;
+            _return30D = Math.Round(_return30D, 2);
+
+            _volatility30D = Volatility30D();
+            _volatility30D = Math.Round(_volatility30D, 2);
+        }
+
+        public IDictionary<DateTime, decimal> GetIndexHistory24H()
         {
             lock (_sync24H)
                 return _history24H;
         }
 
-        public IDictionary<DateTime, decimal> GetIndexHistory5d()
+        public IDictionary<DateTime, decimal> GetIndexHistory5D()
         {
             lock (_sync5D)
                 return _history5D;
         }
 
-        public IDictionary<DateTime, decimal> GetIndexHistory30d()
+        public IDictionary<DateTime, decimal> GetIndexHistory30D()
         {
             lock (_sync30D)
                 return _history30D;
@@ -139,19 +182,51 @@ namespace Lykke.Service.CryptoIndex.Domain.Services
             return new KeyNumbers
             {
                 CurrentValue = _currentValue,
-                Max24h = _max24H,
-                Min24h = _min24H,
-                Return24h = _return24H,
-                Return5d = _return5D,
-                Return30d = _return30D,
-                Volatility24h = _volatility24H,
-                Volatility30d = _volatility30D
+                Max24H = _max24H,
+                Min24H = _min24H,
+                Return24H = _return24H,
+                Return5D = _return5D,
+                Return30D = _return30D,
+                Volatility24H = _volatility24H,
+                Volatility30D = _volatility30D
             };
         }
 
         private void Initialize()
         {
-            // Загрузить значения справочников из БД
+            var history24H = _indexHistoryRepository.GetAsync(DateTime.UtcNow.AddHours(-24), DateTime.UtcNow).GetAwaiter().GetResult();
+            if (history24H.Any())
+                lock (_sync24H)
+                {
+                    foreach (var point in history24H)
+                        _history24H[point.Time] = point.Value;
+                    
+                    CalculateKeyNumbers24H();
+                }
+
+            var history5D = _chartHistory5DRepository.GetAsync(DateTime.UtcNow.AddDays(-5), DateTime.UtcNow).GetAwaiter().GetResult();
+            if (history5D.Any())
+                lock (_sync5D)
+                {
+                    foreach (var point5D in history5D)
+                        _history5D[point5D.Key] = point5D.Value;
+
+                    var newest = _history5D.Keys.LastOrDefault();
+                    var oldest = _history5D.Keys.FirstOrDefault();
+                    CalculateKeyNumbers5D();
+                }
+
+            var history30D = _chartHistory30DRepository.GetAsync(DateTime.UtcNow.AddDays(-30), DateTime.UtcNow).GetAwaiter().GetResult();
+            if (history30D.Any())
+                lock (_sync30D)
+                {
+                    foreach (var point30D in history30D)
+                        _history30D[point30D.Key] = point30D.Value;
+
+                    var newest = _history30D.Keys.LastOrDefault();
+                    var oldest = _history30D.Keys.FirstOrDefault();
+                    CalculateKeyNumbers30D();
+                }
         }
 
         private decimal Volatility24H()

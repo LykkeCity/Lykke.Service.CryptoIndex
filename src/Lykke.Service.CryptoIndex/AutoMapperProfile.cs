@@ -21,6 +21,9 @@ namespace Lykke.Service.CryptoIndex
             CreateMap<IndexHistory, Client.Models.PublicIndexHistory>()
                 .ForMember(dest => dest.FrozenAssets, opt =>
                     opt.MapFrom(src => src.AssetsSettings.Where(x => x.IsDisabled)));
+
+            CreateMap<Client.Models.KeyNumbers, KeyNumbers>();
+            CreateMap<KeyNumbers, Client.Models.KeyNumbers>();
         }
     }
 }

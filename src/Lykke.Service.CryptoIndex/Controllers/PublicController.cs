@@ -20,17 +20,19 @@ namespace Lykke.Service.CryptoIndex.Controllers
         private readonly IIndexHistoryRepository _indexHistoryRepository;
         private readonly IIndexStateRepository _indexStateRepository;
         private readonly IIndexCalculator _indexCalculator;
+        private readonly IStatisticsService _statisticsService;
 
         private readonly object _sync = new object();
         private static DateTime? _lastReset;
         private static IndexHistory _midnight;
 
         public PublicController(IIndexHistoryRepository indexHistoryRepository, IIndexStateRepository indexStateRepository,
-            IIndexCalculator indexCalculator)
+            IIndexCalculator indexCalculator, IStatisticsService statisticsService)
         {
             _indexHistoryRepository = indexHistoryRepository;
             _indexStateRepository = indexStateRepository;
             _indexCalculator = indexCalculator;
+            _statisticsService = statisticsService;
         }
 
         [HttpGet("index/last")]
@@ -86,7 +88,7 @@ namespace Lykke.Service.CryptoIndex.Controllers
         [ResponseCache(Duration = 10, VaryByQueryKeys = new[] { "*" })]
         public async Task<IDictionary<DateTime, decimal>> GetIndexHistory24h()
         {
-            throw new NotImplementedException();
+            return _statisticsService.GetIndexHistory24H();
         }
 
         [HttpGet("indexHistory5d")]
@@ -94,7 +96,7 @@ namespace Lykke.Service.CryptoIndex.Controllers
         [ResponseCache(Duration = 10, VaryByQueryKeys = new[] { "*" })]
         public async Task<IDictionary<DateTime, decimal>> GetIndexHistory5d()
         {
-            throw new NotImplementedException();
+            return _statisticsService.GetIndexHistory5D();
         }
 
         [HttpGet("indexHistory30d")]
@@ -102,7 +104,7 @@ namespace Lykke.Service.CryptoIndex.Controllers
         [ResponseCache(Duration = 2*60, VaryByQueryKeys = new[] { "*" })]
         public async Task<IDictionary<DateTime, decimal>> GetIndexHistory30d()
         {
-            throw new NotImplementedException();
+            return _statisticsService.GetIndexHistory30D();
         }
 
         [HttpGet("keyNumbers")]
@@ -110,7 +112,11 @@ namespace Lykke.Service.CryptoIndex.Controllers
         [ResponseCache(Duration = 25*60, VaryByQueryKeys = new[] { "*" })]
         public async Task<KeyNumbers> GetKeyNumbers()
         {
-            throw new NotImplementedException();
+            var domain = _statisticsService.GetKeyNumbers();
+
+            var result = Mapper.Map<KeyNumbers>(domain);
+
+            return result;
         }
     }
 }
