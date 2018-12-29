@@ -13,6 +13,7 @@ namespace Lykke.Service.CryptoIndex.Domain.Services
     public class StatisticsService : IStatisticsService, IIndexHandler
     {
         private readonly object _sync24H = new object();
+        private bool _initialized;
         // add each value
         private readonly SortedDictionary<DateTime, decimal> _history24H = new SortedDictionary<DateTime, decimal>();
         private decimal _currentValue;
@@ -47,8 +48,6 @@ namespace Lykke.Service.CryptoIndex.Domain.Services
             _chartHistory5DRepository = chartHistory5DRepository;
             _chartHistory30DRepository = chartHistory30DRepository;
             _log = logFactory.CreateLog(this);
-
-            Initialize();
         }
 
         public Task HandleAsync(IndexHistory indexHistory)
@@ -57,8 +56,13 @@ namespace Lykke.Service.CryptoIndex.Domain.Services
             {
                 lock (_sync24H)
                 {
-                    _currentValue = indexHistory.Value;
+                    if (!_initialized)
+                    {
+                        Initialize();
+                        _initialized = true;
+                    }
 
+                    _currentValue = indexHistory.Value;
 
                     var oldest = _history24H.Keys.FirstOrDefault();
 
@@ -211,8 +215,6 @@ namespace Lykke.Service.CryptoIndex.Domain.Services
                     foreach (var point5D in history5D)
                         _history5D[point5D.Key] = point5D.Value;
 
-                    var newest = _history5D.Keys.LastOrDefault();
-                    var oldest = _history5D.Keys.FirstOrDefault();
                     CalculateKeyNumbers5D();
                 }
 
@@ -223,8 +225,6 @@ namespace Lykke.Service.CryptoIndex.Domain.Services
                     foreach (var point30D in history30D)
                         _history30D[point30D.Key] = point30D.Value;
 
-                    var newest = _history30D.Keys.LastOrDefault();
-                    var oldest = _history30D.Keys.FirstOrDefault();
                     CalculateKeyNumbers30D();
                 }
         }
