@@ -79,7 +79,7 @@ namespace Lykke.Service.CryptoIndex.Domain.Services
                     var newest = _history5D.Keys.LastOrDefault();
 
                     if (newest == default(DateTime) // empty
-                        || newest - indexHistory.Time > TimeSpan.FromMinutes(5))
+                        || indexHistory.Time - newest > TimeSpan.FromMinutes(5))
                     {
                         var oldest = _history5D.Keys.FirstOrDefault();
                         _history5D.Remove(oldest);
@@ -95,7 +95,7 @@ namespace Lykke.Service.CryptoIndex.Domain.Services
                     var newest = _history30D.Keys.LastOrDefault();
 
                     if (newest == default(DateTime) // empty
-                        || newest - indexHistory.Time > TimeSpan.FromMinutes(30))
+                        || indexHistory.Time - newest > TimeSpan.FromMinutes(30))
                     {
                         var oldest = _history30D.Keys.FirstOrDefault();
                         _history30D.Remove(oldest);
