@@ -7,6 +7,7 @@ using Autofac;
 using Common;
 using Common.Log;
 using Lykke.Common.Log;
+using Lykke.Service.CryptoIndex.Domain.Handlers;
 using Lykke.Service.CryptoIndex.Domain.Models;
 using Lykke.Service.CryptoIndex.Domain.Publishers;
 using Lykke.Service.CryptoIndex.Domain.Repositories;
@@ -46,6 +47,8 @@ namespace Lykke.Service.CryptoIndex.Domain.Services
         private readonly IWarningRepository _warningRepository;
         private readonly IFirstStateAfterResetTimeRepository _firstStateAfterResetTimeRepository;
 
+        private readonly IIndexHandler _indexHandler;
+
         private Settings Settings => _settingsService.GetAsync().GetAwaiter().GetResult();
         private IndexState State => _indexStateRepository.GetAsync().GetAwaiter().GetResult();
 
@@ -59,6 +62,7 @@ namespace Lykke.Service.CryptoIndex.Domain.Services
             ITickPricePublisher tickPricePublisher,
             IWarningRepository warningRepository,
             IFirstStateAfterResetTimeRepository firstStateAfterResetTimeRepository,
+            IIndexHandler indexHandler,
             ILogFactory logFactory)
         {
             _lastRebuild = DateTime.UtcNow.Date;
@@ -76,6 +80,7 @@ namespace Lykke.Service.CryptoIndex.Domain.Services
             _tickPricePublisher = tickPricePublisher;
             _warningRepository = warningRepository;
             _firstStateAfterResetTimeRepository = firstStateAfterResetTimeRepository;
+            _indexHandler = indexHandler;
 
             _log = logFactory.CreateLog(this);
         }
@@ -351,6 +356,8 @@ namespace Lykke.Service.CryptoIndex.Domain.Services
             await SaveAsync(indexState, indexHistory);
 
             Publish(indexHistory);
+
+            await _indexHandler.HandleAsync(indexHistory);
 
             _log.Info($"Finished calculating index for {calculatedTopMarketCaps.Count} assets, value: {indexState.Value}.");
         }

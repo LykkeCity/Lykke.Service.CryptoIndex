@@ -1,5 +1,4 @@
 ﻿using Autofac;
-using Autofac.Core.NonPublicProperty;
 using AzureStorage.Blob;
 using AzureStorage.Tables;
 using Common;
@@ -96,6 +95,18 @@ namespace Lykke.Service.CryptoIndex.Modules
                 .As<IWarningRepository>()
                 .SingleInstance();
 
+            builder.Register(c => new ChartHistory5DRepository(
+                    AzureTableStorage<HistoryPointEntity>.Create(_connectionString,
+                        "ChartHistory5D", c.Resolve<ILogFactory>())))
+                .As<IChartHistory5DRepository>()
+                .SingleInstance();
+
+            builder.Register(c => new ChartHistory30DRepository(
+                    AzureTableStorage<HistoryPointEntity>.Create(_connectionString,
+                        "ChartHistory30D", c.Resolve<ILogFactory>())))
+                .As<IChartHistory30DRepository>()
+                .SingleInstance();
+
             // Services
 
             builder.RegisterType<TickPricesService>()
@@ -122,7 +133,11 @@ namespace Lykke.Service.CryptoIndex.Modules
                 .As<IStopable>()
                 .WithParameter("indexName", _settings.IndexName)
                 .WithParameter("indexCalculationInterval", _settings.IndexCalculationInterval)
-                .AutoWireNonPublicProperties()
+                .SingleInstance();
+
+            builder.RegisterType<StatisticsService>()
+                .As<IStatisticsService>()
+                .As<IIndexHandler>()
                 .SingleInstance();
         }
     }

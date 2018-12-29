@@ -14,13 +14,6 @@ namespace Lykke.Service.CryptoIndex.Client.Api
     public interface IPublicApi
     {
         /// <summary>
-        /// Returns indices
-        /// </summary>
-        [Get("/api/public/indices")]
-        [Obsolete]
-        Task<IReadOnlyList<(DateTime, decimal)>> GetIndexHistoriesAsync(DateTime from, DateTime to);
-        
-        /// <summary>
         /// Returns last index
         /// </summary>
         [Get("/api/public/index/last")]
@@ -31,5 +24,29 @@ namespace Lykke.Service.CryptoIndex.Client.Api
         /// </summary>
         [Get("/api/public/change")]
         Task<IReadOnlyList<(DateTime, decimal)>> GetChangeAsync();
+
+        /// <summary>
+        /// Returns value at today midnight and last value
+        /// </summary>
+        [Get("/api/public/indexHistory24h")]
+        Task<IDictionary<DateTime, decimal>> GetIndexHistory24h();
+
+        /// <summary>
+        /// Returns value at today midnight and last value
+        /// </summary>
+        [Get("/api/public/indexHistory5d")]
+        Task<IDictionary<DateTime, decimal>> GetIndexHistory5d();
+
+        /// <summary>
+        /// Returns value at today midnight and last value
+        /// </summary>
+        [Get("/api/public/indexHistory30d")]
+        Task<IDictionary<DateTime, decimal>> GetIndexHistory30d();
+
+        /// <summary>
+        /// Returns value at today midnight and last value
+        /// </summary>
+        [Get("/api/public/keyNumbers")]
+        Task<KeyNumbers> GetKeyNumbers();
     }
 }

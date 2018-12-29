@@ -20,26 +20,19 @@ namespace Lykke.Service.CryptoIndex.Controllers
         private readonly IIndexHistoryRepository _indexHistoryRepository;
         private readonly IIndexStateRepository _indexStateRepository;
         private readonly IIndexCalculator _indexCalculator;
+        private readonly IStatisticsService _statisticsService;
 
         private readonly object _sync = new object();
         private static DateTime? _lastReset;
         private static IndexHistory _midnight;
 
         public PublicController(IIndexHistoryRepository indexHistoryRepository, IIndexStateRepository indexStateRepository,
-            IIndexCalculator indexCalculator)
+            IIndexCalculator indexCalculator, IStatisticsService statisticsService)
         {
             _indexHistoryRepository = indexHistoryRepository;
             _indexStateRepository = indexStateRepository;
             _indexCalculator = indexCalculator;
-        }
-
-        [HttpGet("indices")]
-        [ProducesResponseType(typeof(IReadOnlyList<(DateTime, decimal)>), (int)HttpStatusCode.OK)]
-        [ResponseCache(Duration = 10)]
-        [Obsolete]
-        public async Task<IReadOnlyList<(DateTime, decimal)>> GetIndexHistoriesAsync(DateTime from, DateTime to)
-        {
-            return await GetChangeAsync();
+            _statisticsService = statisticsService;
         }
 
         [HttpGet("index/last")]
@@ -86,6 +79,42 @@ namespace Lykke.Service.CryptoIndex.Controllers
                 resultPoints.Add(last);
 
             var result = resultPoints.Select(x => (x.Time, x.Value)).OrderBy(x => x.Time).ToList();
+
+            return result;
+        }
+
+        [HttpGet("indexHistory24h")]
+        [ProducesResponseType(typeof(IDictionary<DateTime, decimal>), (int)HttpStatusCode.OK)]
+        [ResponseCache(Duration = 10, VaryByQueryKeys = new[] { "*" })]
+        public async Task<IDictionary<DateTime, decimal>> GetIndexHistory24h()
+        {
+            return _statisticsService.GetIndexHistory24H();
+        }
+
+        [HttpGet("indexHistory5d")]
+        [ProducesResponseType(typeof(IDictionary<DateTime, decimal>), (int)HttpStatusCode.OK)]
+        [ResponseCache(Duration = 10, VaryByQueryKeys = new[] { "*" })]
+        public async Task<IDictionary<DateTime, decimal>> GetIndexHistory5d()
+        {
+            return _statisticsService.GetIndexHistory5D();
+        }
+
+        [HttpGet("indexHistory30d")]
+        [ProducesResponseType(typeof(IDictionary<DateTime, decimal>), (int)HttpStatusCode.OK)]
+        [ResponseCache(Duration = 2*60, VaryByQueryKeys = new[] { "*" })]
+        public async Task<IDictionary<DateTime, decimal>> GetIndexHistory30d()
+        {
+            return _statisticsService.GetIndexHistory30D();
+        }
+
+        [HttpGet("keyNumbers")]
+        [ProducesResponseType(typeof(KeyNumbers), (int)HttpStatusCode.OK)]
+        [ResponseCache(Duration = 25*60, VaryByQueryKeys = new[] { "*" })]
+        public async Task<KeyNumbers> GetKeyNumbers()
+        {
+            var domain = _statisticsService.GetKeyNumbers();
+
+            var result = Mapper.Map<KeyNumbers>(domain);
 
             return result;
         }
