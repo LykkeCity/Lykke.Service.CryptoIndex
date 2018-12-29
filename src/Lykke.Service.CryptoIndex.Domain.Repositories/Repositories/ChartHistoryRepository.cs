@@ -32,23 +32,16 @@ namespace Lykke.Service.CryptoIndex.Domain.Repositories.Repositories
         {
             var filterPk = TableQuery.CombineFilters(
                 TableQuery.GenerateFilterCondition(nameof(AzureTableEntity.PartitionKey), QueryComparisons.GreaterThanOrEqual,
-                    GetPartitionKey(from.Date)),
-                TableOperators.And,
-                TableQuery.GenerateFilterCondition(nameof(AzureTableEntity.PartitionKey), QueryComparisons.LessThanOrEqual,
-                    GetPartitionKey(to.Date)));
-
-            var filterRk = TableQuery.CombineFilters(
-                TableQuery.GenerateFilterCondition(nameof(AzureTableEntity.RowKey), QueryComparisons.GreaterThanOrEqual,
                     GetPartitionKey(from)),
                 TableOperators.And,
-                TableQuery.GenerateFilterCondition(nameof(AzureTableEntity.RowKey), QueryComparisons.LessThanOrEqual,
+                TableQuery.GenerateFilterCondition(nameof(AzureTableEntity.PartitionKey), QueryComparisons.LessThanOrEqual,
                     GetPartitionKey(to)));
 
-            var combined = TableQuery.CombineFilters(filterPk, TableOperators.And, filterRk);
-
-            var query = new TableQuery<HistoryPointEntity>().Where(combined);
+            var query = new TableQuery<HistoryPointEntity>().Where(filterPk);
 
             var models = await _storage.WhereAsync(query);
+
+            models = models.Where(x => x.Time > from && x.Time < to);
 
             return models.ToDictionary(point => point.Time, point => point.Value);
         }
