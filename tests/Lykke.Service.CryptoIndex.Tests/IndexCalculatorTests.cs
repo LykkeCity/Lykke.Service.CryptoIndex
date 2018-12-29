@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Lykke.Logs;
+using Lykke.Service.CryptoIndex.Domain.Handlers;
 using Lykke.Service.CryptoIndex.Domain.Models;
 using Lykke.Service.CryptoIndex.Domain.Publishers;
 using Lykke.Service.CryptoIndex.Domain.Repositories;
@@ -49,6 +50,7 @@ namespace Lykke.Service.CryptoIndex.Tests
         private ICoinMarketCapService _coinMarketCapService;
         private ITickPricePublisher _tickPricePublisher;
         private IWarningRepository _warningRepository;
+        private IIndexHandler _indexHandler;
         private IndexCalculator _indexCalculator;
 
         private void InitializeSettingsService()
@@ -168,6 +170,15 @@ namespace Lykke.Service.CryptoIndex.Tests
             _tickPricesService = tickPricesService.Object;
         }
 
+        private void InitializeIndexHandler()
+        {
+            var indexHandler = new Mock<IIndexHandler>();
+
+            indexHandler.Setup(o => o.HandleAsync(It.IsAny<IndexHistory>()));
+
+            _indexHandler = indexHandler.Object;
+        }
+
         private void InitializeCoinMarketCapService()
         {
             var coinMarketCapService = new Mock<ICoinMarketCapService>();
@@ -218,13 +229,16 @@ namespace Lykke.Service.CryptoIndex.Tests
 
         private void InitializeDependencies()
         {
-            InitializeSettingsService();
-
             InitializeIndexStateRepository();
 
             InitializeIndexHistoryRepository();
 
             InitializeFirstStateAfterResetTimeRepository();
+
+            InitializeWarningRepository();
+
+
+            InitializeSettingsService();
 
             InitializeTickPricesService();
 
@@ -232,7 +246,7 @@ namespace Lykke.Service.CryptoIndex.Tests
 
             InitializeTickPricePublisher();
 
-            InitializeWarningRepository();
+            InitializeIndexHandler();
         }
 
         // act
@@ -253,6 +267,7 @@ namespace Lykke.Service.CryptoIndex.Tests
                 _tickPricePublisher,
                 _warningRepository,
                 _firstStateAfterResetTimeRepository,
+                _indexHandler,
                 LogFactory.Create());
 
             _indexCalculator.Start();
