@@ -86,7 +86,7 @@ namespace Lykke.Service.CryptoIndex.Controllers
         [HttpGet("indexHistory24h")]
         [ProducesResponseType(typeof(IDictionary<DateTime, decimal>), (int)HttpStatusCode.OK)]
         [ResponseCache(Duration = 10, VaryByQueryKeys = new[] { "*" })]
-        public async Task<IDictionary<DateTime, decimal>> GetIndexHistory24h()
+        public async Task<IDictionary<DateTime, decimal>> GetIndexHistory24H()
         {
             return _statisticsService.GetIndexHistory24H();
         }
@@ -94,7 +94,7 @@ namespace Lykke.Service.CryptoIndex.Controllers
         [HttpGet("indexHistory5d")]
         [ProducesResponseType(typeof(IDictionary<DateTime, decimal>), (int)HttpStatusCode.OK)]
         [ResponseCache(Duration = 2*60, VaryByQueryKeys = new[] { "*" })]
-        public async Task<IDictionary<DateTime, decimal>> GetIndexHistory5d()
+        public async Task<IDictionary<DateTime, decimal>> GetIndexHistory5D()
         {
             return _statisticsService.GetIndexHistory5D();
         }
@@ -102,7 +102,7 @@ namespace Lykke.Service.CryptoIndex.Controllers
         [HttpGet("indexHistory30d")]
         [ProducesResponseType(typeof(IDictionary<DateTime, decimal>), (int)HttpStatusCode.OK)]
         [ResponseCache(Duration = 15*60, VaryByQueryKeys = new[] { "*" })]
-        public async Task<IDictionary<DateTime, decimal>> GetIndexHistory30d()
+        public async Task<IDictionary<DateTime, decimal>> GetIndexHistory30D()
         {
             return _statisticsService.GetIndexHistory30D();
         }
