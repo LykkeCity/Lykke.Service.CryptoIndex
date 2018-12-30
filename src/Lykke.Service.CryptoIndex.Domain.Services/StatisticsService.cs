@@ -64,12 +64,12 @@ namespace Lykke.Service.CryptoIndex.Domain.Services
 
                     _currentValue = indexHistory.Value;
 
-                    var oldest = _history24H.Keys.FirstOrDefault();
-
-                    if (oldest != default(DateTime)) // not empty
-                        _history24H.Remove(oldest);
-
                     _history24H[indexHistory.Time] = indexHistory.Value;
+
+                    // remove old
+                    foreach (var time in _history24H.Keys.ToList())
+                        if (time < DateTime.UtcNow.AddDays(-1))
+                            _history24H.Remove(time);
 
                     CalculateKeyNumbers24H();
                 }
@@ -81,10 +81,13 @@ namespace Lykke.Service.CryptoIndex.Domain.Services
                     if (newest == default(DateTime) // empty
                         || indexHistory.Time - newest > TimeSpan.FromMinutes(5))
                     {
-                        var oldest = _history5D.Keys.FirstOrDefault();
-                        _history5D.Remove(oldest);
                         _chartHistory5DRepository.InsertOrReplaceAsync(indexHistory.Time, indexHistory.Value).GetAwaiter().GetResult();
                         _history5D[indexHistory.Time] = indexHistory.Value;
+
+                        // remove old
+                        foreach (var time in _history5D.Keys.ToList())
+                            if (time < DateTime.UtcNow.AddDays(-5))
+                                _history5D.Remove(time);
 
                         CalculateKeyNumbers5D();
                     }
@@ -97,10 +100,13 @@ namespace Lykke.Service.CryptoIndex.Domain.Services
                     if (newest == default(DateTime) // empty
                         || indexHistory.Time - newest > TimeSpan.FromMinutes(30))
                     {
-                        var oldest = _history30D.Keys.FirstOrDefault();
-                        _history30D.Remove(oldest);
                         _chartHistory30DRepository.InsertOrReplaceAsync(indexHistory.Time, indexHistory.Value).GetAwaiter().GetResult();
                         _history30D[indexHistory.Time] = indexHistory.Value;
+
+                        // remove old
+                        foreach (var time in _history30D.Keys.ToList())
+                            if (time < DateTime.UtcNow.AddDays(-30))
+                                _history30D.Remove(time);
 
                         CalculateKeyNumbers30D();
                     }
