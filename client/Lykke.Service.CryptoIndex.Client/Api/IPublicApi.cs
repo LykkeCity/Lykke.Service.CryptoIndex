@@ -26,25 +26,25 @@ namespace Lykke.Service.CryptoIndex.Client.Api
         Task<IReadOnlyList<(DateTime, decimal)>> GetChangeAsync();
 
         /// <summary>
-        /// Returns value at today midnight and last value
+        /// Returns chart data for the last 24 hours
         /// </summary>
         [Get("/api/public/indexHistory24h")]
         Task<IDictionary<DateTime, decimal>> GetIndexHistory24h();
 
         /// <summary>
-        /// Returns value at today midnight and last value
+        /// Returns chart data for the last 5 days
         /// </summary>
         [Get("/api/public/indexHistory5d")]
         Task<IDictionary<DateTime, decimal>> GetIndexHistory5d();
 
         /// <summary>
-        /// Returns value at today midnight and last value
+        /// Returns chart data for the last 30 days
         /// </summary>
         [Get("/api/public/indexHistory30d")]
         Task<IDictionary<DateTime, decimal>> GetIndexHistory30d();
 
         /// <summary>
-        /// Returns value at today midnight and last value
+        /// Returns key numbers
         /// </summary>
         [Get("/api/public/keyNumbers")]
         Task<KeyNumbers> GetKeyNumbers();
