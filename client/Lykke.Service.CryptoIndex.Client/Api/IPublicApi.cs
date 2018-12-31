@@ -26,7 +26,7 @@ namespace Lykke.Service.CryptoIndex.Client.Api
         Task<IReadOnlyList<(DateTime, decimal)>> GetChangeAsync();
 
         /// <summary>
-        /// Returns chart data for the last 24 hours
+        /// Returns chart data by time interval
         /// </summary>
         [Get("/api/public/indexHistory/{timeInterval}")]
         Task<IDictionary<DateTime, decimal>> GetIndexHistory(TimeInterval timeInterval);
