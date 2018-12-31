@@ -28,20 +28,8 @@ namespace Lykke.Service.CryptoIndex.Client.Api
         /// <summary>
         /// Returns chart data for the last 24 hours
         /// </summary>
-        [Get("/api/public/indexHistory24h")]
-        Task<IDictionary<DateTime, decimal>> GetIndexHistory24H();
-
-        /// <summary>
-        /// Returns chart data for the last 5 days
-        /// </summary>
-        [Get("/api/public/indexHistory5d")]
-        Task<IDictionary<DateTime, decimal>> GetIndexHistory5D();
-
-        /// <summary>
-        /// Returns chart data for the last 30 days
-        /// </summary>
-        [Get("/api/public/indexHistory30d")]
-        Task<IDictionary<DateTime, decimal>> GetIndexHistory30D();
+        [Get("/api/public/indexHistory/{timeInterval}")]
+        Task<IDictionary<DateTime, decimal>> GetIndexHistory(TimeInterval timeInterval);
 
         /// <summary>
         /// Returns key numbers
