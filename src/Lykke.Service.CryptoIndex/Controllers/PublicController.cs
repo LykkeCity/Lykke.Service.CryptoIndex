@@ -83,28 +83,19 @@ namespace Lykke.Service.CryptoIndex.Controllers
             return result;
         }
 
-        [HttpGet("indexHistory24h")]
+        [HttpGet("indexHistory")]
         [ProducesResponseType(typeof(IDictionary<DateTime, decimal>), (int)HttpStatusCode.OK)]
         [ResponseCache(Duration = 10, VaryByQueryKeys = new[] { "*" })]
-        public async Task<IDictionary<DateTime, decimal>> GetIndexHistory24H()
+        public async Task<IDictionary<DateTime, decimal>> GetIndexHistory(TimeInterval timeInterval)
         {
-            return _statisticsService.GetIndexHistory24H();
-        }
-
-        [HttpGet("indexHistory5d")]
-        [ProducesResponseType(typeof(IDictionary<DateTime, decimal>), (int)HttpStatusCode.OK)]
-        [ResponseCache(Duration = 2*60, VaryByQueryKeys = new[] { "*" })]
-        public async Task<IDictionary<DateTime, decimal>> GetIndexHistory5D()
-        {
-            return _statisticsService.GetIndexHistory5D();
-        }
-
-        [HttpGet("indexHistory30d")]
-        [ProducesResponseType(typeof(IDictionary<DateTime, decimal>), (int)HttpStatusCode.OK)]
-        [ResponseCache(Duration = 15*60, VaryByQueryKeys = new[] { "*" })]
-        public async Task<IDictionary<DateTime, decimal>> GetIndexHistory30D()
-        {
-            return _statisticsService.GetIndexHistory30D();
+            switch (timeInterval)
+            {
+                case TimeInterval.Hour24: return _statisticsService.GetIndexHistory24H();
+                case TimeInterval.Day5: return _statisticsService.GetIndexHistory5D();
+                case TimeInterval.Day30: return _statisticsService.GetIndexHistory30D();
+                case TimeInterval.Unspecified:
+                default: return new Dictionary<DateTime, decimal>();
+            }
         }
 
         [HttpGet("keyNumbers")]
