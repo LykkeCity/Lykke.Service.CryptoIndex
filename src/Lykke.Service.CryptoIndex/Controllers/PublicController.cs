@@ -83,7 +83,7 @@ namespace Lykke.Service.CryptoIndex.Controllers
             return result;
         }
 
-        [HttpGet("indexHistory")]
+        [HttpGet("indexHistory/{timeInterval}")]
         [ProducesResponseType(typeof(IDictionary<DateTime, decimal>), (int)HttpStatusCode.OK)]
         [ResponseCache(Duration = 10, VaryByQueryKeys = new[] { "*" })]
         public async Task<IDictionary<DateTime, decimal>> GetIndexHistory(TimeInterval timeInterval)
