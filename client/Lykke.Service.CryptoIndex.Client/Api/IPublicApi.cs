@@ -17,7 +17,6 @@ namespace Lykke.Service.CryptoIndex.Client.Api
         /// Returns last index
         /// </summary>
         [Get("/api/public/index/last")]
-        [Obsolete("Use GetKeyNumbers().CurrentValue instead.")]
         Task<PublicIndexHistory> GetLastAsync();
 
         /// <summary>
