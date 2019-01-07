@@ -40,7 +40,7 @@ namespace Lykke.Service.CryptoIndex.Controllers
         [ResponseCache(Duration = 10, VaryByQueryKeys = new[] { "*" })]
         public async Task<PublicIndexHistory> GetLastAsync()
         {
-            var domain = (await _indexHistoryRepository.TakeLastAsync(1)).SingleOrDefault();
+            var domain = _indexCalculator.GetLastIndexHistory();
 
             if (domain == null)
                 throw new ValidationApiException(HttpStatusCode.NotFound, "Last index value is not found.");
