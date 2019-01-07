@@ -20,26 +20,19 @@ namespace Lykke.Service.CryptoIndex.Controllers
         private readonly IIndexHistoryRepository _indexHistoryRepository;
         private readonly IIndexStateRepository _indexStateRepository;
         private readonly IIndexCalculator _indexCalculator;
+        private readonly IStatisticsService _statisticsService;
 
         private readonly object _sync = new object();
         private static DateTime? _lastReset;
         private static IndexHistory _midnight;
 
         public PublicController(IIndexHistoryRepository indexHistoryRepository, IIndexStateRepository indexStateRepository,
-            IIndexCalculator indexCalculator)
+            IIndexCalculator indexCalculator, IStatisticsService statisticsService)
         {
             _indexHistoryRepository = indexHistoryRepository;
             _indexStateRepository = indexStateRepository;
             _indexCalculator = indexCalculator;
-        }
-
-        [HttpGet("indices")]
-        [ProducesResponseType(typeof(IReadOnlyList<(DateTime, decimal)>), (int)HttpStatusCode.OK)]
-        [ResponseCache(Duration = 10)]
-        [Obsolete]
-        public async Task<IReadOnlyList<(DateTime, decimal)>> GetIndexHistoriesAsync(DateTime from, DateTime to)
-        {
-            return await GetChangeAsync();
+            _statisticsService = statisticsService;
         }
 
         [HttpGet("index/last")]
@@ -47,7 +40,7 @@ namespace Lykke.Service.CryptoIndex.Controllers
         [ResponseCache(Duration = 10, VaryByQueryKeys = new[] { "*" })]
         public async Task<PublicIndexHistory> GetLastAsync()
         {
-            var domain = (await _indexHistoryRepository.TakeLastAsync(1)).SingleOrDefault();
+            var domain = _indexCalculator.GetLastIndexHistory();
 
             if (domain == null)
                 throw new ValidationApiException(HttpStatusCode.NotFound, "Last index value is not found.");
@@ -60,6 +53,7 @@ namespace Lykke.Service.CryptoIndex.Controllers
         [HttpGet("change")]
         [ProducesResponseType(typeof(IReadOnlyList<(DateTime, decimal)>), (int)HttpStatusCode.OK)]
         [ResponseCache(Duration = 10, VaryByQueryKeys = new[] { "*" })]
+        [Obsolete("Use GetKeyNumbers().Return24H instead.")]
         public async Task<IReadOnlyList<(DateTime, decimal)>> GetChangeAsync()
         {
             var resultPoints = new List<IndexHistory>();
@@ -86,6 +80,33 @@ namespace Lykke.Service.CryptoIndex.Controllers
                 resultPoints.Add(last);
 
             var result = resultPoints.Select(x => (x.Time, x.Value)).OrderBy(x => x.Time).ToList();
+
+            return result;
+        }
+
+        [HttpGet("indexHistory/{timeInterval}")]
+        [ProducesResponseType(typeof(IDictionary<DateTime, decimal>), (int)HttpStatusCode.OK)]
+        [ResponseCache(Duration = 10, VaryByQueryKeys = new[] { "*" })]
+        public async Task<IDictionary<DateTime, decimal>> GetIndexHistory(TimeInterval timeInterval)
+        {
+            switch (timeInterval)
+            {
+                case TimeInterval.Hour24: return _statisticsService.GetIndexHistory24H();
+                case TimeInterval.Day5: return _statisticsService.GetIndexHistory5D();
+                case TimeInterval.Day30: return _statisticsService.GetIndexHistory30D();
+                case TimeInterval.Unspecified:
+                default: return new Dictionary<DateTime, decimal>();
+            }
+        }
+
+        [HttpGet("keyNumbers")]
+        [ProducesResponseType(typeof(KeyNumbers), (int)HttpStatusCode.OK)]
+        [ResponseCache(Duration = 10, VaryByQueryKeys = new[] { "*" })]
+        public async Task<KeyNumbers> GetKeyNumbers()
+        {
+            var domain = _statisticsService.GetKeyNumbers();
+
+            var result = Mapper.Map<KeyNumbers>(domain);
 
             return result;
         }
