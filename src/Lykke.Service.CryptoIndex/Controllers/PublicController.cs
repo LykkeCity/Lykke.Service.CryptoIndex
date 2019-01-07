@@ -38,6 +38,7 @@ namespace Lykke.Service.CryptoIndex.Controllers
         [HttpGet("index/last")]
         [ProducesResponseType(typeof(PublicIndexHistory), (int)HttpStatusCode.OK)]
         [ResponseCache(Duration = 10, VaryByQueryKeys = new[] { "*" })]
+        [Obsolete("Use GetKeyNumbers().CurrentValue instead.")]
         public async Task<PublicIndexHistory> GetLastAsync()
         {
             var domain = _indexCalculator.GetLastIndexHistory();
@@ -53,6 +54,7 @@ namespace Lykke.Service.CryptoIndex.Controllers
         [HttpGet("change")]
         [ProducesResponseType(typeof(IReadOnlyList<(DateTime, decimal)>), (int)HttpStatusCode.OK)]
         [ResponseCache(Duration = 10, VaryByQueryKeys = new[] { "*" })]
+        [Obsolete("Use GetKeyNumbers().Return24H instead.")]
         public async Task<IReadOnlyList<(DateTime, decimal)>> GetChangeAsync()
         {
             var resultPoints = new List<IndexHistory>();
