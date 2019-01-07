@@ -17,12 +17,14 @@ namespace Lykke.Service.CryptoIndex.Client.Api
         /// Returns last index
         /// </summary>
         [Get("/api/public/index/last")]
+        [Obsolete("Use GetKeyNumbers().CurrentValue instead.")]
         Task<PublicIndexHistory> GetLastAsync();
 
         /// <summary>
         /// Returns value at today midnight and last value
         /// </summary>
         [Get("/api/public/change")]
+        [Obsolete("Use GetKeyNumbers().Return24H instead.")]
         Task<IReadOnlyList<(DateTime, decimal)>> GetChangeAsync();
 
         /// <summary>

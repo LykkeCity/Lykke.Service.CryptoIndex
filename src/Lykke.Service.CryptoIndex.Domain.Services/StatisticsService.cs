@@ -47,6 +47,7 @@ namespace Lykke.Service.CryptoIndex.Domain.Services
             _indexHistoryRepository = indexHistoryRepository;
             _chartHistory5DRepository = chartHistory5DRepository;
             _chartHistory30DRepository = chartHistory30DRepository;
+
             _log = logFactory.CreateLog(this);
         }
 
