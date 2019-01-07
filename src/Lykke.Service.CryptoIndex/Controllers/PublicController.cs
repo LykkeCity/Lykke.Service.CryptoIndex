@@ -38,7 +38,6 @@ namespace Lykke.Service.CryptoIndex.Controllers
         [HttpGet("index/last")]
         [ProducesResponseType(typeof(PublicIndexHistory), (int)HttpStatusCode.OK)]
         [ResponseCache(Duration = 10, VaryByQueryKeys = new[] { "*" })]
-        [Obsolete("Use GetKeyNumbers().CurrentValue instead.")]
         public async Task<PublicIndexHistory> GetLastAsync()
         {
             var domain = _indexCalculator.GetLastIndexHistory();
