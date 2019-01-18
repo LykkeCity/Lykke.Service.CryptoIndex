@@ -122,6 +122,39 @@ namespace Lykke.Service.CryptoIndex.Domain.Services
             return Task.CompletedTask;
         }
 
+        public IDictionary<DateTime, decimal> GetIndexHistory24H()
+        {
+            lock (_sync24H)
+                return _history24H;
+        }
+
+        public IDictionary<DateTime, decimal> GetIndexHistory5D()
+        {
+            lock (_sync5D)
+                return _history5D;
+        }
+
+        public IDictionary<DateTime, decimal> GetIndexHistory30D()
+        {
+            lock (_sync30D)
+                return _history30D;
+        }
+
+        public KeyNumbers GetKeyNumbers()
+        {
+            return new KeyNumbers
+            {
+                CurrentValue = _currentValue,
+                Max24H = _max24H,
+                Min24H = _min24H,
+                Return24H = _return24H,
+                Return5D = _return5D,
+                Return30D = _return30D,
+                Volatility24H = _volatility24H,
+                Volatility30D = _volatility30D
+            };
+        }
+
         private void CalculateKeyNumbers24H()
         {
             var oldest = _history24H.Keys.FirstOrDefault();
@@ -167,39 +200,6 @@ namespace Lykke.Service.CryptoIndex.Domain.Services
 
             _volatility30D = CalculateVolatility(_history30D, TimeSpan.FromDays(1));
             _volatility30D = Math.Round(_volatility30D, 2);
-        }
-
-        public IDictionary<DateTime, decimal> GetIndexHistory24H()
-        {
-            lock (_sync24H)
-                return _history24H;
-        }
-
-        public IDictionary<DateTime, decimal> GetIndexHistory5D()
-        {
-            lock (_sync5D)
-                return _history5D;
-        }
-
-        public IDictionary<DateTime, decimal> GetIndexHistory30D()
-        {
-            lock (_sync30D)
-                return _history30D;
-        }
-
-        public KeyNumbers GetKeyNumbers()
-        {
-            return new KeyNumbers
-            {
-                CurrentValue = _currentValue,
-                Max24H = _max24H,
-                Min24H = _min24H,
-                Return24H = _return24H,
-                Return5D = _return5D,
-                Return30D = _return30D,
-                Volatility24H = _volatility24H,
-                Volatility30D = _volatility30D
-            };
         }
 
         private void Initialize()
