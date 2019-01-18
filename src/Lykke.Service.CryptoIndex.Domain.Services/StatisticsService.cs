@@ -134,7 +134,7 @@ namespace Lykke.Service.CryptoIndex.Domain.Services
             _max24H = _history24H.Values.Max();
             _min24H = _history24H.Values.Min();
 
-            _volatility24H = Volatility24H();
+            _volatility24H = CalculateVolatility(_history24H, TimeSpan.FromHours(1));
             _volatility24H = Math.Round(_volatility24H, 2);
         }
 
@@ -165,7 +165,7 @@ namespace Lykke.Service.CryptoIndex.Domain.Services
             _return30D = CalculateReturn(oldestValue, newestValue);
             _return30D = Math.Round(_return30D, 2);
 
-            _volatility30D = Volatility30D();
+            _volatility30D = CalculateVolatility(_history30D, TimeSpan.FromDays(1));
             _volatility30D = Math.Round(_volatility30D, 2);
         }
 
@@ -235,87 +235,6 @@ namespace Lykke.Service.CryptoIndex.Domain.Services
                 }
         }
 
-        private decimal Volatility24H()
-        {
-            var hourlyReturn = new List<decimal>();
-
-            var hourlyValues = new SortedDictionary<DateTime, decimal>();
-            foreach (var time in _history24H.Keys.ToList())
-            {
-                var newest = _history24H.Keys.LastOrDefault();
-                if (newest == default(DateTime) || newest - time > TimeSpan.FromHours(1))
-                    hourlyValues[time] = _history24H[time];
-            }
-
-            var values = hourlyValues.Values.ToList();
-            for (var i = 0; i < values.Count; i++)
-            {
-                if (i == 0)
-                    continue;
-
-                var current = values[i];
-                var previous = values[i - 1];
-
-                var _return = CalculateReturn(previous, current);
-                hourlyReturn.Add(_return);
-            }
-
-            if (hourlyReturn.Count == 0)
-                return 0;
-
-            var mean = hourlyReturn.Sum() / hourlyReturn.Count;
-
-            double sum = 0;
-            foreach (var current in hourlyReturn)
-            {
-                sum += Math.Pow((double)(current - mean), 2);
-            }
-
-            var result = (decimal)Math.Sqrt(sum / hourlyReturn.Count);
-
-            return result;
-        }
-
-        private decimal Volatility30D()
-        {
-            var dailyReturn = new List<decimal>();
-
-            var dailyValues = new SortedDictionary<DateTime, decimal>();
-            foreach (var time in _history30D.Keys.ToList())
-            {
-                var newest = _history30D.Keys.LastOrDefault();
-                if (newest == default(DateTime) || newest - time > TimeSpan.FromDays(1))
-                    dailyValues[time] = _history30D[time];
-            }
-
-            var values = dailyValues.Values.ToList();
-            for (var i = 0; i < values.Count; i++)
-            {
-                if (i == 0)
-                    continue;
-
-                var current = values[i];
-                var previous = values[i - 1];
-
-                dailyReturn.Add((previous - current) / previous * 100);
-            }
-
-            if (dailyReturn.Count == 0)
-                return 0;
-
-            var mean = dailyReturn.Sum() / dailyReturn.Count;
-
-            double sum = 0;
-            foreach (var current in dailyReturn)
-            {
-                sum += Math.Pow((double)(current - mean), 2);
-            }
-
-            var volatility30D = (decimal)Math.Sqrt(sum / dailyReturn.Count);
-
-            return volatility30D;
-        }
-
         public static decimal CalculateReturn(decimal oldestValue, decimal newestValue)
         {
             var result = (newestValue - oldestValue) / oldestValue * 100;
@@ -344,7 +263,8 @@ namespace Lykke.Service.CryptoIndex.Domain.Services
                 var current = values[i];
                 var previous = values[i - 1];
 
-                returns.Add((previous - current) / previous * 100);
+                var _return = CalculateReturn(previous, current);
+                returns.Add(_return);
             }
 
             if (returns.Count == 0)
