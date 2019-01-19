@@ -249,8 +249,8 @@ namespace Lykke.Service.CryptoIndex.Domain.Services
             var intervalValues = new SortedDictionary<DateTime, decimal>();
             foreach (var time in absoluteValues.Keys.ToList())
             {
-                var newest = absoluteValues.Keys.LastOrDefault();
-                if (newest == default(DateTime) || newest - time > returnInterval)
+                var lastInInterval = intervalValues.LastOrDefault().Key;
+                if (lastInInterval == default(DateTime) || time - lastInInterval > returnInterval)
                     intervalValues[time] = absoluteValues[time];
             }
 
