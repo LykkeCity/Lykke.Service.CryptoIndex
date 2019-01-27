@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -27,6 +28,7 @@ namespace Lykke.Service.CryptoIndex.Domain.Services
         private readonly object _sync = new object();
         private readonly List<AssetMarketCap> _allMarketCaps;
         private readonly List<string> _topAssets;
+        private readonly ConcurrentDictionary<string, decimal> _lastTopAssetMarketCaps;
         private DateTime _lastRebuild;
         private bool _rebuildNeeded;
 
@@ -68,6 +70,7 @@ namespace Lykke.Service.CryptoIndex.Domain.Services
             _lastRebuild = DateTime.UtcNow.Date;
             _allMarketCaps = new List<AssetMarketCap>();
             _topAssets = new List<string>();
+            _lastTopAssetMarketCaps = new ConcurrentDictionary<string, decimal>();
 
             _indexName = indexName;
             _trigger = new TimerTrigger(nameof(IndexCalculator), indexCalculationInterval, logFactory, TimerHandlerAsync);
@@ -98,8 +101,8 @@ namespace Lykke.Service.CryptoIndex.Domain.Services
 
             lock (_sync)
             {
-                foreach (var x in _allMarketCaps)
-                    result.Add(x.Asset, x.MarketCap.Value);
+                foreach (var assetMarketCap in _lastTopAssetMarketCaps)
+                    result.Add(assetMarketCap.Key, assetMarketCap.Value);
             }
 
             return result;
@@ -318,6 +321,13 @@ namespace Lykke.Service.CryptoIndex.Domain.Services
 
             var calculatedTopMarketCaps = CalculateMarketCaps(topAssets, topSupplies, topUsingPrices);
 
+            lock (_sync)
+            {
+                _lastTopAssetMarketCaps.Clear();
+                foreach (var mc in calculatedTopMarketCaps)
+                    _lastTopAssetMarketCaps[mc.Asset] = mc.MarketCap.Value;
+            }
+
             var calculatedTopWeights = CalculateWeightsOrderedByDesc(calculatedTopMarketCaps);
 
             // Calculate current index state
@@ -431,7 +441,10 @@ namespace Lykke.Service.CryptoIndex.Domain.Services
             {
                 var supply = supplies[asset];
                 var price = usingPrices[asset];
-                marketCaps.Add(asset, price * supply);
+
+                var marketCap = price * supply;
+                marketCap = Math.Round(marketCap, 0);
+                marketCaps.Add(asset, marketCap);
             }
 
             var result = new List<AssetMarketCap>();
