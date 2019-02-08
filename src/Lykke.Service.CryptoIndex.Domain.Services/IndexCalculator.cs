@@ -101,8 +101,15 @@ namespace Lykke.Service.CryptoIndex.Domain.Services
 
             lock (_sync)
             {
-                foreach (var assetMarketCap in _lastTopAssetMarketCaps)
-                    result.Add(assetMarketCap.Key, assetMarketCap.Value);
+                foreach (var assetMarketCap in _allMarketCaps)
+                {
+                    var asset = assetMarketCap.Asset;
+                    var marketCap = _lastTopAssetMarketCaps.ContainsKey(asset)
+                        ? _lastTopAssetMarketCaps[asset]
+                        : assetMarketCap.MarketCap.Value;
+
+                    result.Add(assetMarketCap.Asset, marketCap);
+                }
             }
 
             return result;
