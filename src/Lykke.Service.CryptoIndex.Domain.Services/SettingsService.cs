@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using Lykke.Service.CryptoIndex.Domain.Models;
 using Lykke.Service.CryptoIndex.Domain.Repositories;
@@ -33,9 +34,18 @@ namespace Lykke.Service.CryptoIndex.Domain.Services
                     Enabled = true,
                     RebuildTime = TimeSpan.Zero,
                     AssetsSettings = new List<AssetSettings>(),
-                    AutoFreezeChangePercents = 10
+                    AutoFreezeChangePercents = 10,
+                    CrossAssets = new List<string> {"BTC", "ETH"}
                 };
-                await _settingsRepository.InsertOrReplaceAsync(Settings);
+
+                await SetAsync(Settings);
+            }
+
+            // default values
+            if (!Settings.CrossAssets.Any())
+            {
+                Settings.CrossAssets = new List<string> {"BTC", "ETH"};
+                await SetAsync(Settings);
             }
 
             return Settings;
@@ -44,6 +54,7 @@ namespace Lykke.Service.CryptoIndex.Domain.Services
         public async Task SetAsync(Settings settings)
         {
             await _settingsRepository.InsertOrReplaceAsync(settings);
+
             Settings = settings;
         }
     }

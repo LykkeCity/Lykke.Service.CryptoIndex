@@ -29,7 +29,7 @@ namespace Lykke.Service.CryptoIndex.Controllers
         {
             var settings = await _settingsService.GetAsync();
             var marketCaps = _indexCalculator.GetAllAssetsMarketCaps();
-            var prices = await _tickPricesService.GetPricesAsync(settings.Sources.ToList());
+            var prices = _tickPricesService.GetAssetPrices(settings.Sources.ToList());
 
             var result = new List<AssetInfo>();
 
@@ -40,15 +40,15 @@ namespace Lykke.Service.CryptoIndex.Controllers
 
                 var marketCap = marketCaps[asset];
 
-                IDictionary<string, decimal> assetPrices = new Dictionary<string, decimal>();
+                IReadOnlyDictionary<string, decimal> assetPrices = new Dictionary<string, decimal>();
                 if (prices.ContainsKey(asset))
-                    assetPrices = prices[asset];
+                    assetPrices = prices[asset].ToDictionary(x => x.Source, x => x.Price);
 
                 var assetInfo = new AssetInfo
                 {
                     Asset = asset,
                     MarketCap = marketCap,
-                    Prices = assetPrices as IReadOnlyDictionary<string, decimal>
+                    Prices = assetPrices
                 };
 
                 result.Add(assetInfo);

@@ -26,20 +26,19 @@ namespace Lykke.Service.CryptoIndex.Client.Models
         public IDictionary<string, decimal> Weights { get; set; }
 
         /// <summary>
-        /// All prices
+        /// Row tick prices
         /// </summary>
-        public IDictionary<string, IDictionary<string, decimal>> Prices { get; set; }
+        public IReadOnlyCollection<TickPrice> TickPrices { get; }
+
+        /// <summary>
+        /// Middle prices, including cross
+        /// </summary>
+        public IReadOnlyCollection<AssetPrice> AssetPrices { get; }
 
         /// <summary>
         /// Middle prices
         /// </summary>
         public IDictionary<string, decimal> MiddlePrices { get; set; }
-
-        /// <summary>
-        /// Frozen assets
-        /// </summary>
-        [Obsolete]
-        public IReadOnlyCollection<string> FrozenAssets { get; set; }
 
         /// <summary>
         /// List of frozen assets

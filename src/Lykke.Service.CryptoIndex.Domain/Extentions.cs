@@ -11,21 +11,7 @@ namespace Lykke.Service.CryptoIndex.Domain
             return dictionary.ToDictionary(x => x.Key, x => x.Value);
         }
 
-        public static IDictionary<string, IDictionary<string, decimal>> Clone(this IDictionary<string, IDictionary<string, decimal>> value)
-        {
-            var result = new Dictionary<string, IDictionary<string, decimal>>();
-
-            foreach (var assetPrices in value)
-            {
-                var exchangesPrices = assetPrices.Value.ToDictionary(x => x.Key, x => x.Value);
-
-                result.Add(assetPrices.Key, exchangesPrices);
-            }
-
-            return result;
-        }
-
-        public static DateTime WoMilliseconds(this DateTime dt)
+        public static DateTime WithoutMilliseconds(this DateTime dt)
         {
             return new DateTime(dt.Year, dt.Month, dt.Day, dt.Hour, dt.Minute, dt.Second, dt.Kind);
         }

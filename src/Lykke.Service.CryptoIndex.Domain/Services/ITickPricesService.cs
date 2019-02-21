@@ -1,10 +1,12 @@
 ﻿using System.Collections.Generic;
-using System.Threading.Tasks;
+using Lykke.Service.CryptoIndex.Domain.Models;
 
 namespace Lykke.Service.CryptoIndex.Domain.Services
 {
     public interface ITickPricesService
     {
-        Task<IDictionary<string, IDictionary<string, decimal>>> GetPricesAsync(ICollection<string> sources = null);
+        IDictionary<string, IReadOnlyCollection<TickPrice>> GetTickPrices(IReadOnlyCollection<string> sources = null);
+
+        IDictionary<string, IReadOnlyCollection<AssetPrice>> GetAssetPrices(IReadOnlyCollection<string> sources = null);
     }
 }

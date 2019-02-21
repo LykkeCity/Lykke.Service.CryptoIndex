@@ -39,5 +39,10 @@ namespace Lykke.Service.CryptoIndex.Domain.Models
         /// Percent when asset will become frozen automatically.
         /// </summary>
         public decimal AutoFreezeChangePercents { get; set; }
+
+        /// <summary>
+        /// Cross assets
+        /// </summary>
+        public IReadOnlyList<string> CrossAssets { get; set; }
     }
 }
