@@ -12,9 +12,7 @@ namespace Lykke.Service.CryptoIndex
 
             CreateMap<Domain.Models.Settings, Client.Models.Settings>();
 
-            CreateMap<IndexHistory, Client.Models.IndexHistory>()
-                .ForMember(dest => dest.AssetPrices, opt =>
-                    opt.MapFrom(src => src.GetAssetPrices()));
+            CreateMap<IndexHistory, Client.Models.IndexHistory>();
 
             CreateMap<IndexHistory, Client.Models.PublicIndexHistory>()
                 .ForMember(dest => dest.FrozenAssets, opt =>

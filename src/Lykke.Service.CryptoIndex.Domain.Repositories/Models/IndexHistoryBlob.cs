@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using JetBrains.Annotations;
+using Lykke.Service.CryptoIndex.Domain.Models;
 
 namespace Lykke.Service.CryptoIndex.Domain.Repositories.Models
 {
@@ -19,12 +21,12 @@ namespace Lykke.Service.CryptoIndex.Domain.Repositories.Models
         /// <summary>
         /// Raw tick prices
         /// </summary>
-        public IList<TickPriceEntity> TickPrices { get; set; } = new List<TickPriceEntity>();
+        public IReadOnlyCollection<TickPriceEntity> TickPrices { get; set; } = new List<TickPriceEntity>();
 
         /// <summary>
         /// Usd and cross prices
         /// </summary>
-        public IList<AssetPriceEntity> AssetPrices { get; set; } = new List<AssetPriceEntity>();
+        public IReadOnlyCollection<AssetPriceEntity> AssetPrices { get; set; } = new List<AssetPriceEntity>();
 
         /// <summary>
         /// Timestamp
@@ -36,5 +38,32 @@ namespace Lykke.Service.CryptoIndex.Domain.Repositories.Models
         {
             return $"{Time}";
         }
+
+        public IReadOnlyCollection<AssetPriceEntity> GetAssetPrices()
+        {
+            if (AssetPrices.Any())
+                return AssetPrices;
+
+            var result = new List<AssetPriceEntity>();
+
+            foreach (var assetSourcePrice in Prices)
+            {
+                foreach (var sourcePrice in assetSourcePrice.Value)
+                {
+                    var newAssetPrice = new AssetPriceEntity
+                    {
+                        Asset = assetSourcePrice.Key,
+                        CrossAsset = "USD",
+                        Source = sourcePrice.Key,
+                        Price = sourcePrice.Value
+                    };
+
+                    result.Add(newAssetPrice);
+                }
+            }
+
+            return result;
+        }
+
     }
 }
