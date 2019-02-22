@@ -346,6 +346,7 @@ namespace Lykke.Service.CryptoIndex.Domain.Services
                 indexState.Value,
                 calculatedTopMarketCaps,
                 calculatedTopWeights, 
+                new Dictionary<string, IDictionary<string, decimal>>(),
                 tickPrices.SelectMany(x => x.Value).ToList(),
                 assetPrices.SelectMany(x => x.Value).ToList(),
                 topUsingPrices,
@@ -432,7 +433,8 @@ namespace Lykke.Service.CryptoIndex.Domain.Services
             foreach (var asset in indexHistory.Weights.Keys.ToList())
             {
                 var isFrozen = frozenAssets.Contains(asset);
-                assetsInfo.Add(new AssetInfo(asset, indexHistory.Weights[asset], indexHistory.MiddlePrices[asset], isFrozen));
+
+                assetsInfo.Add(new AssetInfo(asset, string.Empty, indexHistory.Weights[asset], indexHistory.MiddlePrices[asset], isFrozen));
             }
 
             // Publish index to RabbitMq

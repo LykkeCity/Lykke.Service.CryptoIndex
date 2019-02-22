@@ -12,7 +12,7 @@ namespace Lykke.Service.CryptoIndex.Domain.Repositories.Models
         /// <summary>
         /// Assets USD prices
         /// </summary>
-        [Obsolete("Used for existed data only, use TickPrices or AssetPrices instead.")]
+        [Obsolete("Used for existed usd prices only, use AssetPrices instead.")]
         public IDictionary<string, IDictionary<string, decimal>> Prices { get; set; }
             = new Dictionary<string, IDictionary<string, decimal>>();
 
