@@ -56,7 +56,7 @@ namespace Lykke.Service.CryptoIndex.Domain.Services
                 {
                     // if there no cross/usd yet then skip
                     lock (_sync)
-                        if (_assetsTickPricesCache.ContainsKey(cross))
+                        if (!_assetsTickPricesCache.ContainsKey(cross))
                             continue;
 
                     // xxx/cross

@@ -23,7 +23,8 @@ namespace Lykke.Service.CryptoIndex.Domain.Repositories.Models
         public TimeSpan RebuildTime { get; set; }
         
         public decimal AutoFreezeChangePercents { get; set; }
-        
+
+        [JsonValueSerializer]
         public IReadOnlyList<string> CrossAssets { get; set; }
     }
 }
