@@ -19,14 +19,12 @@ namespace Lykke.Service.CryptoIndex.Domain.Repositories.Models
         /// <summary>
         /// Raw tick prices
         /// </summary>
-        public IList<TickPriceEntity> TickPrices { get; set; }
-            = new List<TickPriceEntity>();
+        public IList<TickPriceEntity> TickPrices { get; set; } = new List<TickPriceEntity>();
 
         /// <summary>
         /// Usd and cross prices
         /// </summary>
-        public IList<AssetPriceEntity> AssetPrices { get; set; }
-            = new List<AssetPriceEntity>();
+        public IList<AssetPriceEntity> AssetPrices { get; set; } = new List<AssetPriceEntity>();
 
         /// <summary>
         /// Timestamp
