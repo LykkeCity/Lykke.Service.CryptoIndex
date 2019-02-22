@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using JetBrains.Annotations;
 
 namespace Lykke.Service.CryptoIndex.Client.Models
@@ -26,20 +27,26 @@ namespace Lykke.Service.CryptoIndex.Client.Models
         public IDictionary<string, decimal> Weights { get; set; }
 
         /// <summary>
-        /// All prices
+        /// Usd only prices
         /// </summary>
+        [Obsolete("Use GetAssetPrices instead.")]
         public IDictionary<string, IDictionary<string, decimal>> Prices { get; set; }
+
+        /// <summary>
+        /// Row tick prices
+        /// </summary>
+        public IReadOnlyCollection<TickPrice> TickPrices { get; set; }
+
+        /// <summary>
+        /// Middle prices, including cross
+        /// </summary>
+        [Obsolete("Use GetAssetPrices instead.")]
+        public IReadOnlyCollection<AssetPrice> AssetPrices { get; set; }
 
         /// <summary>
         /// Middle prices
         /// </summary>
         public IDictionary<string, decimal> MiddlePrices { get; set; }
-
-        /// <summary>
-        /// Frozen assets
-        /// </summary>
-        [Obsolete]
-        public IReadOnlyCollection<string> FrozenAssets { get; set; }
 
         /// <summary>
         /// List of frozen assets
@@ -50,6 +57,39 @@ namespace Lykke.Service.CryptoIndex.Client.Models
         /// Timestamp
         /// </summary>
         public DateTime Time { get; set; }
+
+        /// <summary>
+        /// Returns asset prices including crosses
+        /// </summary>
+        /// <returns></returns>
+        public IReadOnlyCollection<AssetPrice> GetAssetPrices()
+        {
+            if (AssetPrices != null && AssetPrices.Any())
+                return AssetPrices;
+
+            var result = new List<AssetPrice>();
+
+            if (Prices == null)
+                return result;
+
+            foreach (var assetSourcePrice in Prices)
+            {
+                foreach (var sourcePrice in assetSourcePrice.Value)
+                {
+                    var newAssetPrice = new AssetPrice
+                    {
+                        Asset = assetSourcePrice.Key,
+                        CrossAsset = "USD",
+                        Source = sourcePrice.Key,
+                        Price = sourcePrice.Value
+                    };
+
+                    result.Add(newAssetPrice);
+                }
+            }
+
+            return result;
+        }
 
         /// <inheritdoc />
         public override string ToString()

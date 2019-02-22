@@ -198,7 +198,7 @@ namespace Lykke.Service.CryptoIndex.Domain.Services
             _log.Info("Finished requesting CoinMarketCap data....");
         }
 
-        private async Task RebuildTopAssetsAsync()
+        private void RebuildTopAssets()
         {
             _log.Info("Rebuild top asset....");
 
@@ -216,9 +216,9 @@ namespace Lykke.Service.CryptoIndex.Domain.Services
             // Get white list prices
             var sources = settings.Sources.ToList();
             var whiteListAssets = whiteListSupplies.Select(x => x.Key).ToList();
-            var allAssetsPrices = await _tickPricesService.GetPricesAsync(sources);
+            var assetsPrices = _tickPricesService.GetAssetPrices(sources);
             var assetsSettings = settings.AssetsSettings;
-            var whiteListUsingPrices = GetAssetsUsingPrices(whiteListAssets, allAssetsPrices, assetsSettings);
+            var whiteListUsingPrices = GetAssetsUsingPrices(whiteListAssets, assetsPrices, assetsSettings);
 
             if (!ArePricesPresentForAllAssets(whiteListAssets, whiteListUsingPrices))
                 return;
@@ -266,7 +266,7 @@ namespace Lykke.Service.CryptoIndex.Domain.Services
                 {
                     await RefreshCoinMarketCapDataAsync();
 
-                    await RebuildTopAssetsAsync();
+                    RebuildTopAssets();
                 }
 
                 // Calculate new index
@@ -308,9 +308,10 @@ namespace Lykke.Service.CryptoIndex.Domain.Services
 
             var lastIndex = await _indexStateRepository.GetAsync();
             var sources = settings.Sources.ToList();
-            var allPrices = await _tickPricesService.GetPricesAsync(sources);
+            var tickPrices = _tickPricesService.GetTickPrices(sources);
+            var assetPrices = _tickPricesService.GetAssetPrices(sources);
             var assetsSettings = settings.AssetsSettings;
-            var topUsingPrices = GetAssetsUsingPrices(topAssets, allPrices, assetsSettings);
+            var topUsingPrices = GetAssetsUsingPrices(topAssets, assetPrices, assetsSettings);
 
             // If just started and prices are not present yet, then skip.
             // If started more then {_waitForTopAssetsPricesFromStart} ago then write warning to DB and log.
@@ -341,7 +342,16 @@ namespace Lykke.Service.CryptoIndex.Domain.Services
             var indexState = CalculateIndex(lastIndex, calculatedTopWeights, topUsingPrices);
 
             // Calculate current index history element
-            var indexHistory = new IndexHistory(indexState.Value, calculatedTopMarketCaps, calculatedTopWeights, allPrices, topUsingPrices, DateTime.UtcNow, assetsSettings);
+            var indexHistory = new IndexHistory(
+                indexState.Value,
+                calculatedTopMarketCaps,
+                calculatedTopWeights, 
+                new Dictionary<string, IDictionary<string, decimal>>(),
+                tickPrices.SelectMany(x => x.Value).ToList(),
+                assetPrices.SelectMany(x => x.Value).ToList(),
+                topUsingPrices,
+                DateTime.UtcNow,
+                assetsSettings);
 
             // if there was a reset then skip until next iteration which will have initial state
             if (State == null)
@@ -423,7 +433,8 @@ namespace Lykke.Service.CryptoIndex.Domain.Services
             foreach (var asset in indexHistory.Weights.Keys.ToList())
             {
                 var isFrozen = frozenAssets.Contains(asset);
-                assetsInfo.Add(new AssetInfo(asset, indexHistory.Weights[asset], indexHistory.MiddlePrices[asset], isFrozen));
+
+                assetsInfo.Add(new AssetInfo(asset, string.Empty, indexHistory.Weights[asset], indexHistory.MiddlePrices[asset], isFrozen));
             }
 
             // Publish index to RabbitMq
@@ -489,7 +500,7 @@ namespace Lykke.Service.CryptoIndex.Domain.Services
         }
 
         private IDictionary<string, decimal> GetAssetsUsingPrices(IReadOnlyCollection<string> assets,
-            IDictionary<string, IDictionary<string, decimal>> allPrices, IReadOnlyCollection<AssetSettings> assetsSettings)
+            IDictionary<string, IReadOnlyCollection<AssetPrice>> allPrices, IReadOnlyCollection<AssetSettings> assetsSettings)
         {
             var topAssetsUsedPrices = new Dictionary<string, decimal>();
 
@@ -500,7 +511,7 @@ namespace Lykke.Service.CryptoIndex.Domain.Services
 
                 var assetPrices = allPrices[asset];
 
-                var currentMiddlePrice = Utils.GetMiddlePrice(asset, assetPrices.Values.ToList());
+                var currentMiddlePrice = Utils.GetMiddlePrice(asset, assetPrices);
 
                 var assetSettings = assetsSettings.FirstOrDefault(x => x.AssetId == asset);
 

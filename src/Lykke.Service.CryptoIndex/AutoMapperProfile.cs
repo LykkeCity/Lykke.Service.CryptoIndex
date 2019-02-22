@@ -10,13 +10,9 @@ namespace Lykke.Service.CryptoIndex
         {
             CreateMap<Client.Models.Settings, Domain.Models.Settings>();
 
-            CreateMap<Domain.Models.Settings, Client.Models.Settings>()
-                .ForMember(dest => dest.FrozenAssets, opt =>
-                    opt.MapFrom(src => src.AssetsSettings.Where(x => x.IsDisabled)));
+            CreateMap<Domain.Models.Settings, Client.Models.Settings>();
 
-            CreateMap<IndexHistory, Client.Models.IndexHistory>()
-                .ForMember(dest => dest.FrozenAssets, opt =>
-                    opt.MapFrom(src => src.AssetsSettings.Where(x => x.IsDisabled)));
+            CreateMap<IndexHistory, Client.Models.IndexHistory>();
 
             CreateMap<IndexHistory, Client.Models.PublicIndexHistory>()
                 .ForMember(dest => dest.FrozenAssets, opt =>

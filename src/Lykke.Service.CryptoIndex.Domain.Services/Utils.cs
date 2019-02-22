@@ -7,12 +7,12 @@ namespace Lykke.Service.CryptoIndex.Domain.Services
 {
     public static class Utils
     {
-        public static decimal GetMiddlePrice(string asset, IReadOnlyCollection<decimal> assetPrices)
+        public static decimal GetMiddlePrice(string asset, IReadOnlyCollection<AssetPrice> assetPrices)
         {
             if (assetPrices == null || assetPrices.Count == 0)
                 throw new ArgumentOutOfRangeException($"Asset '{asset}' doesn't have any prices.");
 
-            var prices = assetPrices.OrderBy(x => x).ToList();
+            var prices = assetPrices.Select(x => x.Price).OrderBy(x => x).ToList();
 
             if (prices.Count > 2)
             {
