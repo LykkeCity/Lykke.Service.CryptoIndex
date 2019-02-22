@@ -24,9 +24,10 @@ namespace Lykke.Service.CryptoIndex.Controllers
             _tickPricesService = tickPricesService;
         }
 
+        /// <remarks>Used in IndicesFacade.</remarks>
         [HttpGet("all")]
         [ProducesResponseType(typeof(IReadOnlyList<AssetInfo>), (int)HttpStatusCode.OK)]
-        [Obsolete("Use GetAllWithCrossesAsync instead.")]
+        [Obsolete("Used only for back compatibility with IndicesFacade, use GetAllWithCrossesAsync instead.")]
         public async Task<IReadOnlyList<AssetInfo>> GetAllAsync()
         {
             var settings = await _settingsService.GetAsync();
@@ -42,16 +43,27 @@ namespace Lykke.Service.CryptoIndex.Controllers
 
                 var marketCap = marketCaps[asset];
 
-                IReadOnlyDictionary<string, decimal> assetPrices = new Dictionary<string, decimal>();
-                if (prices.ContainsKey(asset))
-                    assetPrices = prices[asset]
-                        .OrderBy(x => x.Source).Distinct() // use usd prices only or first available
-                        .ToDictionary(x => x.Source, x => x.Price);
+                if (!prices.ContainsKey(asset))
+                    continue;
+
+                var allAssetPrices = prices[asset];
+
+                var sources = allAssetPrices.Select(x => x.Source).Distinct().ToList();
+
+                var assetPrices = new Dictionary<string, decimal>();
+
+                foreach (var source in sources)
+                {
+                    var assetSourcePrices = allAssetPrices.Where(x => x.Source == source).ToList();
+
+                    var middlePrice = Utils.GetMiddlePrice(asset, assetSourcePrices);
+
+                    assetPrices.Add(source, middlePrice);
+                }
 
                 var assetInfo = new AssetInfo
                 {
                     Asset = asset,
-                    CrossAsset = "USD",
                     MarketCap = marketCap,
                     Prices = assetPrices
                 };
@@ -85,9 +97,7 @@ namespace Lykke.Service.CryptoIndex.Controllers
 
                     foreach (var assetPrice in allAssetPrices)
                     {
-                        IReadOnlyDictionary<string, decimal> assetPrices = new Dictionary<string, decimal>();
-
-                        assetPrices = prices[asset]
+                        IReadOnlyDictionary<string, decimal> assetPrices = prices[asset]
                             .Where(x => x.CrossAsset == assetPrice.CrossAsset)
                             .ToDictionary(x => x.Source, x => x.Price);
 
