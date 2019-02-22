@@ -35,8 +35,7 @@ namespace Lykke.Service.CryptoIndex.Domain.Models
         /// <summary>
         /// Asset prices, including cross
         /// </summary>
-        [Obsolete("Use GetAssetPrices instead.")]
-        public IReadOnlyCollection<AssetPrice> AssetPrices { get; }
+        private IReadOnlyCollection<AssetPrice> AssetPrices { get; }
 
         /// <summary>
         /// Final used asset prices
