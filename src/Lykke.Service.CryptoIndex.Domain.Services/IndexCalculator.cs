@@ -345,8 +345,7 @@ namespace Lykke.Service.CryptoIndex.Domain.Services
             var indexHistory = new IndexHistory(
                 indexState.Value,
                 calculatedTopMarketCaps,
-                calculatedTopWeights, 
-                new Dictionary<string, IDictionary<string, decimal>>(),
+                calculatedTopWeights,
                 tickPrices.SelectMany(x => x.Value).ToList(),
                 assetPrices.SelectMany(x => x.Value).ToList(),
                 topUsingPrices,

@@ -24,7 +24,7 @@ namespace Lykke.Service.CryptoIndex.Domain.Models
         /// <summary>
         /// Usd only prices
         /// </summary>
-        [Obsolete("Use GetAssetPrices instead.")]
+        [Obsolete("Use AssetPrices instead.")]
         public IDictionary<string, IDictionary<string, decimal>> Prices { get; }
 
         /// <summary>
@@ -35,7 +35,7 @@ namespace Lykke.Service.CryptoIndex.Domain.Models
         /// <summary>
         /// Asset prices, including cross
         /// </summary>
-        private IReadOnlyCollection<AssetPrice> AssetPrices { get; }
+        public IReadOnlyCollection<AssetPrice> AssetPrices { get; }
 
         /// <summary>
         /// Final used asset prices
@@ -57,7 +57,6 @@ namespace Lykke.Service.CryptoIndex.Domain.Models
             decimal value,
             IReadOnlyList<AssetMarketCap> marketCaps,
             IDictionary<string, decimal> weights,
-            IDictionary<string, IDictionary<string, decimal>> prices,
             IReadOnlyCollection<TickPrice> tickPrices,
             IReadOnlyCollection<AssetPrice> assetPrices,
             IDictionary<string, decimal> middlePrices,
@@ -67,38 +66,11 @@ namespace Lykke.Service.CryptoIndex.Domain.Models
             Value = value == default(decimal) ? throw new ArgumentOutOfRangeException(nameof(value)) : value;
             MarketCaps = marketCaps ?? throw new ArgumentNullException(nameof(marketCaps));
             Weights = weights ?? throw new ArgumentNullException(nameof(weights));
-            Prices = prices ?? throw new ArgumentNullException(nameof(prices));
             TickPrices = tickPrices ?? throw new ArgumentNullException(nameof(tickPrices));
             AssetPrices = assetPrices ?? throw new ArgumentNullException(nameof(assetPrices));
             MiddlePrices = middlePrices ?? throw new ArgumentNullException(nameof(middlePrices));
             Time = time == default(DateTime) ? throw new ArgumentOutOfRangeException(nameof(time)) : time.WithoutMilliseconds();
             AssetsSettings = assetsSettings;
-        }
-
-        public IReadOnlyCollection<AssetPrice> GetAssetPrices()
-        {
-            if (AssetPrices.Any())
-                return AssetPrices;
-
-            var result = new List<AssetPrice>();
-
-            foreach (var assetSourcePrice in Prices)
-            {
-                foreach (var sourcePrice in assetSourcePrice.Value)
-                {
-                    var newAssetPrice = new AssetPrice
-                    {
-                        Asset = assetSourcePrice.Key,
-                        CrossAsset = "USD",
-                        Source = sourcePrice.Key,
-                        Price = sourcePrice.Value
-                    };
-
-                    result.Add(newAssetPrice);
-                }
-            }
-
-            return result;
         }
 
         /// <inheritdoc />
