@@ -95,16 +95,18 @@ namespace Lykke.Service.CryptoIndex.Controllers
                 {
                     var allAssetPrices = prices[asset];
 
-                    foreach (var assetPrice in allAssetPrices)
+                    var crossAssets = allAssetPrices.Select(x => x.CrossAsset).Distinct().ToList();
+
+                    foreach (var crossAsset in crossAssets)
                     {
-                        IReadOnlyDictionary<string, decimal> assetPrices = prices[asset]
-                            .Where(x => x.CrossAsset == assetPrice.CrossAsset)
+                        IReadOnlyDictionary<string, decimal> assetPrices = allAssetPrices
+                            .Where(x => x.Asset == asset && x.CrossAsset == crossAsset)
                             .ToDictionary(x => x.Source, x => x.Price);
 
                         var assetInfo = new AssetInfo
                         {
                             Asset = asset,
-                            CrossAsset = assetPrice.CrossAsset,
+                            CrossAsset = crossAsset,
                             MarketCap = marketCap,
                             Prices = assetPrices
                         };
