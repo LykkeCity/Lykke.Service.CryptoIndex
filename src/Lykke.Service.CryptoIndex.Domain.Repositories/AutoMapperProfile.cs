@@ -25,6 +25,13 @@ namespace Lykke.Service.CryptoIndex.Domain.Repositories
 
             CreateMap<Settings, SettingsEntity>(MemberList.Source);
             CreateMap<SettingsEntity, Settings>();
+
+            CreateMap<TickPrice, TickPriceEntity>(MemberList.Source)
+                .ForSourceMember(x => x.MiddlePrice, opt => opt.DoNotValidate());
+            CreateMap<TickPriceEntity, TickPrice>();
+
+            CreateMap<AssetPrice, AssetPriceEntity>(MemberList.Source);
+            CreateMap<AssetPriceEntity, AssetPrice>();
         }
     }
 }

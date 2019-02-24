@@ -11,6 +11,11 @@
         public string AssetId { get; }
 
         /// <summary>
+        /// Cross asset name
+        /// </summary>
+        public string CrossAssetId { get; }
+
+        /// <summary>
         /// Weight of the asset.
         /// </summary>
         public decimal Weight { get; }
@@ -25,12 +30,11 @@
         /// </summary>
         public bool IsDisabled { get; }
 
-        /// <summary>
-        /// Initializes a new instance of <see cref="AssetInfo"/>.
-        /// </summary>
-        public AssetInfo(string assetId, decimal weight, decimal price, bool isDisabled)
+        /// <inheritdoc />
+        public AssetInfo(string assetId, string crossAssetId, decimal weight, decimal price, bool isDisabled)
         {
             AssetId = assetId;
+            CrossAssetId = crossAssetId;
             Weight = weight;
             Price = price;
             IsDisabled = isDisabled;

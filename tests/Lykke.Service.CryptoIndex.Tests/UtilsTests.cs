@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using Lykke.Service.CryptoIndex.Domain.Models;
 using Lykke.Service.CryptoIndex.Domain.Services;
 using Xunit;
@@ -15,13 +14,13 @@ namespace Lykke.Service.CryptoIndex.Tests
             // arrange
 
             const string asset = "BTC";
-            var assetExchangesPrices = new Dictionary<string, decimal>();
-            assetExchangesPrices.Add("exchange1", 100);
-            assetExchangesPrices.Add("exchange2", 50);
+            var assetExchangesPrices = new List<AssetPrice>();
+            assetExchangesPrices.Add(new AssetPrice { Price = 100 });
+            assetExchangesPrices.Add(new AssetPrice { Price = 50 });
 
             // act
 
-            var middlePrice = Utils.GetMiddlePrice(asset, assetExchangesPrices.Values.ToList());
+            var middlePrice = Utils.GetMiddlePrice(asset, assetExchangesPrices);
 
             // assert
 
@@ -34,14 +33,14 @@ namespace Lykke.Service.CryptoIndex.Tests
             // arrange
 
             const string asset = "BTC";
-            var assetExchangesPrices = new Dictionary<string, decimal>();
-            assetExchangesPrices.Add("exchange1", 10000);
-            assetExchangesPrices.Add("exchange2", 50);
-            assetExchangesPrices.Add("exchange3", 45);
+            var assetExchangesPrices = new List<AssetPrice>();
+            assetExchangesPrices.Add(new AssetPrice { Price = 10000 });
+            assetExchangesPrices.Add(new AssetPrice { Price = 50 });
+            assetExchangesPrices.Add(new AssetPrice { Price = 45 });
 
             // act
 
-            var middlePrice = Utils.GetMiddlePrice(asset, assetExchangesPrices.Values.ToList());
+            var middlePrice = Utils.GetMiddlePrice(asset, assetExchangesPrices);
 
             // assert
 
@@ -54,16 +53,16 @@ namespace Lykke.Service.CryptoIndex.Tests
             // arrange
 
             const string asset = "BTC";
-            var assetExchangesPrices = new Dictionary<string, decimal>();
-            assetExchangesPrices.Add("exchange1", 10000);
-            assetExchangesPrices.Add("exchange2", 55);
-            assetExchangesPrices.Add("exchange3", 50);
-            assetExchangesPrices.Add("exchange4", 45);
-            assetExchangesPrices.Add("exchange5", 10);
+            var assetExchangesPrices = new List<AssetPrice>();
+            assetExchangesPrices.Add(new AssetPrice { Price = 10000 });
+            assetExchangesPrices.Add(new AssetPrice { Price = 55 });
+            assetExchangesPrices.Add(new AssetPrice { Price = 50 });
+            assetExchangesPrices.Add(new AssetPrice { Price = 45 });
+            assetExchangesPrices.Add(new AssetPrice { Price = 10 });
 
             // act
 
-            var middlePrice = Utils.GetMiddlePrice(asset, assetExchangesPrices.Values.ToList());
+            var middlePrice = Utils.GetMiddlePrice(asset, assetExchangesPrices);
 
             // assert
 
@@ -76,12 +75,12 @@ namespace Lykke.Service.CryptoIndex.Tests
             // arrange
 
             const string asset = "BTC";
-            var assetExchangesPrices = new Dictionary<string, decimal>();
+            var assetExchangesPrices = new List<AssetPrice>();
 
             // act
 
             var ex1 = Assert.Throws<ArgumentOutOfRangeException>(() => Utils.GetMiddlePrice(asset, null));
-            var ex2 = Assert.Throws<ArgumentOutOfRangeException>(() => Utils.GetMiddlePrice(asset, assetExchangesPrices.Values.ToList()));
+            var ex2 = Assert.Throws<ArgumentOutOfRangeException>(() => Utils.GetMiddlePrice(asset, assetExchangesPrices));
 
             // assert
 

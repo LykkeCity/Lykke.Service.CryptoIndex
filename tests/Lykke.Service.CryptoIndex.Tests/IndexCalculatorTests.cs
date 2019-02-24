@@ -153,18 +153,45 @@ namespace Lykke.Service.CryptoIndex.Tests
         {
             var tickPricesService = new Mock<ITickPricesService>();
 
-            tickPricesService.Setup(o => o.GetPricesAsync(It.IsAny<ICollection<string>>()))
+            tickPricesService.Setup(o => o.GetAssetPrices(It.IsAny<IReadOnlyCollection<string>>()))
                 .Returns((ICollection<string> sources) =>
                 {
-                    IDictionary<string, IDictionary<string, decimal>> result = 
-                        new Dictionary<string, IDictionary<string, decimal>>();
+                    IDictionary<string, IReadOnlyCollection<AssetPrice>> result = 
+                        new Dictionary<string, IReadOnlyCollection<AssetPrice>>();
 
                     var prices = GetPrices(_step);
 
                     foreach (var price in prices)
-                        result.Add(price.Key, new Dictionary<string, decimal> { { "fakeExchange", price.Value} });
+                        result.Add(price.Asset, new List<AssetPrice> { new AssetPrice
+                        {
+                            Asset = price.Asset,
+                            CrossAsset = price.CrossAsset,
+                            Source = price.Source,
+                            Price = price.Price
+                        } });
 
-                    return Task.FromResult(result);
+                    return result;
+                });
+
+            tickPricesService.Setup(o => o.GetTickPrices(It.IsAny<IReadOnlyCollection<string>>()))
+                .Returns((ICollection<string> sources) =>
+                {
+                    IDictionary<string, IReadOnlyCollection<TickPrice>> result =
+                        new Dictionary<string, IReadOnlyCollection<TickPrice>>();
+
+                    var prices = GetPrices(_step);
+
+                    foreach (var price in prices)
+                        result.Add(price.Asset, new List<TickPrice> {
+                            new TickPrice(
+                                price.Source,
+                                price.Asset + price.CrossAsset,
+                                price.Price,
+                                price.Price,
+                                DateTime.UtcNow
+                            )});
+
+                    return result;
                 });
 
             _tickPricesService = tickPricesService.Object;
@@ -276,9 +303,14 @@ namespace Lykke.Service.CryptoIndex.Tests
 
             var stepsCount = GetPrices(0).Count - 1; // without header
 
+            var counter = 0;
             while (_step != stepsCount)
             {
+                counter++;
                 Thread.Sleep(1000);
+
+                if (counter > 10)
+                    throw new TimeoutException("Debug IndexCalculator.CalculateThenSaveAndPublishAsync() to find exception.");
             }
 
             _indexCalculator.Stop();
@@ -314,9 +346,9 @@ namespace Lykke.Service.CryptoIndex.Tests
             return result;
         }
 
-        private IDictionary<string, decimal> GetPrices(int step)
+        private IReadOnlyCollection<AssetPrice> GetPrices(int step)
         {
-            var result = new Dictionary<string, decimal>();
+            var result = new List<AssetPrice>();
 
             var steps = IndicesValuesAndPricesForEachStep.Split("\r\n").ToList();
 
@@ -326,7 +358,15 @@ namespace Lykke.Service.CryptoIndex.Tests
 
             for (var i = 1; i < prices.Count; i++)
             {
-                result[assets[i]] = decimal.Parse(prices[i]);
+                var newAssetPrice = new AssetPrice
+                {
+                    Asset = assets[i],
+                    CrossAsset = "USD",
+                    Source = "fakeExchange",
+                    Price = decimal.Parse(prices[i])
+                };
+
+                result.Add(newAssetPrice);
             }
 
             return result;
@@ -334,15 +374,13 @@ namespace Lykke.Service.CryptoIndex.Tests
 
         private decimal GetIndexValue(int step)
         {
-            var result = -1m;
-
             var steps = IndicesValuesAndPricesForEachStep.Split("\r\n").ToList();
 
             var assets = steps.First().Split("\t").Where(x => !string.IsNullOrWhiteSpace(x)).Select(x => x.Trim()).ToList();
 
             var indicesAndPrices = steps.TakeLast(steps.Count - 1).ToList()[step].Split("\t").Where(x => !string.IsNullOrWhiteSpace(x)).Select(x => x.Trim()).ToList();
             
-            result = decimal.Parse(indicesAndPrices[0]);
+            var result = decimal.Parse(indicesAndPrices[0]);
 
             return result;
         }

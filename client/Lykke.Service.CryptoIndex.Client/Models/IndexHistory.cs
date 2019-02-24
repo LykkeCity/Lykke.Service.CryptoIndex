@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using JetBrains.Annotations;
 
 namespace Lykke.Service.CryptoIndex.Client.Models
@@ -26,20 +27,25 @@ namespace Lykke.Service.CryptoIndex.Client.Models
         public IDictionary<string, decimal> Weights { get; set; }
 
         /// <summary>
-        /// All prices
+        /// Usd only prices
         /// </summary>
+        [Obsolete("Use AssetPrices instead.")]
         public IDictionary<string, IDictionary<string, decimal>> Prices { get; set; }
+
+        /// <summary>
+        /// Row tick prices
+        /// </summary>
+        public IReadOnlyCollection<TickPrice> TickPrices { get; set; }
+
+        /// <summary>
+        /// Middle prices, including cross
+        /// </summary>
+        public IReadOnlyCollection<AssetPrice> AssetPrices { get; set; }
 
         /// <summary>
         /// Middle prices
         /// </summary>
         public IDictionary<string, decimal> MiddlePrices { get; set; }
-
-        /// <summary>
-        /// Frozen assets
-        /// </summary>
-        [Obsolete]
-        public IReadOnlyCollection<string> FrozenAssets { get; set; }
 
         /// <summary>
         /// List of frozen assets

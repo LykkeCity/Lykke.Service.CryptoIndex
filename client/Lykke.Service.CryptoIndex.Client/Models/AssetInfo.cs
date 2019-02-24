@@ -13,6 +13,11 @@ namespace Lykke.Service.CryptoIndex.Client.Models
         public string Asset { get; set; }
 
         /// <summary>
+        /// Cross asset name
+        /// </summary>
+        public string CrossAsset { get; set; }
+
+        /// <summary>
         /// Market Cap of asset
         /// </summary>
         public decimal MarketCap { get; set; }

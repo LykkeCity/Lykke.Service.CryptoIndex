@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
@@ -23,13 +24,15 @@ namespace Lykke.Service.CryptoIndex.Controllers
             _tickPricesService = tickPricesService;
         }
 
+        /// <remarks>Used in IndicesFacade.</remarks>
         [HttpGet("all")]
         [ProducesResponseType(typeof(IReadOnlyList<AssetInfo>), (int)HttpStatusCode.OK)]
+        [Obsolete("Used only for back compatibility with IndicesFacade, use GetAllWithCrossesAsync instead.")]
         public async Task<IReadOnlyList<AssetInfo>> GetAllAsync()
         {
             var settings = await _settingsService.GetAsync();
             var marketCaps = _indexCalculator.GetAllAssetsMarketCaps();
-            var prices = await _tickPricesService.GetPricesAsync(settings.Sources.ToList());
+            var prices = _tickPricesService.GetAssetPrices(settings.Sources.ToList());
 
             var result = new List<AssetInfo>();
 
@@ -40,18 +43,77 @@ namespace Lykke.Service.CryptoIndex.Controllers
 
                 var marketCap = marketCaps[asset];
 
-                IDictionary<string, decimal> assetPrices = new Dictionary<string, decimal>();
-                if (prices.ContainsKey(asset))
-                    assetPrices = prices[asset];
+                if (!prices.ContainsKey(asset))
+                    continue;
+
+                var allAssetPrices = prices[asset];
+
+                var sources = allAssetPrices.Select(x => x.Source).Distinct().ToList();
+
+                var assetPrices = new Dictionary<string, decimal>();
+
+                foreach (var source in sources)
+                {
+                    var assetSourcePrices = allAssetPrices.Where(x => x.Source == source).ToList();
+
+                    var middlePrice = Utils.GetMiddlePrice(asset, assetSourcePrices);
+
+                    assetPrices.Add(source, middlePrice);
+                }
 
                 var assetInfo = new AssetInfo
                 {
                     Asset = asset,
                     MarketCap = marketCap,
-                    Prices = assetPrices as IReadOnlyDictionary<string, decimal>
+                    Prices = assetPrices
                 };
 
                 result.Add(assetInfo);
+            }
+
+            return result;
+        }
+
+        [HttpGet("allWithCrosses")]
+        [ProducesResponseType(typeof(IReadOnlyList<AssetInfo>), (int)HttpStatusCode.OK)]
+        public async Task<IReadOnlyList<AssetInfo>> GetAllWithCrossesAsync()
+        {
+            var settings = await _settingsService.GetAsync();
+            var marketCaps = _indexCalculator.GetAllAssetsMarketCaps();
+            var prices = _tickPricesService.GetAssetPrices(settings.Sources.ToList());
+
+            var result = new List<AssetInfo>();
+
+            foreach (var asset in settings.Assets)
+            {
+                if (!marketCaps.ContainsKey(asset))
+                    continue;
+
+                var marketCap = marketCaps[asset];
+
+                if (prices.ContainsKey(asset))
+                {
+                    var allAssetPrices = prices[asset];
+
+                    var crossAssets = allAssetPrices.Select(x => x.CrossAsset).Distinct().ToList();
+
+                    foreach (var crossAsset in crossAssets)
+                    {
+                        IReadOnlyDictionary<string, decimal> assetPrices = allAssetPrices
+                            .Where(x => x.Asset == asset && x.CrossAsset == crossAsset)
+                            .ToDictionary(x => x.Source, x => x.Price);
+
+                        var assetInfo = new AssetInfo
+                        {
+                            Asset = asset,
+                            CrossAsset = crossAsset,
+                            MarketCap = marketCap,
+                            Prices = assetPrices
+                        };
+
+                        result.Add(assetInfo);
+                    }
+                }
             }
 
             return result;

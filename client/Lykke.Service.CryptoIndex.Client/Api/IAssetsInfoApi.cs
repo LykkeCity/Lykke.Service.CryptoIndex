@@ -17,5 +17,11 @@ namespace Lykke.Service.CryptoIndex.Client.Api
         /// </summary>
         [Get("/api/assetsInfo/all")]
         Task<IReadOnlyList<AssetInfo>> GetAllAsync();
+
+        /// <summary>
+        /// Returns information about asset
+        /// </summary>
+        [Get("/api/assetsInfo/allWithCrosses")]
+        Task<IReadOnlyList<AssetInfo>> GetAllWithCrossesAsync();
     }
 }

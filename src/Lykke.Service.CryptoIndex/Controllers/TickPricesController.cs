@@ -26,9 +26,12 @@ namespace Lykke.Service.CryptoIndex.Controllers
         [ProducesResponseType(typeof(IReadOnlyList<string>), (int)HttpStatusCode.OK)]
         public async Task<IReadOnlyList<string>> GetSourcesAsync()
         {
-            var prices = await _tickPricesService.GetPricesAsync();
+            var prices = _tickPricesService.GetAssetPrices();
 
-            var result = prices.SelectMany(x => x.Value.Keys).Distinct().OrderBy(x => x).ToList();
+            var result = prices.SelectMany(x => x.Value)
+                .Select(x => x.Source)
+                .Distinct()
+                .OrderBy(x => x).ToList();
 
             return result;
         }
@@ -39,7 +42,7 @@ namespace Lykke.Service.CryptoIndex.Controllers
         {
             var settings = await _settingsService.GetAsync();
             var marketCapsAssets = _indexCalculator.GetAllAssetsMarketCaps().Keys.ToList();
-            var prices = await _tickPricesService.GetPricesAsync(settings.Sources.ToList());
+            var prices = _tickPricesService.GetAssetPrices(settings.Sources.ToList());
 
             if (marketCapsAssets.Any())
             {
@@ -52,7 +55,10 @@ namespace Lykke.Service.CryptoIndex.Controllers
                 }
             }
 
-            var result = prices.Select(x => x.Key).Distinct().OrderBy(x => x).ToList();
+            var result = prices.Select(x => x.Key)
+                .Distinct()
+                .OrderBy(x => x)
+                .ToList();
 
             return result;
         }
