@@ -2,12 +2,22 @@
 
 namespace Lykke.Service.CryptoIndex.Domain.Models
 {
+    /// <summary>
+    /// Market capitalization
+    /// </summary>
     public class MarketCap
     {
+        /// <summary>
+        /// Value
+        /// </summary>
         public decimal Value { get; }
 
+        /// <summary>
+        /// Unit
+        /// </summary>
         public string Asset { get; }
 
+        /// <inheritdoc />
         public MarketCap(decimal value, string asset)
         {
             if (value < 0) throw new ArgumentOutOfRangeException(nameof(value));
@@ -17,6 +27,7 @@ namespace Lykke.Service.CryptoIndex.Domain.Models
             Asset = asset;
         }
 
+        /// <inheritdoc />
         public override string ToString()
         {
             return $"{Value} {Asset}";

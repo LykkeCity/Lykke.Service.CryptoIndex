@@ -4,6 +4,7 @@
     <Version>1.0.0</Version>
   </PropertyGroup>
   <ItemGroup>
+    <ProjectReference Include="..\..\contract\Lykke.Service.CryptoIndex.Contract\Lykke.Service.CryptoIndex.Contract.csproj" />
     <ProjectReference Include="..\..\Lykke.CoinMarketCap.Client\Lykke.CoinMarketCap.Client.csproj" />
     <ProjectReference Include="..\Lykke.Service.CryptoIndex.Domain\Lykke.Service.CryptoIndex.Domain.csproj" />
   </ItemGroup>

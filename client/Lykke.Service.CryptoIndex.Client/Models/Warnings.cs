@@ -4,7 +4,7 @@ using JetBrains.Annotations;
 namespace Lykke.Service.CryptoIndex.Client.Models
 {
     /// <summary>
-    /// Warning element
+    /// Warning message
     /// </summary>
     [UsedImplicitly(ImplicitUseTargetFlags.WithMembers)]
     public class Warning

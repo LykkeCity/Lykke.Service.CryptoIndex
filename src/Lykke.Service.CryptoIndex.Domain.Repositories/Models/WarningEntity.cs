@@ -1,14 +1,27 @@
 ﻿using System;
-using JetBrains.Annotations;
 using Lykke.AzureStorage.Tables;
 
 namespace Lykke.Service.CryptoIndex.Domain.Repositories.Models
 {
-    [UsedImplicitly(ImplicitUseTargetFlags.WithMembers)]
+    /// <summary>
+    /// Warning message
+    /// </summary>
     public class WarningEntity : AzureTableEntity
     {
+        /// <summary>
+        /// Message
+        /// </summary>
         public string Message { get; set; }
 
+        /// <summary>
+        /// Timestamp
+        /// </summary>
         public DateTime Time { get; set; }
+
+        /// <inheritdoc />
+        public override string ToString()
+        {
+            return $"{Time} - {Message}";
+        }
     }
 }
