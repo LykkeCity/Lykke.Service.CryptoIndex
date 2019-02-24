@@ -1,12 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using JetBrains.Annotations;
 
 namespace Lykke.Service.CryptoIndex.Client.Models
 {
     /// <summary>
-    /// Index history element
+    /// Represents a snapshot of one index calculation
     /// </summary>
     [UsedImplicitly(ImplicitUseTargetFlags.WithMembers)]
     public class IndexHistory
@@ -17,7 +16,7 @@ namespace Lykke.Service.CryptoIndex.Client.Models
         public decimal Value { get; set; }
 
         /// <summary>
-        /// Assets Market Cap
+        /// Assets market capitalization
         /// </summary>
         public IReadOnlyList<AssetMarketCap> MarketCaps { get; set; }
 
@@ -29,7 +28,7 @@ namespace Lykke.Service.CryptoIndex.Client.Models
         /// <summary>
         /// Usd only prices
         /// </summary>
-        [Obsolete("Use AssetPrices instead.")]
+        [Obsolete("Use AssetPrices instead.")] // check dependencies in IndicesFacade and lykke.com
         public IDictionary<string, IDictionary<string, decimal>> Prices { get; set; }
 
         /// <summary>
@@ -38,17 +37,17 @@ namespace Lykke.Service.CryptoIndex.Client.Models
         public IReadOnlyCollection<TickPrice> TickPrices { get; set; }
 
         /// <summary>
-        /// Middle prices, including cross
+        /// Asset prices, including cross
         /// </summary>
         public IReadOnlyCollection<AssetPrice> AssetPrices { get; set; }
 
         /// <summary>
-        /// Middle prices
+        /// Final used asset prices
         /// </summary>
         public IDictionary<string, decimal> MiddlePrices { get; set; }
 
         /// <summary>
-        /// List of frozen assets
+        /// Assets settings
         /// </summary>
         public IReadOnlyList<AssetSettings> AssetsSettings { get; set; }
 

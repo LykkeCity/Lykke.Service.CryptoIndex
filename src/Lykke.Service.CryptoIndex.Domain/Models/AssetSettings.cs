@@ -1,19 +1,22 @@
 ﻿namespace Lykke.Service.CryptoIndex.Domain.Models
 {
+    /// <summary>
+    /// Asset settings
+    /// </summary>
     public class AssetSettings
     {
         /// <summary>
-        /// Identifier of the asset.
+        /// Identifier of the asset
         /// </summary>
         public string AssetId { get; }
 
         /// <summary>
-        /// Middle price of the asset.
+        /// Middle price of the asset
         /// </summary>
         public decimal Price { get; }
 
         /// <summary>
-        /// True if the asset was 'frozen'.
+        /// True if the asset was 'frozen'
         /// </summary>
         public bool IsDisabled { get; }
 
@@ -29,6 +32,12 @@
             Price = price;
             IsDisabled = isDisabled;
             IsAutoDisabled = isAutoDisabled;
+        }
+
+        ///<inheritdoc />
+        public override string ToString()
+        {
+            return $"{AssetId}, {Price}, {IsDisabled}, {IsAutoDisabled}";
         }
     }
 }

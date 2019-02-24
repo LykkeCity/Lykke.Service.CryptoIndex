@@ -44,5 +44,11 @@
         /// Volatility for the last 30 days
         /// </summary>
         public decimal Volatility30D { get; set; }
+
+        /// <inheritdoc />
+        public override string ToString()
+        {
+            return $"{CurrentValue}, r24={Return24H}, r5d={Return5D}, r30d={Return30D}, max24={Max24H}, min24={Min24H}, v24={Volatility24H}, v30d={Volatility30D}";
+        }
     }
 }

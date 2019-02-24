@@ -18,7 +18,7 @@
         public bool IsDisabled { get; }
 
         /// <summary>
-        /// True if the asset is automatically 'frozen'.
+        /// True if the asset is automatically 'frozen'. IsDisabled also must be 'true'.
         /// </summary>
         public bool IsAutoDisabled { get; }
 
@@ -29,6 +29,12 @@
             Price = price;
             IsDisabled = isDisabled;
             IsAutoDisabled = isAutoDisabled;
+        }
+
+        ///<inheritdoc />
+        public override string ToString()
+        {
+            return $"{AssetId}, {Price}, {IsDisabled}, {IsAutoDisabled}";
         }
     }
 }

@@ -8,7 +8,7 @@ namespace Lykke.Service.CryptoIndex.Client.Models
     public class TickPrice
     {
         /// <summary>
-        /// Source
+        /// Source, an exchange name usually
         /// </summary>
         public string Source { get; set; }
 
@@ -18,12 +18,12 @@ namespace Lykke.Service.CryptoIndex.Client.Models
         public string AssetPair { get; set; }
 
         /// <summary>
-        /// Bid price
+        /// Best bid price
         /// </summary>
         public decimal? Bid { get; set; }
 
         /// <summary>
-        /// Ask price
+        /// Best ask price
         /// </summary>
         public decimal? Ask { get; set; }
 
@@ -31,5 +31,31 @@ namespace Lykke.Service.CryptoIndex.Client.Models
         /// Timestamp
         /// </summary>
         public DateTime Timestamp { get; set; }
+
+        /// <summary>
+        /// Middle price
+        /// </summary>
+        public decimal? MiddlePrice
+        {
+            get
+            {
+                if (Ask.HasValue && !Bid.HasValue)
+                    return Ask.Value;
+
+                if (!Ask.HasValue && Bid.HasValue)
+                    return Bid.Value;
+
+                if (Ask.HasValue && Bid.HasValue)
+                    return (Ask.Value + Bid.Value) / 2;
+
+                return null;
+            }
+        }
+
+        /// <inheritdoc />
+        public override string ToString()
+        {
+            return $"{Source}, {AssetPair}, bid={Bid}, ask={Ask}, mid={MiddlePrice}, {Timestamp}";
+        }
     }
 }

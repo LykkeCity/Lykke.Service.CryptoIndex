@@ -10,8 +10,8 @@ using Common.Log;
 using Lykke.Common.Log;
 using Lykke.Service.CryptoIndex.Domain.Handlers;
 using Lykke.Service.CryptoIndex.Domain.Models;
-using Lykke.Service.CryptoIndex.Domain.Publishers;
 using Lykke.Service.CryptoIndex.Domain.Repositories;
+using Lykke.Service.CryptoIndex.Domain.Services.Publishers;
 using MoreLinq;
 
 namespace Lykke.Service.CryptoIndex.Domain.Services
@@ -427,17 +427,17 @@ namespace Lykke.Service.CryptoIndex.Domain.Services
 
         private void Publish(IndexHistory indexHistory)
         {
-            var assetsInfo = new List<AssetInfo>();
+            var assetsInfo = new List<Contract.AssetInfo>();
             var frozenAssets = indexHistory.AssetsSettings.Where(x => x.IsDisabled).Select(x => x.AssetId).ToList();
             foreach (var asset in indexHistory.Weights.Keys.ToList())
             {
                 var isFrozen = frozenAssets.Contains(asset);
 
-                assetsInfo.Add(new AssetInfo(asset, string.Empty, indexHistory.Weights[asset], indexHistory.MiddlePrices[asset], isFrozen));
+                assetsInfo.Add(new Contract.AssetInfo(asset, indexHistory.Weights[asset], indexHistory.MiddlePrices[asset], isFrozen));
             }
 
             // Publish index to RabbitMq
-            var tickPrice = new IndexTickPrice(RabbitMqSource, _indexName.ToUpper(), indexHistory.Value, indexHistory.Value, indexHistory.Time, assetsInfo);
+            var tickPrice = new Contract.IndexTickPrice(RabbitMqSource, _indexName.ToUpper(), indexHistory.Value, indexHistory.Value, indexHistory.Time, assetsInfo);
             _tickPricePublisher.Publish(tickPrice);
         }
 

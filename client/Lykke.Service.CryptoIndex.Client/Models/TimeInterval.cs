@@ -4,6 +4,9 @@ using Newtonsoft.Json.Converters;
 
 namespace Lykke.Service.CryptoIndex.Client.Models
 {
+    /// <summary>
+    /// Represents a list of possible history intervals
+    /// </summary>
     [JsonConverter(typeof(StringEnumConverter))]
     public enum TimeInterval
     {

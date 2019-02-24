@@ -6,9 +6,9 @@ using System.Threading.Tasks;
 using Lykke.Logs;
 using Lykke.Service.CryptoIndex.Domain.Handlers;
 using Lykke.Service.CryptoIndex.Domain.Models;
-using Lykke.Service.CryptoIndex.Domain.Publishers;
 using Lykke.Service.CryptoIndex.Domain.Repositories;
 using Lykke.Service.CryptoIndex.Domain.Services;
+using Lykke.Service.CryptoIndex.Domain.Services.Publishers;
 using Moq;
 using Xunit;
 
@@ -231,8 +231,8 @@ namespace Lykke.Service.CryptoIndex.Tests
         {
             var tickPricePublisher = new Mock<ITickPricePublisher>();
 
-            tickPricePublisher.Setup(o => o.Publish(It.IsAny<IndexTickPrice>()))
-                .Callback((IndexTickPrice indexTickPrice) =>
+            tickPricePublisher.Setup(o => o.Publish(It.IsAny<Contract.IndexTickPrice>()))
+                .Callback((Contract.IndexTickPrice indexTickPrice) =>
                 {
                     AssertPublishedIndex(indexTickPrice);
                     _step++;
@@ -388,7 +388,7 @@ namespace Lykke.Service.CryptoIndex.Tests
 
         // assert
 
-        private void AssertPublishedIndex(IndexTickPrice indexTickPrice)
+        private void AssertPublishedIndex(Contract.IndexTickPrice indexTickPrice)
         {
             var indexValue = GetIndexValue(_step);
 
