@@ -3,6 +3,9 @@ using System.Collections.Generic;
 
 namespace Lykke.Service.CryptoIndex.Domain.Models
 {
+    /// <summary>
+    /// Crypto Index settings
+    /// </summary>
     public class Settings
     {
         /// <summary>
@@ -44,5 +47,11 @@ namespace Lykke.Service.CryptoIndex.Domain.Models
         /// Cross assets
         /// </summary>
         public IReadOnlyList<string> CrossAssets { get; set; }
+
+        /// <inheritdoc />
+        public override string ToString()
+        {
+            return $"{Sources?.Count}, {Assets?.Count}, {AssetsSettings?.Count}, {TopCount}, enabled={Enabled}, {RebuildTime}, {AutoFreezeChangePercents}%, {CrossAssets?.Count}";
+        }
     }
 }

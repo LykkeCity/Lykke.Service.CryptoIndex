@@ -3,7 +3,7 @@
 namespace Lykke.Service.CryptoIndex.Client.Models
 {
     /// <summary>
-    /// Market cap info
+    /// Market capitalization
     /// </summary>
     public class MarketCap
     {
@@ -13,13 +13,11 @@ namespace Lykke.Service.CryptoIndex.Client.Models
         public decimal Value { get; }
 
         /// <summary>
-        /// Asset
+        /// Unit
         /// </summary>
         public string Asset { get; }
 
-        /// <summary>
-        /// Constructor
-        /// </summary>
+        /// <inheritdoc />
         public MarketCap(decimal value, string asset)
         {
             if (value == default(decimal)) throw new ArgumentOutOfRangeException(nameof(value));

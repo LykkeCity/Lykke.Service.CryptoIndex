@@ -6,8 +6,7 @@ using JetBrains.Annotations;
 using Lykke.Common.Log;
 using Lykke.RabbitMqBroker.Publisher;
 using Lykke.RabbitMqBroker.Subscriber;
-using Lykke.Service.CryptoIndex.Domain.Models;
-using Lykke.Service.CryptoIndex.Domain.Publishers;
+using Lykke.Service.CryptoIndex.Domain.Services.Publishers;
 using Lykke.Service.CryptoIndex.Settings;
 
 namespace Lykke.Service.CryptoIndex.RabbitMq.Publishers
@@ -32,7 +31,7 @@ namespace Lykke.Service.CryptoIndex.RabbitMq.Publishers
             _publisher?.Dispose();
         }
 
-        public void Publish(IndexTickPrice tickPrice)
+        public void Publish(Contract.IndexTickPrice tickPrice)
         {
             _publisher.ProduceAsync(new Contract.IndexTickPrice
             {

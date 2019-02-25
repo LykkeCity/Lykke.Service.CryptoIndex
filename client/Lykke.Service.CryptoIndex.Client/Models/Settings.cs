@@ -5,7 +5,7 @@ using JetBrains.Annotations;
 namespace Lykke.Service.CryptoIndex.Client.Models
 {
     /// <summary>
-    /// Represents settings information
+    /// Crypto Index settings
     /// </summary>
     [UsedImplicitly(ImplicitUseTargetFlags.WithMembers)]
     public class Settings
@@ -49,5 +49,11 @@ namespace Lykke.Service.CryptoIndex.Client.Models
         /// Cross assets
         /// </summary>
         public IReadOnlyList<string> CrossAssets { get; set; }
+
+        /// <inheritdoc />
+        public override string ToString()
+        {
+            return $"{Sources?.Count}, {Assets?.Count}, {AssetsSettings?.Count}, {TopCount}, enabled={Enabled}, {RebuildTime}, {AutoFreezeChangePercents}%, {CrossAssets?.Count}";
+        }
     }
 }

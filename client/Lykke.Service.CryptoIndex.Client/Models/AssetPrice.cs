@@ -24,5 +24,11 @@
         /// Price in USD
         /// </summary>
         public decimal Price { get; set; }
+
+        ///<inheritdoc />
+        public override string ToString()
+        {
+            return $"{Asset}/{CrossAsset}, {Source}, {Price}";
+        }
     }
 }

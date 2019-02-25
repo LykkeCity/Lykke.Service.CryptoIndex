@@ -1,9 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 
 namespace Lykke.Service.CryptoIndex.Domain.Models
 {
+    /// <summary>
+    /// Represents a snapshot of one index calculation
+    /// </summary>
     public class IndexHistory
     {
         /// <summary>
@@ -12,7 +14,7 @@ namespace Lykke.Service.CryptoIndex.Domain.Models
         public decimal Value { get; }
 
         /// <summary>
-        /// Market caps
+        /// Assets market capitalization
         /// </summary>
         public IReadOnlyList<AssetMarketCap> MarketCaps { get; }
 
@@ -20,12 +22,6 @@ namespace Lykke.Service.CryptoIndex.Domain.Models
         /// Weights
         /// </summary>
         public IDictionary<string, decimal> Weights { get; }
-
-        /// <summary>
-        /// Usd only prices
-        /// </summary>
-        [Obsolete("Use AssetPrices instead.")]
-        public IDictionary<string, IDictionary<string, decimal>> Prices { get; }
 
         /// <summary>
         /// Row tick prices

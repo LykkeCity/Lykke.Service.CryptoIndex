@@ -7,7 +7,6 @@ namespace Lykke.Service.CryptoIndex.Client.Models
     /// <summary>
     /// Index history element for public api
     /// </summary>
-    [UsedImplicitly(ImplicitUseTargetFlags.WithMembers)]
     public class PublicIndexHistory
     {
         /// <summary>
@@ -43,7 +42,7 @@ namespace Lykke.Service.CryptoIndex.Client.Models
         /// <inheritdoc />
         public override string ToString()
         {
-            return $"{Value}, {Time}";
+            return $"{Value}, caps={MarketCaps?.Count}, midPrices={MiddlePrices?.Count}, weights={Weights?.Count}, {Time}";
         }
     }
 }
