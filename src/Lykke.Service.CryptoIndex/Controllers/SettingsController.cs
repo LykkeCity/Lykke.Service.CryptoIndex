@@ -65,7 +65,7 @@ namespace Lykke.Service.CryptoIndex.Controllers
 
         [HttpGet("indexTickPriceAssetPairName")]
         [ProducesResponseType(typeof(string), (int)HttpStatusCode.OK)]
-        public async Task<string> IndexTickPriceAssetPairNameAsync()
+        public async Task<string> GetIndexTickPriceAssetPairNameAsync()
         {
             return _settingsService.GetIndexTickPriceAssetPairName();
         }
