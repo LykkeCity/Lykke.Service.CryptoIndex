@@ -40,6 +40,6 @@ namespace Lykke.Service.CryptoIndex.Client.Api
         /// </summary>
         /// <returns></returns>
         [Get("/api/settings/indexTickPriceAssetPairName")]
-        Task<string> IndexTickPriceAssetPairNameAsync();
+        Task<string> GetIndexTickPriceAssetPairNameAsync();
     }
 }
