@@ -12,11 +12,13 @@ namespace Lykke.Service.CryptoIndex.Domain.Services
         private readonly object _sync = new object();
         private Settings _settings;
         private Settings Settings { get { lock (_sync) { return _settings; } } set { lock (_sync) { _settings = value; } } }
+        private readonly string _indexTickPriceAssetPair;
         private readonly ISettingsRepository _settingsRepository;
 
-        public SettingsService(ISettingsRepository settingsRepository)
+        public SettingsService(ISettingsRepository settingsRepository, string indexTickPriceAssetPair)
         {
             _settingsRepository = settingsRepository;
+            _indexTickPriceAssetPair = indexTickPriceAssetPair.ToUpper();
         }
 
         public async Task<Settings> GetAsync()
@@ -56,6 +58,11 @@ namespace Lykke.Service.CryptoIndex.Domain.Services
             await _settingsRepository.InsertOrReplaceAsync(settings);
 
             Settings = settings;
+        }
+
+        public string GetIndexTickPriceAssetPairName()
+        {
+            return _indexTickPriceAssetPair;
         }
     }
 }
