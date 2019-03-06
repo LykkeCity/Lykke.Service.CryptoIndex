@@ -8,5 +8,7 @@ namespace Lykke.Service.CryptoIndex.Domain.Services
         Task<Settings> GetAsync();
 
         Task SetAsync(Settings settings);
+
+        string GetIndexTickPriceAssetPairName();
     }
 }

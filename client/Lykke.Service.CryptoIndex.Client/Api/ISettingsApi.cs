@@ -34,5 +34,12 @@ namespace Lykke.Service.CryptoIndex.Client.Api
         /// </summary>
         [Get("/api/settings/rebuild")]
         Task RebuildAsync();
+
+        /// <summary>
+        /// Returns asset pair from publishing IndexTickPrice.
+        /// </summary>
+        /// <returns></returns>
+        [Get("/api/settings/indexTickPriceAssetPairName")]
+        Task<string> GetIndexTickPriceAssetPairNameAsync();
     }
 }

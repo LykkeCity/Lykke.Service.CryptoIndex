@@ -125,6 +125,7 @@ namespace Lykke.Service.CryptoIndex.Modules
 
             builder.RegisterType<SettingsService>()
                 .As<ISettingsService>()
+                .WithParameter("indexTickPriceAssetPair", _settings.IndexName)
                 .SingleInstance();
 
             builder.RegisterType<IndexCalculator>()
