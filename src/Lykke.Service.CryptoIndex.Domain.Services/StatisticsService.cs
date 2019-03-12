@@ -125,19 +125,19 @@ namespace Lykke.Service.CryptoIndex.Domain.Services
         public IDictionary<DateTime, decimal> GetIndexHistory24H()
         {
             lock (_sync24H)
-                return _history24H;
+                return _history24H.ToDictionary(x => x.Key, x => x.Value);
         }
 
         public IDictionary<DateTime, decimal> GetIndexHistory5D()
         {
             lock (_sync5D)
-                return _history5D;
+                return _history5D.ToDictionary(x => x.Key, x => x.Value);
         }
 
         public IDictionary<DateTime, decimal> GetIndexHistory30D()
         {
             lock (_sync30D)
-                return _history30D;
+                return _history30D.ToDictionary(x => x.Key, x => x.Value);
         }
 
         public KeyNumbers GetKeyNumbers()
