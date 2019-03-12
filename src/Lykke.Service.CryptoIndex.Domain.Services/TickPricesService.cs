@@ -67,23 +67,17 @@ namespace Lykke.Service.CryptoIndex.Domain.Services
                     assetPrice.CrossAsset = cross;
                     assetPrice.Source = tickPrice.Source;
 
-                    // cross/usd
-                    TickPrice crossUsd;
-
                     lock (_sync)
                     {
-                        IList<TickPrice> crossAssetTickPrices = _assetsTickPricesCache[cross];
+                        var allAssetPrices = GetAssetPrices();
 
-                        crossUsd = crossAssetTickPrices.SingleOrDefault(x =>
-                            x.AssetPair.StartsWith(cross)
-                            && x.AssetPair.EndsWith(Usd)
-                            && x.Source == tickPrice.Source); // must be the same Source
-                    }
+                        if (!allAssetPrices.ContainsKey(cross))
+                            continue;
 
-                    if (crossUsd != null)
-                    {
-                        decimal? crossAsk = tickPrice.Ask * crossUsd.Ask;
-                        decimal? crossBid = tickPrice.Bid * crossUsd.Bid;
+                        var crossMiddlePrice = Utils.GetMiddlePrice(cross, allAssetPrices[cross]);
+
+                        decimal? crossAsk = tickPrice.Ask * crossMiddlePrice;
+                        decimal? crossBid = tickPrice.Bid * crossMiddlePrice;
 
                         var crossTickPrice = new TickPrice(string.Empty, string.Empty, crossBid, crossAsk, DateTime.UtcNow);
 
@@ -111,6 +105,56 @@ namespace Lykke.Service.CryptoIndex.Domain.Services
 
                 AddOrUpdateAssetPrice(assetPrice);
             }
+        }
+
+        public IDictionary<string, IReadOnlyCollection<TickPrice>> GetTickPrices(IReadOnlyCollection<string> sources = null)
+        {
+            IDictionary<string, IReadOnlyCollection<TickPrice>> result;
+
+            lock (_sync)
+                result = Clone(_assetsTickPricesCache);
+
+            if (sources == null)
+                return result;
+
+            if (!sources.Any())
+                return new Dictionary<string, IReadOnlyCollection<TickPrice>>();
+
+            // filter out sources that not in the 'sources' argument
+            var assets = result.Keys.ToList();
+            foreach (var asset in assets)
+            {
+                var tickPrices = result[asset].Where(x => sources.Contains(x.Source)).ToList();
+
+                result[asset] = tickPrices;
+            }
+
+            return result;
+        }
+
+        public IDictionary<string, IReadOnlyCollection<AssetPrice>> GetAssetPrices(IReadOnlyCollection<string> sources = null)
+        {
+            IDictionary<string, IReadOnlyCollection<AssetPrice>> result;
+
+            lock (_sync)
+                result = Clone(_assetsPricesCache);
+
+            if (sources == null)
+                return result;
+
+            if (!sources.Any())
+                return new Dictionary<string, IReadOnlyCollection<AssetPrice>>();
+
+            // filter out sources that not in the 'sources' argument
+            var assets = result.Keys.ToList();
+            foreach (var asset in assets)
+            {
+                var tickPrices = result[asset].Where(x => sources.Contains(x.Source)).ToList();
+
+                result[asset] = tickPrices;
+            }
+
+            return result;
         }
 
         private void AddOrUpdateTickPrice(string asset, TickPrice tickPrice)
@@ -164,56 +208,6 @@ namespace Lykke.Service.CryptoIndex.Domain.Services
 
                 assetPrices.Add(assetPrice);
             }
-        }
-
-        public IDictionary<string, IReadOnlyCollection<TickPrice>> GetTickPrices(IReadOnlyCollection<string> sources = null)
-        {
-            IDictionary<string, IReadOnlyCollection<TickPrice>> result;
-
-            lock (_sync)
-                result = Clone(_assetsTickPricesCache);
-
-            if (sources == null)
-                return result;
-
-            if (!sources.Any())
-                return new Dictionary<string, IReadOnlyCollection<TickPrice>>();
-
-            // filter out sources that not in the 'sources' argument
-            var assets = result.Keys.ToList();
-            foreach (var asset in assets)
-            {
-                var tickPrices = result[asset].Where(x => sources.Contains(x.Source)).ToList();
-
-                result[asset] = tickPrices;
-            }
-
-            return result;
-        }
-
-        public IDictionary<string, IReadOnlyCollection<AssetPrice>> GetAssetPrices(IReadOnlyCollection<string> sources = null)
-        {
-            IDictionary<string, IReadOnlyCollection<AssetPrice>> result;
-
-            lock (_sync)
-                result = Clone(_assetsPricesCache);
-
-            if (sources == null)
-                return result;
-
-            if (!sources.Any())
-                return new Dictionary<string, IReadOnlyCollection<AssetPrice>>();
-
-            // filter out sources that not in the 'sources' argument
-            var assets = result.Keys.ToList();
-            foreach (var asset in assets)
-            {
-                var tickPrices = result[asset].Where(x => sources.Contains(x.Source)).ToList();
-
-                result[asset] = tickPrices;
-            }
-
-            return result;
         }
 
         private IDictionary<string, IReadOnlyCollection<T>> Clone<T>(IDictionary<string, List<T>> value)
