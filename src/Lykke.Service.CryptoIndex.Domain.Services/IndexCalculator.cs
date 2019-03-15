@@ -321,6 +321,8 @@ namespace Lykke.Service.CryptoIndex.Domain.Services
             // Auto freeze
             AutoFreezeIfNeeded(topAssets, topUsingPrices, lastIndex, settings);
 
+            assetsSettings = Settings.AssetsSettings;
+
             // Recalculate top weights
             var topSupplies = new Dictionary<string, decimal>();
             var topMarketCaps = allMarketCaps.Where(x => topAssets.Contains(x.Asset)).ToList();
