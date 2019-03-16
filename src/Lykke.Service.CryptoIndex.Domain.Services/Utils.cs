@@ -38,7 +38,5 @@ namespace Lykke.Service.CryptoIndex.Domain.Services
                 ? previousPrices[asset]               // yes, use them
                 : currentMiddlePrice;                 // no, use current
         }
-
-
     }
 }
