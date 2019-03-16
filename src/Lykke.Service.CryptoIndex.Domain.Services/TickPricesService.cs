@@ -34,6 +34,16 @@ namespace Lykke.Service.CryptoIndex.Domain.Services
             if (tickPrice.MiddlePrice == null)
                 return;
 
+            var settings = await _settingsService.GetAsync();
+
+            var isWantedAsset = settings.Assets.Any(x => tickPrice.AssetPair.Contains(x));
+            if (!isWantedAsset)
+                return;
+
+            var isWantedExchange = settings.Sources.Any(x => x == tickPrice.Source);
+            if (!isWantedExchange)
+                return;
+
             // xxx/usd
             bool shallBeIncluded = tickPrice.AssetPair.EndsWith(Usd);
             

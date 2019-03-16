@@ -2,7 +2,9 @@
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
+using AutoMapper;
 using Lykke.Service.CryptoIndex.Client.Api;
+using Lykke.Service.CryptoIndex.Client.Models;
 using Lykke.Service.CryptoIndex.Domain.Services;
 using Microsoft.AspNetCore.Mvc;
 
@@ -20,6 +22,19 @@ namespace Lykke.Service.CryptoIndex.Controllers
             _tickPricesService = tickPricesService;
             _indexCalculator = indexCalculator;
             _settingsService = settingsService;
+        }
+
+        [HttpGet]
+        [ProducesResponseType(typeof(IReadOnlyList<TickPrice>), (int)HttpStatusCode.OK)]
+        public async Task<IReadOnlyList<TickPrice>> GetAllAsync()
+        {
+            var tickPrices = _tickPricesService.GetTickPrices();
+
+            var entities = tickPrices.SelectMany(x => x.Value).OrderBy(x => x.Source).ThenBy(x => x.AssetPair).ToList();
+
+            var models = Mapper.Map<IReadOnlyList<TickPrice>>(entities);
+
+            return models;
         }
 
         [HttpGet("sources")]
