@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
+using Lykke.Logs;
 using Lykke.Service.CryptoIndex.Domain.Models;
 using Lykke.Service.CryptoIndex.Domain.Services;
 using Xunit;
@@ -124,6 +126,34 @@ namespace Lykke.Service.CryptoIndex.Tests
             // assert
 
             Assert.Equal(50, result);
+        }
+
+
+        [Fact]
+        public void Get_New_Assets()
+        {
+            // arrange
+
+            var whiteList = new List<string> { "BTC", "ETH", "EOS", "LTC", "BCH", "TRX" };
+
+            var ignored = new List<string> { "XRP", "BNB", "USDT" };
+
+            var whiteAndIgnoredAssets = whiteList.ToList();
+            whiteAndIgnoredAssets.AddRange(ignored);
+
+            var realAbsentAsset = new List<string> { "XLM", "ADA" };
+
+            var allMarketCapAssets = new List<string> { "BTC", "ETH", "EOS", "LTC", "BCH", "BNB", "USDT", "XLM", "ADA", "TRX", "BSV" };
+
+            var allMarketCaps = allMarketCapAssets.Select(x => new AssetMarketCap(x, new MarketCap(0, "USD"), 0)).ToList();
+
+            // act
+
+            var absentAssets = Utils.GetNewAssets(whiteAndIgnoredAssets, allMarketCaps, LogFactory.Create().CreateLog(this));
+
+            // assert
+
+            Assert.Equal(realAbsentAsset, absentAssets);
         }
     }
 }

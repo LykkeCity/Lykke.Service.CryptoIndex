@@ -21,6 +21,11 @@ namespace Lykke.Service.CryptoIndex.Client.Models
         public IReadOnlyList<string> Assets { get; set; } = new List<string>();
 
         /// <summary>
+        /// List of ignored assets
+        /// </summary>
+        public IReadOnlyList<IgnoredAsset> IgnoredAssets { get; set; } = new List<IgnoredAsset>();
+
+        /// <summary>
         /// List of frozen assets
         /// </summary>
         public IReadOnlyList<AssetSettings> AssetsSettings { get; set; } = new List<AssetSettings>();
