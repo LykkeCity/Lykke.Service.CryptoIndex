@@ -34,16 +34,6 @@ namespace Lykke.Service.CryptoIndex.Domain.Services
             if (tickPrice.MiddlePrice == null)
                 return;
 
-            var settings = await _settingsService.GetAsync();
-
-            var isWantedAsset = settings.Assets.Any(x => tickPrice.AssetPair.Contains(x));
-            if (!isWantedAsset)
-                return;
-
-            var isWantedExchange = settings.Sources.Any(x => x == tickPrice.Source);
-            if (!isWantedExchange)
-                return;
-
             // xxx/usd
             bool shallBeIncluded = tickPrice.AssetPair.EndsWith(Usd);
             
@@ -77,14 +67,21 @@ namespace Lykke.Service.CryptoIndex.Domain.Services
                     assetPrice.CrossAsset = cross;
                     assetPrice.Source = tickPrice.Source;
 
+                    var settings = await _settingsService.GetAsync();
+
                     lock (_sync)
                     {
-                        var allAssetPrices = GetAssetPrices();
+                        var allAssetPrices = GetAssetPrices(settings.Sources);
 
                         if (!allAssetPrices.ContainsKey(cross))
                             continue;
 
-                        var crossMiddlePrice = Utils.GetMiddlePrice(cross, allAssetPrices[cross]);
+                        var prices = allAssetPrices[cross];
+
+                        if (prices == null || !prices.Any())
+                            continue;
+
+                        var crossMiddlePrice = Utils.GetMiddlePrice(cross, prices);
 
                         decimal? crossAsk = tickPrice.Ask * crossMiddlePrice;
                         decimal? crossBid = tickPrice.Bid * crossMiddlePrice;
