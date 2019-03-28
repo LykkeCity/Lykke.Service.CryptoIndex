@@ -16,9 +16,6 @@ using MoreLinq;
 
 namespace Lykke.Service.CryptoIndex.Domain.Services
 {
-    /// <summary>
-    /// See the specification - https://lykkex.atlassian.net/secure/attachment/46308/LCI_specs.pdf
-    /// </summary>
     public class IndexCalculator : IIndexCalculator, IStartable, IStopable
     {
         private const string RabbitMqSource = "LCI";
@@ -313,7 +310,7 @@ namespace Lykke.Service.CryptoIndex.Domain.Services
 
             if (absentAssets.Any())
             {
-                var warningMsg = $"New top assets are not in settings: {string.Join(", ", absentAssets)}.";
+                var warningMsg = $"New top assets are not in the settings: {string.Join(", ", absentAssets)}.";
                 _log.Warning(warningMsg);
                 _warningRepository.SaveAsync(new Warning(warningMsg, DateTime.UtcNow));
             }
