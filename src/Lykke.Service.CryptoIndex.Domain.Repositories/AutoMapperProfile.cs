@@ -32,6 +32,9 @@ namespace Lykke.Service.CryptoIndex.Domain.Repositories
 
             CreateMap<AssetPrice, AssetPriceEntity>(MemberList.Source);
             CreateMap<AssetPriceEntity, AssetPrice>();
+
+            CreateMap<IgnoredAssetEntity, IgnoredAsset>(MemberList.Source);
+            CreateMap<IgnoredAsset, IgnoredAssetEntity>();
         }
     }
 }
