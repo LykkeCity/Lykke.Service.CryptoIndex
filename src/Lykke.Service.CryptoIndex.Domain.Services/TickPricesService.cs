@@ -67,9 +67,11 @@ namespace Lykke.Service.CryptoIndex.Domain.Services
                     assetPrice.CrossAsset = cross;
                     assetPrice.Source = tickPrice.Source;
 
+                    var settings = await _settingsService.GetAsync();
+
                     lock (_sync)
                     {
-                        var allAssetPrices = GetAssetPrices();
+                        var allAssetPrices = GetAssetPrices(settings.Sources);
 
                         if (!allAssetPrices.ContainsKey(cross))
                             continue;
