@@ -16,5 +16,7 @@ namespace Lykke.Service.CryptoIndex.Domain.Services
         DateTime? GetLastReset();
 
         IndexHistory GetLastIndexHistory();
+
+        Task CheckForNewAssets();
     }
 }
