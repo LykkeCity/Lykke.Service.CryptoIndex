@@ -23,6 +23,12 @@ namespace Lykke.Service.CryptoIndex.Domain.Repositories.Models
         public IReadOnlyList<string> Assets { get; set; }
 
         /// <summary>
+        /// List of ignored assets
+        /// </summary>
+        [JsonValueSerializer]
+        public IReadOnlyList<IgnoredAssetEntity> IgnoredAssets { get; set; }
+
+        /// <summary>
         /// List of frozen assets
         /// </summary>
         [JsonValueSerializer]
@@ -57,7 +63,7 @@ namespace Lykke.Service.CryptoIndex.Domain.Repositories.Models
         /// <inheritdoc />
         public override string ToString()
         {
-            return $"{Sources?.Count}, {Assets?.Count}, {AssetsSettings?.Count}, {TopCount}, enabled={Enabled}, {RebuildTime}, {AutoFreezeChangePercents}%, {CrossAssets?.Count}";
+            return $"{Sources?.Count}, {Assets?.Count}, {IgnoredAssets?.Count}, {AssetsSettings?.Count}, {TopCount}, enabled={Enabled}, {RebuildTime}, {AutoFreezeChangePercents}%, {CrossAssets?.Count}";
         }
     }
 }
