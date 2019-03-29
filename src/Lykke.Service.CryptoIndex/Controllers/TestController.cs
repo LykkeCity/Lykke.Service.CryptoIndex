@@ -19,7 +19,7 @@ namespace Lykke.Service.CryptoIndex.Controllers
         [ProducesResponseType(typeof(void), (int)HttpStatusCode.OK)]
         public async Task GetAssetsAsync()
         {
-            await _indexCalculator.CheckForNewAssets();
+            await _indexCalculator.CheckForNewAssetsAsync();
         }
     }
 }
