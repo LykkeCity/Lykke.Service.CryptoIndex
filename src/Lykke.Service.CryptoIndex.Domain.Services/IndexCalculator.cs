@@ -64,7 +64,7 @@ namespace Lykke.Service.CryptoIndex.Domain.Services
             IIndexHandler indexHandler,
             ILogFactory logFactory)
         {
-            _lastRebuild = DateTime.MinValue;
+            _lastRebuild = DateTime.UtcNow.Date;
             _allMarketCaps = new List<AssetMarketCap>();
             _topAssets = new List<string>();
             _lastTopAssetMarketCaps = new ConcurrentDictionary<string, decimal>();
@@ -141,6 +141,45 @@ namespace Lykke.Service.CryptoIndex.Domain.Services
         {
             lock (_syncLastIndexHistory)
                 return _lastIndexHistory;
+        }
+
+        public async Task CheckForNewAssets()
+        {
+            _log.Info("Started checking for new assets...");
+
+            var settings = Settings;
+
+            if (!settings.Assets.Any())
+            {
+                _log.Info("Finished checking for new assets - white list is empty.");
+                return;
+            }
+
+            IReadOnlyList<AssetMarketCap> allMarketCaps;
+
+            lock (_sync)
+                allMarketCaps = _allMarketCaps.ToList();
+
+            if (!allMarketCaps.Any())
+            {
+                _log.Info("Finished checking for new assets - market caps are empty.");
+                return;
+            }
+
+            var whiteAndIgnoredAssets = settings.Assets.ToList();
+            var ignoredAssets = settings.IgnoredAssets.Select(x => x.Asset).ToList();
+            whiteAndIgnoredAssets.AddRange(ignoredAssets);
+
+            var absentAssets = Utils.GetNewAssets(whiteAndIgnoredAssets, allMarketCaps, _log);
+
+            if (absentAssets.Any())
+            {
+                var warningMsg = $"New top assets are not in the settings: {string.Join(", ", absentAssets)}.";
+                _log.Warning(warningMsg);
+                await _warningRepository.SaveAsync(new Warning(warningMsg, DateTime.UtcNow));
+            }
+
+            _log.Info("Finished checking for new assets.");
         }
 
 
@@ -278,45 +317,6 @@ namespace Lykke.Service.CryptoIndex.Domain.Services
             }
 
             _log.Info("Timer handler finished.");
-        }
-
-        private async Task CheckForNewAssets()
-        {
-            _log.Info("Started checking for new assets...");
-
-            var settings = Settings;
-
-            if (!settings.Assets.Any())
-            {
-                _log.Info("Finished checking for new assets - white list is empty.");
-                return;
-            }
-
-            IReadOnlyList<AssetMarketCap> allMarketCaps;
-
-            lock (_sync)
-                allMarketCaps = _allMarketCaps.ToList();
-
-            if (!allMarketCaps.Any())
-            {
-                _log.Info("Finished checking for new assets - market caps are empty.");
-                return;
-            }
-
-            var whiteAndIgnoredAssets = settings.Assets.ToList();
-            var ignoredAssets = settings.IgnoredAssets.Select(x => x.Asset).ToList();
-            whiteAndIgnoredAssets.AddRange(ignoredAssets);
-
-            var absentAssets = Utils.GetNewAssets(whiteAndIgnoredAssets, allMarketCaps, _log);
-
-            if (absentAssets.Any())
-            {
-                var warningMsg = $"New top assets are not in the settings: {string.Join(", ", absentAssets)}.";
-                _log.Warning(warningMsg);
-                await _warningRepository.SaveAsync(new Warning(warningMsg, DateTime.UtcNow));
-            }
-
-            _log.Info("Finished checking for new assets.");
         }
 
         private async Task CalculateThenSaveAndPublishAsync()
