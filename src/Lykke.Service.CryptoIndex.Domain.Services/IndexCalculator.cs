@@ -195,7 +195,7 @@ namespace Lykke.Service.CryptoIndex.Domain.Services
             _log.Info("Finished requesting CoinMarketCap data....");
         }
 
-        private void RebuildTopAssets()
+        private async Task RebuildTopAssets()
         {
             _log.Info("Rebuild top asset....");
 
@@ -217,7 +217,8 @@ namespace Lykke.Service.CryptoIndex.Domain.Services
             var assetsSettings = settings.AssetsSettings;
             var whiteListUsingPrices = GetAssetsUsingPrices(whiteListAssets, assetsPrices, assetsSettings);
 
-            if (!ArePricesPresentForAllAssets(whiteListAssets, whiteListUsingPrices))
+            var areAllPricesPresent = await ArePricesPresentForAllAssets(whiteListAssets, whiteListUsingPrices);
+            if (!areAllPricesPresent)
                 return;
 
             // Calculate white list market caps
@@ -263,9 +264,9 @@ namespace Lykke.Service.CryptoIndex.Domain.Services
                 {
                     await RefreshCoinMarketCapDataAsync();
 
-                    RebuildTopAssets();
+                    await RebuildTopAssets();
 
-                    CheckForNewAssets();
+                    await CheckForNewAssets();
                 }
 
                 // Calculate new index
@@ -279,7 +280,7 @@ namespace Lykke.Service.CryptoIndex.Domain.Services
             _log.Info("Timer handler finished.");
         }
 
-        private void CheckForNewAssets()
+        private async Task CheckForNewAssets()
         {
             _log.Info("Started checking for new assets...");
 
@@ -312,7 +313,7 @@ namespace Lykke.Service.CryptoIndex.Domain.Services
             {
                 var warningMsg = $"New top assets are not in the settings: {string.Join(", ", absentAssets)}.";
                 _log.Warning(warningMsg);
-                _warningRepository.SaveAsync(new Warning(warningMsg, DateTime.UtcNow));
+                await _warningRepository.SaveAsync(new Warning(warningMsg, DateTime.UtcNow));
             }
 
             _log.Info("Finished checking for new assets.");
@@ -353,11 +354,12 @@ namespace Lykke.Service.CryptoIndex.Domain.Services
 
             // If just started and prices are not present yet, then skip.
             // If started more then {_waitForTopAssetsPricesFromStart} ago then write warning to DB and log.
-            if (!ArePricesPresentForAllAssets(topAssets, topUsingPrices))
+            var areAllPricesPresent = await ArePricesPresentForAllAssets(topAssets, topUsingPrices);
+            if (!areAllPricesPresent)
                 return;
 
             // Auto freeze
-            AutoFreezeIfNeeded(topAssets, topUsingPrices, lastIndex, settings);
+            await AutoFreezeIfNeeded(topAssets, topUsingPrices, lastIndex, settings);
 
             assetsSettings = Settings.AssetsSettings;
 
@@ -564,7 +566,7 @@ namespace Lykke.Service.CryptoIndex.Domain.Services
             return topAssetsUsedPrices;
         }
 
-        private void AutoFreezeIfNeeded(IReadOnlyCollection<string> topAssets,
+        private async Task AutoFreezeIfNeeded(IReadOnlyCollection<string> topAssets,
             IDictionary<string, decimal> topUsingPrices, IndexState lastIndex, Settings settings)
         {
             if (lastIndex == null || settings.AutoFreezeChangePercents == default(decimal))
@@ -595,7 +597,7 @@ namespace Lykke.Service.CryptoIndex.Domain.Services
                     {
                         var warningMsg = $"One time change more than {Math.Round(halfAutoFreezeChangePercents, 2)} percents for {asset}.";
                         _log.Warning(warningMsg);
-                        _warningRepository.SaveAsync(new Warning(warningMsg, DateTime.UtcNow));
+                        await _warningRepository.SaveAsync(new Warning(warningMsg, DateTime.UtcNow));
                     }
 
                     continue;
@@ -617,11 +619,11 @@ namespace Lykke.Service.CryptoIndex.Domain.Services
 
                 var message = $"Asset became frozen: {asset}.";
                 _log.Warning(message);
-                _warningRepository.SaveAsync(new Warning(message, DateTime.UtcNow));
+                await _warningRepository.SaveAsync(new Warning(message, DateTime.UtcNow));
             }
         }
 
-        private bool ArePricesPresentForAllAssets(IReadOnlyCollection<string> assets, IDictionary<string, decimal> assetsUsingPrices)
+        private async Task<bool> ArePricesPresentForAllAssets(IReadOnlyCollection<string> assets, IDictionary<string, decimal> assetsUsingPrices)
         {
             if (!assets.Any())
                 return true;
@@ -637,7 +639,7 @@ namespace Lykke.Service.CryptoIndex.Domain.Services
             {
                 var message = $"Some assets don't have prices: {assetsWoPrices.ToJson()}.";
                 _log.Warning(message);
-                _warningRepository.SaveAsync(new Warning(message, DateTime.UtcNow));
+                await _warningRepository.SaveAsync(new Warning(message, DateTime.UtcNow));
 
                 return false;
             }
