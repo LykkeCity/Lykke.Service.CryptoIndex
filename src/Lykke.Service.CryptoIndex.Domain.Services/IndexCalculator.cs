@@ -143,7 +143,7 @@ namespace Lykke.Service.CryptoIndex.Domain.Services
                 return _lastIndexHistory;
         }
 
-        public async Task CheckForNewAssets()
+        public async Task CheckForNewAssetsAsync()
         {
             _log.Info("Started checking for new assets...");
 
@@ -305,7 +305,7 @@ namespace Lykke.Service.CryptoIndex.Domain.Services
 
                     await RebuildTopAssets();
 
-                    await CheckForNewAssets();
+                    await CheckForNewAssetsAsync();
                 }
 
                 // Calculate new index

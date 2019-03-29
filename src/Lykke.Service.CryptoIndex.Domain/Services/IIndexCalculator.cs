@@ -17,6 +17,6 @@ namespace Lykke.Service.CryptoIndex.Domain.Services
 
         IndexHistory GetLastIndexHistory();
 
-        Task CheckForNewAssets();
+        Task CheckForNewAssetsAsync();
     }
 }
