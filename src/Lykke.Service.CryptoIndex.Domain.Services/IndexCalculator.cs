@@ -170,7 +170,7 @@ namespace Lykke.Service.CryptoIndex.Domain.Services
             var ignoredAssets = settings.IgnoredAssets.Select(x => x.Asset).ToList();
             whiteAndIgnoredAssets.AddRange(ignoredAssets);
 
-            var absentAssets = Utils.GetNewAssets(whiteAndIgnoredAssets, allMarketCaps, _log);
+            var absentAssets = Utils.GetNewAssets(whiteAndIgnoredAssets, allMarketCaps, settings.TopAssetsForAlert);
 
             if (absentAssets.Any())
             {

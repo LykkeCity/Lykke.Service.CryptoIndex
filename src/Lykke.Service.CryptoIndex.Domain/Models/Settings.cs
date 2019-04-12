@@ -19,7 +19,7 @@ namespace Lykke.Service.CryptoIndex.Domain.Models
         public IReadOnlyList<string> Assets { get; set; }
 
         /// <summary>
-        /// List of ignored assets
+        /// Assets excluded from Alert
         /// </summary>
         public IReadOnlyList<IgnoredAsset> IgnoredAssets { get; set; }
 
@@ -53,10 +53,15 @@ namespace Lykke.Service.CryptoIndex.Domain.Models
         /// </summary>
         public IReadOnlyList<string> CrossAssets { get; set; }
 
+        /// <summary>
+        /// Top ranked Assets for Alert
+        /// </summary>
+        public int TopAssetsForAlert { get; set; }
+
         /// <inheritdoc />
         public override string ToString()
         {
-            return $"{Sources?.Count}, {Assets?.Count}, {IgnoredAssets?.Count}, {AssetsSettings?.Count}, {TopCount}, enabled={Enabled}, {RebuildTime}, {AutoFreezeChangePercents}%, {CrossAssets?.Count}";
+            return $"{Sources?.Count}, {Assets?.Count}, {IgnoredAssets?.Count}, {AssetsSettings?.Count}, {TopCount}, {TopAssetsForAlert}, enabled={Enabled}, {RebuildTime}, {AutoFreezeChangePercents}%, {CrossAssets?.Count}";
         }
     }
 }
