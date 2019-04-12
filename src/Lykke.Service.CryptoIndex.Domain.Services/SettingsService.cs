@@ -44,9 +44,9 @@ namespace Lykke.Service.CryptoIndex.Domain.Services
             }
 
             // default values
-            if (!Settings.CrossAssets.Any())
+            if (Settings.TopAssetsForAlert == 0)
             {
-                Settings.CrossAssets = new List<string> {"BTC", "ETH"};
+                Settings.TopAssetsForAlert = 50;
                 await SetAsync(Settings);
             }
 
