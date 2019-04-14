@@ -170,11 +170,11 @@ namespace Lykke.Service.CryptoIndex.Domain.Services
             var ignoredAssets = settings.IgnoredAssets.Select(x => x.Asset).ToList();
             whiteAndIgnoredAssets.AddRange(ignoredAssets);
 
-            var absentAssets = Utils.GetNewAssets(whiteAndIgnoredAssets, allMarketCaps, _log);
+            var absentAssets = Utils.GetNewAssets(whiteAndIgnoredAssets, allMarketCaps, settings.TopAssetsForAlert);
 
             if (absentAssets.Any())
             {
-                var warningMsg = $"New top assets are not in the settings: {string.Join(", ", absentAssets)}.";
+                var warningMsg = $"Alert - New coins reaching top {settings.TopAssetsForAlert}: {string.Join(", ", absentAssets)}.";
                 _log.Warning(warningMsg);
                 await _warningRepository.SaveAsync(new Warning(warningMsg, DateTime.UtcNow));
             }

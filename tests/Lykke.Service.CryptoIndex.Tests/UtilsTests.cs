@@ -141,17 +141,17 @@ namespace Lykke.Service.CryptoIndex.Tests
             var whiteAndIgnoredAssets = whiteList.ToList();
             whiteAndIgnoredAssets.AddRange(ignored);
 
-            var realAbsentAsset = new List<string> { "XLM", "ADA" };
-
             var allMarketCapAssets = new List<string> { "BTC", "ETH", "EOS", "LTC", "BCH", "BNB", "USDT", "XLM", "ADA", "TRX", "BSV" };
 
             var allMarketCaps = allMarketCapAssets.Select(x => new AssetMarketCap(x, new MarketCap(0, "USD"), 0)).ToList();
 
             // act
 
-            var absentAssets = Utils.GetNewAssets(whiteAndIgnoredAssets, allMarketCaps, LogFactory.Create().CreateLog(this));
+            var absentAssets = Utils.GetNewAssets(whiteAndIgnoredAssets, allMarketCaps, 8);
 
             // assert
+
+            var realAbsentAsset = new List<string> { "XLM" };
 
             Assert.Equal(realAbsentAsset, absentAssets);
         }
