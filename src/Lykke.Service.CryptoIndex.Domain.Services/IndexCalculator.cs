@@ -174,7 +174,7 @@ namespace Lykke.Service.CryptoIndex.Domain.Services
 
             if (absentAssets.Any())
             {
-                var warningMsg = $"New top assets are not in the settings: {string.Join(", ", absentAssets)}.";
+                var warningMsg = $"Alert - New coins reaching top {settings.TopAssetsForAlert}: {string.Join(", ", absentAssets)}.";
                 _log.Warning(warningMsg);
                 await _warningRepository.SaveAsync(new Warning(warningMsg, DateTime.UtcNow));
             }
