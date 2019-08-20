@@ -12,6 +12,9 @@ CryptoIndexService:
     IndexName:
         settings-key: CryptoIndexService-IndexName
 
+    ShortIndexName:
+        settings-key: CryptoIndexService-ShortIndexName
+
     CoinMarketCapApiKey:
         settings-key: CryptoIndexService-CoinMarketCapApiKey
 
