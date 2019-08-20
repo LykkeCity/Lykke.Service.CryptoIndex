@@ -133,6 +133,7 @@ namespace Lykke.Service.CryptoIndex.Modules
                 .As<IStartable>()
                 .As<IStopable>()
                 .WithParameter("indexName", _settings.IndexName)
+                .WithParameter("shortIndexName", _settings.ShortIndexName)
                 .WithParameter("indexCalculationInterval", _settings.IndexCalculationInterval)
                 .SingleInstance();
 

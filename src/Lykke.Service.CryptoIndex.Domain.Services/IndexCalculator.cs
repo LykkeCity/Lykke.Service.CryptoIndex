@@ -21,6 +21,7 @@ namespace Lykke.Service.CryptoIndex.Domain.Services
         private const string RabbitMqSource = "LCI";
         private const decimal InitialIndexValue = 1000m;
         private readonly string _indexName;
+        private readonly string _shortIndexName;
 
         private readonly object _sync = new object();
         private readonly List<AssetMarketCap> _allMarketCaps;
@@ -51,7 +52,8 @@ namespace Lykke.Service.CryptoIndex.Domain.Services
         private Settings Settings => _settingsService.GetAsync().GetAwaiter().GetResult();
         private IndexState State => _indexStateRepository.GetAsync().GetAwaiter().GetResult();
 
-        public IndexCalculator(string indexName, 
+        public IndexCalculator(string indexName,
+            string shortIndexName,
             TimeSpan indexCalculationInterval,
             ISettingsService settingsService,
             IIndexStateRepository indexStateRepository,
@@ -70,6 +72,7 @@ namespace Lykke.Service.CryptoIndex.Domain.Services
             _lastTopAssetMarketCaps = new ConcurrentDictionary<string, decimal>();
 
             _indexName = indexName;
+            _shortIndexName = shortIndexName;
             _trigger = new TimerTrigger(nameof(IndexCalculator), indexCalculationInterval, logFactory, TimerHandlerAsync);
 
             _settingsService = settingsService;
@@ -352,8 +355,7 @@ namespace Lykke.Service.CryptoIndex.Domain.Services
             var assetsSettings = settings.AssetsSettings;
             var topUsingPrices = GetAssetsUsingPrices(topAssets, assetPrices, assetsSettings);
 
-            // If just started and prices are not present yet, then skip.
-            // If started more then {_waitForTopAssetsPricesFromStart} ago then write warning to DB and log.
+            // If prices are not present yet, then write warning to DB and log.
             var areAllPricesPresent = await ArePricesPresentForAllAssets(topAssets, topUsingPrices);
             if (!areAllPricesPresent)
                 return;
@@ -480,6 +482,10 @@ namespace Lykke.Service.CryptoIndex.Domain.Services
 
             // Publish index to RabbitMq
             var tickPrice = new Contract.IndexTickPrice(RabbitMqSource, _indexName.ToUpper(), indexHistory.Value, indexHistory.Value, indexHistory.Time, assetsInfo);
+            _tickPricePublisher.Publish(tickPrice);
+
+            // Publish short index
+            tickPrice.AssetPair = _shortIndexName.ToUpper();
             _tickPricePublisher.Publish(tickPrice);
         }
 
