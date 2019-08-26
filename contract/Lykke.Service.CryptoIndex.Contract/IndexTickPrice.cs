@@ -21,6 +21,11 @@ namespace Lykke.Service.CryptoIndex.Contract
         public string AssetPair { get; set; }
 
         /// <summary>
+        /// Name of the short index.
+        /// </summary>
+        public string ShortIndexName { get; set; }
+
+        /// <summary>
         /// Price of the index (equals to <see cref="Ask"/>).
         /// </summary>
         public decimal? Bid { get; set; }
@@ -46,10 +51,11 @@ namespace Lykke.Service.CryptoIndex.Contract
         }
 
         /// <inheritdoc />
-        public IndexTickPrice(string source, string assetPair, decimal? bid, decimal? ask, DateTime timestamp, IReadOnlyCollection<AssetInfo> assetsInfo)
+        public IndexTickPrice(string source, string assetPair, string shortIndexName, decimal? bid, decimal? ask, DateTime timestamp, IReadOnlyCollection<AssetInfo> assetsInfo)
         {
             Source = source;
             AssetPair = assetPair;
+            ShortIndexName = shortIndexName;
             Bid = bid;
             Ask = ask;
             Timestamp = timestamp;

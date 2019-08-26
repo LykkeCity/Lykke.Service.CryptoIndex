@@ -22,6 +22,7 @@ namespace Lykke.Service.CryptoIndex.Domain.Services
         private const decimal InitialIndexValue = 1000m;
         private readonly string _indexName;
         private readonly string _shortIndexName;
+        private readonly bool _isShortIndexEnabled;
 
         private readonly object _sync = new object();
         private readonly List<AssetMarketCap> _allMarketCaps;
@@ -54,6 +55,7 @@ namespace Lykke.Service.CryptoIndex.Domain.Services
 
         public IndexCalculator(string indexName,
             string shortIndexName,
+            bool isShortIndexEnabled,
             TimeSpan indexCalculationInterval,
             ISettingsService settingsService,
             IIndexStateRepository indexStateRepository,
@@ -73,6 +75,7 @@ namespace Lykke.Service.CryptoIndex.Domain.Services
 
             _indexName = indexName;
             _shortIndexName = shortIndexName;
+            _isShortIndexEnabled = isShortIndexEnabled;
             _trigger = new TimerTrigger(nameof(IndexCalculator), indexCalculationInterval, logFactory, TimerHandlerAsync);
 
             _settingsService = settingsService;
@@ -481,11 +484,14 @@ namespace Lykke.Service.CryptoIndex.Domain.Services
             }
 
             // Publish index to RabbitMq
-            var tickPrice = new Contract.IndexTickPrice(RabbitMqSource, _indexName.ToUpper(), indexHistory.Value, indexHistory.Value, indexHistory.Time, assetsInfo);
-            _tickPricePublisher.Publish(tickPrice);
-
-            // Publish short index
-            tickPrice.AssetPair = _shortIndexName.ToUpper();
+            var tickPrice = new Contract.IndexTickPrice(
+                RabbitMqSource,
+                _indexName.ToUpper(),
+                _isShortIndexEnabled ? _shortIndexName : "", // if short is disabled in setting then don't publish short name and IHE will not take it
+                indexHistory.Value,
+                indexHistory.Value,
+                indexHistory.Time,
+                assetsInfo);
             _tickPricePublisher.Publish(tickPrice);
         }
 

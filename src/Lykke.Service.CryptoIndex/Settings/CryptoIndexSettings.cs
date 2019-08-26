@@ -12,6 +12,8 @@ namespace Lykke.Service.CryptoIndex.Settings
 
         public string ShortIndexName { get; set; }
 
+        public bool IsShortIndexEnabled { get; set; }
+
         public TimeSpan IndexCalculationInterval { get; set; }
 
         public DbSettings Db { get; set; }
