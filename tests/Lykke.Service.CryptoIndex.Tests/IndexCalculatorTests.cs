@@ -287,6 +287,7 @@ namespace Lykke.Service.CryptoIndex.Tests
             _indexCalculator = new IndexCalculator(
                 LyCi,
                 ShortLyCi,
+                true,
                 _timerInterval,
                 _settingsService,
                 _indexStateRepository,
