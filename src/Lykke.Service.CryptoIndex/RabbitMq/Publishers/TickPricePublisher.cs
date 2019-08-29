@@ -37,6 +37,7 @@ namespace Lykke.Service.CryptoIndex.RabbitMq.Publishers
             {
                 Source = tickPrice.Source,
                 AssetPair = tickPrice.AssetPair,
+                ShortIndexName = tickPrice.ShortIndexName,
                 Ask = tickPrice.Ask ?? 0,
                 Bid = tickPrice.Bid ?? 0,
                 Timestamp = tickPrice.Timestamp,
