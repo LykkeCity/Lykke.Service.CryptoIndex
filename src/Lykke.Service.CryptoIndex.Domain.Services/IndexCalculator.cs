@@ -487,7 +487,7 @@ namespace Lykke.Service.CryptoIndex.Domain.Services
             var tickPrice = new Contract.IndexTickPrice(
                 RabbitMqSource,
                 _indexName.ToUpper(),
-                _isShortIndexEnabled ? _shortIndexName.ToUpper() : "", // if short is disabled in setting then don't publish short name and IHE will not take it
+                _isShortIndexEnabled ? _shortIndexName.ToUpper() : "", // if short is disabled in setting then don't publish short name and IHE will skip it
                 indexHistory.Value,
                 indexHistory.Value,
                 indexHistory.Time,
