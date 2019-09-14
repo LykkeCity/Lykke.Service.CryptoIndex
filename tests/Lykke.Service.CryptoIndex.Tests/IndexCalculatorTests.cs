@@ -22,6 +22,7 @@ namespace Lykke.Service.CryptoIndex.Tests
 
         // for publishing
         private const string LyCi = "LyCI";
+        private const string ShortLyCi = "ShortLyCI";
 
         // calculation interval
         private readonly TimeSpan _timerInterval = TimeSpan.FromSeconds(1);
@@ -285,6 +286,8 @@ namespace Lykke.Service.CryptoIndex.Tests
             
             _indexCalculator = new IndexCalculator(
                 LyCi,
+                ShortLyCi,
+                true,
                 _timerInterval,
                 _settingsService,
                 _indexStateRepository,
