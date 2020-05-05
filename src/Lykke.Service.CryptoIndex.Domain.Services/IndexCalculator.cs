@@ -216,13 +216,36 @@ namespace Lykke.Service.CryptoIndex.Domain.Services
 
         private async Task RefreshCoinMarketCapDataAsync()
         {
-            _log.Info("Requesting CoinMarketCap data....");
+            _log.Info("Requesting CoinMarketCap data...");
 
             IReadOnlyList<AssetMarketCap> allMarketCaps;
             try
             {
                 // Get top 100 market caps
                 allMarketCaps = await _coinMarketCapService.GetAllAsync();
+
+                _log.Info("CoinMarketCap data was successfully received.", allMarketCaps.ToJson());
+
+                // Checking that all white list assets were received from CoinMarketCap
+                var settings = Settings;
+                foreach (var asset in settings.Assets)
+                {
+                    var assetInfo = allMarketCaps.Where(x => x.Asset == asset).ToList();
+
+                    if (assetInfo.Count == 0)
+                    {
+                        _log.Warning("Asset wasn't found in CoinMarketCap data.", asset);
+                        _log.Info("Stopped updating CoinMarketCap data.");
+                        return;
+                    }
+
+                    if (assetInfo.Count > 1)
+                    {
+                        _log.Warning("Two assets with the same name in CoinMarketCap data.", asset);
+                        _log.Info("Stopped updating CoinMarketCap data.");
+                        return;
+                    }
+                }
             }
             catch (Exception e)
             {
@@ -237,12 +260,12 @@ namespace Lykke.Service.CryptoIndex.Domain.Services
                 _allMarketCaps.AddRange(allMarketCaps);
             }
 
-            _log.Info("Finished requesting CoinMarketCap data....");
+            _log.Info("Finished requesting CoinMarketCap data...");
         }
 
         private async Task RebuildTopAssets()
         {
-            _log.Info("Rebuild top asset....");
+            _log.Info("Rebuild top asset...");
 
             var settings = Settings;
 
@@ -253,7 +276,24 @@ namespace Lykke.Service.CryptoIndex.Domain.Services
 
             // Get white list supplies
             var whiteListSupplies = new Dictionary<string, decimal>();
-            settings.Assets.ForEach(x => whiteListSupplies.Add(x, allMarketCaps.Single(mk => mk.Asset == x).CirculatingSupply));
+
+            foreach (var asset in settings.Assets)
+            {
+                decimal assetCirculatingSupply;
+
+                try
+                {
+                    assetCirculatingSupply = allMarketCaps.Single(mk => mk.Asset == asset).CirculatingSupply;
+                }
+                catch (InvalidOperationException e)
+                {
+                    _log.Warning("Can't find asset in CoinMarketCap data.", e, asset);
+
+                    return;
+                }
+
+                whiteListSupplies.Add(asset, assetCirculatingSupply);
+            }
 
             // Get white list prices
             var sources = settings.Sources.ToList();
