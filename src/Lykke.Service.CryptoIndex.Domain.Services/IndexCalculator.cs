@@ -279,20 +279,17 @@ namespace Lykke.Service.CryptoIndex.Domain.Services
 
             foreach (var asset in settings.Assets)
             {
-                decimal assetCirculatingSupply;
-
                 try
                 {
-                    assetCirculatingSupply = allMarketCaps.Single(mk => mk.Asset == asset).CirculatingSupply;
+                    var assetCirculatingSupply = allMarketCaps.Single(mk => mk.Asset == asset).CirculatingSupply;
+
+                    whiteListSupplies.Add(asset, assetCirculatingSupply);
                 }
                 catch (InvalidOperationException e)
                 {
                     _log.Warning("Can't find asset in CoinMarketCap data.", e, asset);
-
                     return;
                 }
-
-                whiteListSupplies.Add(asset, assetCirculatingSupply);
             }
 
             // Get white list prices
