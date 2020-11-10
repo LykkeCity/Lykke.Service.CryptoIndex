@@ -253,7 +253,8 @@ namespace Lykke.Service.CryptoIndex.Domain.Services
 
             // Get white list supplies
             var whiteListSupplies = new Dictionary<string, decimal>();
-            settings.Assets.ForEach(x => whiteListSupplies.Add(x, allMarketCaps.Single(mk => mk.Asset == x).CirculatingSupply));
+
+            settings.Assets.ForEach(x => whiteListSupplies.Add(x, GetCirculatingSupply(allMarketCaps, x)));
 
             // Get white list prices
             var sources = settings.Sources.ToList();
@@ -289,6 +290,24 @@ namespace Lykke.Service.CryptoIndex.Domain.Services
 
                 _log.Info($"Finished rebuilding top assets, count - {_topAssets.Count}.");
             }
+        }
+
+        private decimal GetCirculatingSupply(List<AssetMarketCap> allMarketCaps, string assetSymbol)
+        {
+            decimal result;
+
+            try
+            {
+                result = allMarketCaps.Single(mk => mk.Asset == assetSymbol).CirculatingSupply;
+            }
+            catch (Exception e)
+            {
+                _log.Error(e, $"Couldn't find circulating supply for '{assetSymbol}'.");
+
+                throw e;
+            }
+
+            return result;
         }
 
         private async Task TimerHandlerAsync(ITimerTrigger timer, TimerTriggeredHandlerArgs args, CancellationToken ct)
